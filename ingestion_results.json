@@ -1,0 +1,146 @@
+[
+  {
+    "success": true,
+    "document_name": "73d10dfb-08b5-4d20-941b-7f490ffee267",
+    "total_pages": 6,
+    "total_chunks": 57,
+    "total_chars": 13917,
+    "total_words": 2437,
+    "records_inserted": 57
+  },
+  {
+    "success": true,
+    "document_name": "57176a84-33b5-459e-b25b-3bb333ce0c1d",
+    "total_pages": 21,
+    "total_chunks": 49,
+    "total_chars": 183260,
+    "total_words": 2135,
+    "records_inserted": 49
+  },
+  {
+    "success": true,
+    "document_name": "973617fa-cbe9-40f1-be7b-ce2c98aee91b",
+    "total_pages": 21,
+    "total_chunks": 48,
+    "total_chars": 11937,
+    "total_words": 2202,
+    "records_inserted": 48
+  },
+  {
+    "success": true,
+    "document_name": "8d3f426f-b617-472d-bf8c-a3eb25a5b314",
+    "total_pages": 89,
+    "total_chunks": 191,
+    "total_chars": 46714,
+    "total_words": 8509,
+    "records_inserted": 191
+  },
+  {
+    "success": true,
+    "document_name": "9cc34e6e-1a1a-443c-8d63-6d2a92d28ba9",
+    "total_pages": 66,
+    "total_chunks": 128,
+    "total_chars": 30564,
+    "total_words": 5400,
+    "records_inserted": 128
+  },
+  {
+    "success": true,
+    "document_name": "39f0d0da-9aae-4b46-9d9c-3d7691522073",
+    "total_pages": 6,
+    "total_chunks": 40,
+    "total_chars": 10633,
+    "total_words": 1859,
+    "records_inserted": 40
+  },
+  {
+    "success": true,
+    "document_name": "cb9e55e0-f14d-42e8-94d3-7c6cfabec786",
+    "total_pages": 11,
+    "total_chunks": 77,
+    "total_chars": 19718,
+    "total_words": 3285,
+    "records_inserted": 77
+  },
+  {
+    "success": true,
+    "document_name": "af279b70-5a29-4d56-99ce-f32644091077",
+    "total_pages": 2,
+    "total_chunks": 18,
+    "total_chars": 4661,
+    "total_words": 854,
+    "records_inserted": 18
+  },
+  {
+    "success": true,
+    "document_name": "b4057609-592f-42c4-9235-44c9961ea1c1",
+    "total_pages": 3,
+    "total_chunks": 35,
+    "total_chars": 8596,
+    "total_words": 1559,
+    "records_inserted": 35
+  },
+  {
+    "success": true,
+    "document_name": "34616a30-1615-4fe7-94ac-f92bcedc7e6e",
+    "total_pages": 2,
+    "total_chunks": 18,
+    "total_chars": 4661,
+    "total_words": 854,
+    "records_inserted": 18
+  },
+  {
+    "success": true,
+    "document_name": "1193856b-495b-4ce3-b796-33e7548e739c",
+    "total_pages": 96,
+    "total_chunks": 207,
+    "total_chars": 50142,
+    "total_words": 9060,
+    "records_inserted": 207
+  },
+  {
+    "success": true,
+    "document_name": "201ef627-a780-4c35-b9fc-39ce3d7f3c25",
+    "total_pages": 2,
+    "total_chunks": 14,
+    "total_chars": 3095,
+    "total_words": 540,
+    "records_inserted": 14
+  },
+  {
+    "success": true,
+    "document_name": "e48fc8da-0a73-411c-a0f4-13ef4966ceab",
+    "total_pages": 3,
+    "total_chunks": 35,
+    "total_chars": 8616,
+    "total_words": 1559,
+    "records_inserted": 35
+  },
+  {
+    "success": true,
+    "document_name": "257604d4-f6f4-46f0-ab88-ae809f059791",
+    "total_pages": 55,
+    "total_chunks": 421,
+    "total_chars": 177594,
+    "total_words": 19066,
+    "records_inserted": 421
+  },
+  {
+    "success": true,
+    "document_name": "f0cbbdd6-d1f6-4a5c-9aa9-b73813fb707b",
+    "total_pages": 19,
+    "total_chunks": 40,
+    "total_chars": 9471,
+    "total_words": 1736,
+    "records_inserted": 40
+  },
+  {
+    "success": true,
+    "document_name": "21ca2253-0ab0-43b8-b2c6-2de58eb6294e",
+    "total_pages": 4,
+    "total_chunks": 37,
+    "total_chars": 8980,
+    "total_words": 1734,
+    "records_inserted": 37
+  }
+]

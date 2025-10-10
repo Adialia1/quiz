@@ -1,0 +1,51 @@
+# Core Framework
+langchain
+langchain-community
+langgraph
+langsmith
+
+# Vector Database
+supabase==2.22.0
+
+# Embeddings & Semantic Chunking
+semantic-chunkers==0.1.1
+semantic-router
+sentence-transformers
+transformers
+torch
+
+# OCR & PDF Processing
+pdf2image==1.17.0
+Pillow==11.1.0
+openai==1.59.8  # For OpenRouter API
+
+# LLM Providers
+anthropic==0.42.0  # For Claude (optional)
+
+# Web Framework (for future API)
+fastapi==0.115.6
+uvicorn==0.34.0
+pydantic==2.10.5
+pydantic-settings==2.7.0
+
+# Database
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.37
+alembic==1.14.1
+
+# Utilities
+python-dotenv==1.0.1
+numpy==2.2.3
+pandas==2.2.3
+python-dateutil==2.9.0
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx==0.28.1
+
+# Monitoring (optional)
+sentry-sdk==2.20.0
+
+# AWS (for parallel processing)
+boto3==1.35.96
