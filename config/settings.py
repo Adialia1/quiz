@@ -14,7 +14,6 @@ LEGAL_DOCS_DIR = BASE_DIR / "legal_documents"
 EXAM_QUESTIONS_DIR = BASE_DIR / "exam_questions"
 
 # API Keys
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Supabase Configuration
