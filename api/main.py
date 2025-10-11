@@ -16,9 +16,9 @@ import os
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from agents.legal_expert import LegalExpertAgent
-from agents.quiz_generator import QuizGeneratorAgent
-from scripts.quiz_to_pdf import create_quiz_pdf_html
+from agent.agents.legal_expert import LegalExpertAgent
+from agent.agents.quiz_generator import QuizGeneratorAgent
+from agent.scripts.quiz_to_pdf import create_quiz_pdf_html
 
 # Initialize FastAPI app
 app = FastAPI(
