@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "Quiz Generator & Legal Expert API",
+    "description": "Collection of API endpoints for quiz generation and legal questions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Check API health and agent status"
+      }
+    },
+    {
+      "name": "Legal Expert - Ask Question",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"מהו מידע פנים לפי חוק ניירות ערך?\",\n  \"show_sources\": true,\n  \"k\": 10\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/legal/ask",
+          "host": ["{{base_url}}"],
+          "path": ["api", "legal", "ask"]
+        },
+        "description": "Ask a legal question with RAG support"
+      }
+    },
+    {
+      "name": "Legal Expert - Ask Question (GET)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/legal/ask-simple?question=מהו מידע פנים?&show_sources=true&k=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "legal", "ask-simple"],
+          "query": [
+            {
+              "key": "question",
+              "value": "מהו מידע פנים?"
+            },
+            {
+              "key": "show_sources",
+              "value": "true"
+            },
+            {
+              "key": "k",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Simplified GET endpoint for legal questions"
+      }
+    },
+    {
+      "name": "Generate Questions - Mixed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"count\": 5,\n  \"topic\": \"מידע פנים\",\n  \"difficulty\": \"medium\",\n  \"question_type\": \"mixed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "generate"]
+        },
+        "description": "Generate questions with mixed type (70-80% story, 20-30% basic)"
+      }
+    },
+    {
+      "name": "Generate Questions - Story Only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"count\": 10,\n  \"topic\": \"חובות גילוי\",\n  \"difficulty\": \"hard\",\n  \"question_type\": \"story\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "generate"]
+        },
+        "description": "Generate story-based scenario questions only"
+      }
+    },
+    {
+      "name": "Generate Questions - Basic Only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"count\": 10,\n  \"difficulty\": \"easy\",\n  \"question_type\": \"basic\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "generate"]
+        },
+        "description": "Generate basic definition/understanding questions only"
+      }
+    },
+    {
+      "name": "Generate Full Quiz - JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quiz_count\": 1,\n  \"focus_areas\": [\"מידע פנים\", \"חובות גילוי\"],\n  \"difficulty\": \"medium\",\n  \"format\": \"json\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/quiz/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "quiz", "generate"]
+        },
+        "description": "Generate full quiz with 25 questions in JSON format"
+      }
+    },
+    {
+      "name": "Generate Full Quiz - PDF",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quiz_count\": 1,\n  \"difficulty\": \"hard\",\n  \"format\": \"pdf\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/quiz/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "quiz", "generate"]
+        },
+        "description": "Generate full quiz with 25 questions as PDF download"
+      }
+    },
+    {
+      "name": "Generate Multiple Quizzes",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quiz_count\": 3,\n  \"focus_areas\": [\"מידע פנים\", \"מניפולציה\"],\n  \"difficulty\": \"medium\",\n  \"format\": \"json\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/quiz/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "quiz", "generate"]
+        },
+        "description": "Generate multiple quizzes (25 questions each) in JSON format"
+      }
+    }
+  ]
+}
