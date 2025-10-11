@@ -40,7 +40,7 @@ GEMINI_TEMPERATURE = 0.0  # Deterministic for OCR
 #Thinking Configuration
 THINKING_MODEL = "google/gemini-2.5-pro"
 THINKING_MAX_TOKENS = 10000
-THINKING_TEMPERATURE = 0.5
+THINKING_TEMPERATURE = 0.2
 
 # Chunking Configuration
 CHUNK_METHOD = "statistical"  # statistical or consecutive

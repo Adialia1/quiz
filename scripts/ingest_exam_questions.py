@@ -1,13 +1,19 @@
 """
 Exam Question Ingestion Pipeline
-Parse JSON/CSV → Embeddings → Supabase
+Parse PDF/JSON → Embeddings → Supabase
 
 Usage:
+    # PDF file with exam questions
+    python scripts/ingest_exam_questions.py exam.pdf --type pdf --topic "Securities Law"
+
     # JSON file
-    python scripts/ingest_exam_questions.py questions.json
+    python scripts/ingest_exam_questions.py questions.json --type json
+
+    # Directory of PDFs
+    python scripts/ingest_exam_questions.py exam_pdfs/ --type pdf --topic "Legal Ethics"
 
     # Multiple files
-    python scripts/ingest_exam_questions.py examples/legal*.json
+    python scripts/ingest_exam_questions.py examples/legal*.json --type json
 
 Expected JSON format:
 [
@@ -27,6 +33,10 @@ Expected JSON format:
     "legal_reference": "חוק ניירות ערך, סעיף 52(א)"
   }
 ]
+
+PDF format:
+- Questions with 5 options (A-E)
+- Answer key table at the end of the PDF
 """
 import sys
 import json
@@ -40,6 +50,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from supabase import create_client
 from config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY, validate_config
 from ingestion.semantic_chunking import SemanticChunker
+from ingestion.llm_exam_parser import LLMExamParser
 
 class ExamQuestionIngestion:
     """Pipeline for ingesting exam questions into Supabase"""
@@ -51,6 +62,7 @@ class ExamQuestionIngestion:
 
         self.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
         self.chunker = SemanticChunker()
+        self.parser = LLMExamParser()
 
         print("✅ Pipeline ready\n")
 
@@ -71,6 +83,52 @@ class ExamQuestionIngestion:
 
         print(f"✅ Loaded {len(questions)} questions")
         return questions
+
+    def load_questions_from_pdf(
+        self,
+        pdf_path: str,
+        topic: str = None,
+        difficulty: str = None,
+        use_llm_validation: bool = True
+    ) -> List[Dict]:
+        """Load questions from PDF file using ExamParser"""
+        print(f"📄 Parsing PDF exam: {pdf_path}")
+
+        # Parse PDF with optional LLM validation
+        valid_questions, validation_report = self.parser.extract_and_validate(
+            pdf_path,
+            use_llm_validation=use_llm_validation
+        )
+
+        if not valid_questions:
+            print(f"⚠️  No valid questions extracted from PDF")
+            print(f"   Validation report: {validation_report}")
+            return []
+
+        # Convert to the expected format
+        formatted_questions = []
+
+        for q in valid_questions:
+            # LLM parser already returns in correct format
+            question_dict = {
+                'question': q.get('question_text', ''),
+                'options': q.get('options', {}),
+                'correct_answer': q.get('correct_answer', ''),
+                'topic': topic,
+                'difficulty': difficulty or 'medium',
+                'source': Path(pdf_path).name,
+                'metadata': {
+                    'page_number': q.get('page_number'),
+                    'question_number': q.get('question_number'),
+                    'semantic_validation': q.get('semantic_validation', {})
+                }
+            }
+            formatted_questions.append(question_dict)
+
+        print(f"✅ Extracted {len(formatted_questions)} questions from PDF")
+        print(f"   Success rate: {validation_report.get('success_rate', 0):.1%}")
+
+        return formatted_questions
 
     def validate_question(self, q: Dict, index: int) -> bool:
         """Validate question structure"""
@@ -283,8 +341,13 @@ class ExamQuestionIngestion:
 
 def main():
     parser = argparse.ArgumentParser(description='Ingest exam questions into Supabase')
-    parser.add_argument('paths', nargs='*', help='JSON file(s) with questions')
+    parser.add_argument('paths', nargs='*', help='PDF or JSON file(s) with questions')
+    parser.add_argument('--type', choices=['pdf', 'json'], default='json', help='Input file type')
+    parser.add_argument('--topic', help='Topic/subject for the questions')
+    parser.add_argument('--difficulty', choices=['easy', 'medium', 'hard'], help='Difficulty level')
     parser.add_argument('--stats', action='store_true', help='Show database statistics')
+    parser.add_argument('--dry-run', action='store_true', help='Parse without inserting to database')
+    parser.add_argument('--no-llm-validation', action='store_true', help='Skip LLM validation (faster but less accurate)')
 
     args = parser.parse_args()
 
@@ -297,28 +360,84 @@ def main():
 
     if not args.paths:
         print("❌ No input files specified")
-        print("Usage: python scripts/ingest_exam_questions.py questions.json")
+        print("Usage:")
+        print("  PDF:  python scripts/ingest_exam_questions.py exam.pdf --type pdf --topic 'Legal Ethics'")
+        print("  JSON: python scripts/ingest_exam_questions.py questions.json --type json")
         sys.exit(1)
 
-    # Collect all JSON files
-    json_paths = []
-    for path_str in args.paths:
-        path = Path(path_str)
-
-        if path.is_file() and path.suffix.lower() == '.json':
-            json_paths.append(str(path))
-        elif '*' in path_str:
-            json_paths.extend([str(p) for p in Path('.').glob(path_str)])
-
-    if not json_paths:
-        print("❌ No JSON files found")
-        sys.exit(1)
-
-    # Process all files
+    # Process based on type
     all_questions = []
-    for json_path in json_paths:
-        questions = pipeline.load_questions_from_json(json_path)
-        all_questions.extend(questions)
+
+    if args.type == 'pdf':
+        # Process PDF files
+        for path_str in args.paths:
+            path = Path(path_str)
+
+            if path.is_file() and path.suffix.lower() == '.pdf':
+                questions = pipeline.load_questions_from_pdf(
+                    str(path),
+                    topic=args.topic,
+                    difficulty=args.difficulty,
+                    use_llm_validation=not args.no_llm_validation
+                )
+                all_questions.extend(questions)
+
+            elif path.is_dir():
+                # Process all PDFs in directory
+                pdf_files = list(path.glob("*.pdf"))
+                print(f"📂 Found {len(pdf_files)} PDF files in {path}")
+
+                for pdf_file in pdf_files:
+                    questions = pipeline.load_questions_from_pdf(
+                        str(pdf_file),
+                        topic=args.topic,
+                        difficulty=args.difficulty,
+                        use_llm_validation=not args.no_llm_validation
+                    )
+                    all_questions.extend(questions)
+
+    else:  # json
+        # Collect all JSON files
+        json_paths = []
+        for path_str in args.paths:
+            path = Path(path_str)
+
+            if path.is_file() and path.suffix.lower() == '.json':
+                json_paths.append(str(path))
+            elif '*' in path_str:
+                json_paths.extend([str(p) for p in Path('.').glob(path_str)])
+
+        if not json_paths:
+            print("❌ No JSON files found")
+            sys.exit(1)
+
+        # Process all files
+        for json_path in json_paths:
+            questions = pipeline.load_questions_from_json(json_path)
+            # Apply topic/difficulty if provided
+            if args.topic or args.difficulty:
+                for q in questions:
+                    if args.topic and not q.get('topic'):
+                        q['topic'] = args.topic
+                    if args.difficulty and not q.get('difficulty'):
+                        q['difficulty'] = args.difficulty
+            all_questions.extend(questions)
+
+    if not all_questions:
+        print("❌ No questions extracted")
+        sys.exit(1)
+
+    # Dry run mode
+    if args.dry_run:
+        print("\n" + "="*70)
+        print("🔍 DRY RUN MODE - Not inserting to database")
+        print("="*70)
+        print(f"✅ Extracted {len(all_questions)} questions")
+
+        if all_questions:
+            print("\n📝 Sample question:")
+            print(json.dumps(all_questions[0], ensure_ascii=False, indent=2))
+        return
 
     # Ingest
     result = pipeline.ingest_questions(all_questions)
@@ -330,7 +449,7 @@ def main():
 
     if result.get('success'):
         print(f"✅ Inserted: {result['inserted']} questions")
-        print(f"✅ Files processed: {len(json_paths)}")
+        print(f"✅ Total processed: {len(all_questions)}")
 
         # Show updated stats
         pipeline.print_stats()

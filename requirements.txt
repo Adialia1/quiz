@@ -38,6 +38,7 @@ python-dotenv==1.0.1
 numpy==2.2.3
 pandas==2.2.3
 python-dateutil==2.9.0
+rich>=14.0.0  # For interactive CLI tools
 
 # Testing
 pytest==8.3.4
