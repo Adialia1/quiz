@@ -153,3 +153,152 @@ class LegalExpertAgent(RAGAgent):
                         pass
 
         return sources
+
+    def enrich_exam_question(
+        self,
+        question_text: str,
+        options: Dict[str, str],
+        correct_answer: str
+    ) -> Dict[str, Any]:
+        """
+        Enrich exam question with explanation, topic, difficulty, and legal references
+
+        Args:
+            question_text: The question text
+            options: Dict of options (A-E)
+            correct_answer: The correct answer (A-E)
+
+        Returns:
+            Dict with:
+                - explanation: str - Detailed explanation
+                - topic: str - Main topic/subject
+                - difficulty: str - easy/medium/hard
+                - legal_reference: str - Relevant law citations
+        """
+        # Format question for analysis
+        formatted_question = f"""שאלת מבחן בנושא ניירות ערך ואתיקה:
+
+**שאלה:**
+{question_text}
+
+**אפשרויות:**
+א. {options.get('A', '')}
+ב. {options.get('B', '')}
+ג. {options.get('C', '')}
+ד. {options.get('D', '')}
+ה. {options.get('E', '')}
+
+**תשובה נכונה:** {correct_answer}"""
+
+        # Build enrichment query
+        enrichment_query = f"""{formatted_question}
+
+בהתבסס על השאלה והתשובה הנכונה, אנא ספק את המידע הבא:
+
+1. **הסבר מפורט** - הסבר מדוע התשובה הנכונה היא נכונה, והסבר את הרקע המשפטי
+2. **נושא עיקרי** - מהו הנושא/תחום המשפטי העיקרי של השאלה (למשל: "מידע פנים", "איסור מניפולציה", "חובות גילוי")
+3. **רמת קושי** - האם השאלה קלה (easy), בינונית (medium), או קשה (hard)
+4. **הפניה חוקית** - ציין את הסעיפים הרלוונטיים בחוק ניירות ערך או תקנות רלוונטיות
+
+החזר בפורמט JSON:
+```json
+{{
+  "explanation": "הסבר מפורט כאן...",
+  "topic": "נושא עיקרי",
+  "difficulty": "easy/medium/hard",
+  "legal_reference": "חוק ניירות ערך, תשכ\"ח-1968, סעיף X"
+}}
+```"""
+
+        self.log(f"Enriching exam question with legal context...")
+
+        # Retrieve legal context with high k for accuracy
+        context = self.retrieve_context(enrichment_query, k=15)
+
+        # Generate enrichment using thinking model
+        # Temporarily switch to thinking model for this task
+        original_model = self.model
+        original_temp = self.temperature
+
+        self.model = THINKING_MODEL
+        self.temperature = 0.3
+
+        try:
+            # Get enrichment from LLM
+            response = self.invoke_llm(enrichment_query, context=context)
+
+            # Parse JSON from response
+            enrichment = self._parse_enrichment_response(response)
+
+            # Validate and provide defaults
+            result = {
+                'explanation': enrichment.get('explanation', 'לא נמצא הסבר'),
+                'topic': enrichment.get('topic', 'ניירות ערך'),
+                'difficulty': enrichment.get('difficulty', 'medium'),
+                'legal_reference': enrichment.get('legal_reference', '')
+            }
+
+            # Validate difficulty
+            if result['difficulty'] not in ['easy', 'medium', 'hard']:
+                result['difficulty'] = 'medium'
+
+            self.log(f"✅ Enrichment complete - Topic: {result['topic']}, Difficulty: {result['difficulty']}")
+
+            return result
+
+        finally:
+            # Restore original model settings
+            self.model = original_model
+            self.temperature = original_temp
+
+    def _parse_enrichment_response(self, response: str) -> Dict[str, Any]:
+        """Parse enrichment response from LLM"""
+        import json
+        import re
+
+        # Try to extract JSON from code blocks
+        json_match = re.search(r'```json\s*(\{.*?\})\s*```', response, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group(1))
+            except:
+                pass
+
+        # Try to find JSON without code blocks
+        json_match = re.search(r'(\{.*?\})', response, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group(1))
+            except:
+                pass
+
+        # Fallback: Try to parse entire response as JSON
+        try:
+            return json.loads(response)
+        except:
+            pass
+
+        # Last resort: Extract manually using regex
+        result = {}
+
+        # Extract explanation
+        exp_match = re.search(r'"explanation":\s*"([^"]+)"', response)
+        if exp_match:
+            result['explanation'] = exp_match.group(1)
+
+        # Extract topic
+        topic_match = re.search(r'"topic":\s*"([^"]+)"', response)
+        if topic_match:
+            result['topic'] = topic_match.group(1)
+
+        # Extract difficulty
+        diff_match = re.search(r'"difficulty":\s*"(easy|medium|hard)"', response)
+        if diff_match:
+            result['difficulty'] = diff_match.group(1)
+
+        # Extract legal_reference
+        ref_match = re.search(r'"legal_reference":\s*"([^"]+)"', response)
+        if ref_match:
+            result['legal_reference'] = ref_match.group(1)
+
+        return result

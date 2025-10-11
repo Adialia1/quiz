@@ -242,6 +242,11 @@ class LLMExamParser:
 - ליד כל מספר יש אות (א/A, ב/B, ג/C, ד/D, ה/E)
 - הטבלה יכולה להיות בכל פורמט (שורות, עמודות, רשימה)
 
+**זהירות - שאלות עם מספר תשובות:**
+- לפעמים שאלה יכולה להיות עם 2 תשובות נכונות (לדוגמה: "25: א, ה" או "25: A, E")
+- אם שאלה יש לה יותר מתשובה אחת, סמן אותה כ-"MULTIPLE"
+- דוגמה: אם שאלה 25 יש תשובות א+ה, החזר `"25": "MULTIPLE"`
+
 **פורמט פלט - JSON Object:**
 ```json
 {
@@ -249,12 +254,14 @@ class LLMExamParser:
   "2": "B",
   "3": "C",
   ...
-  "25": "E"
+  "24": "E",
+  "25": "MULTIPLE"
 }
 ```
 
 **חשוב:**
 - המר אותיות עבריות לאנגלית: א→A, ב→B, ג→C, ד→D, ה→E
+- אם יש יותר מתשובה אחת לשאלה, החזר "MULTIPLE" (לא את האותיות!)
 - כלול את **כל** התשובות שמצאת
 - אם לא מצאת טבלת תשובות, החזר: `{}`
 
@@ -312,7 +319,15 @@ class LLMExamParser:
 
             # Match answer from key
             if q_num in answer_key:
-                q['correct_answer'] = answer_key[q_num]
+                answer = answer_key[q_num]
+
+                # Skip questions with multiple correct answers
+                if answer == "MULTIPLE":
+                    if verbose:
+                        print(f"      ⚠️  Q{q_num}: Multiple correct answers - SKIPPED")
+                    continue
+
+                q['correct_answer'] = answer
             else:
                 # Try to find answer using LLM context search
                 if verbose:

@@ -51,11 +51,12 @@ from supabase import create_client
 from config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY, validate_config
 from ingestion.semantic_chunking import SemanticChunker
 from ingestion.llm_exam_parser import LLMExamParser
+from agents.legal_expert import LegalExpertAgent
 
 class ExamQuestionIngestion:
     """Pipeline for ingesting exam questions into Supabase"""
 
-    def __init__(self):
+    def __init__(self, use_legal_enrichment: bool = True):
         validate_config()
 
         print("🔧 Initializing exam question ingestion...")
@@ -63,6 +64,14 @@ class ExamQuestionIngestion:
         self.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
         self.chunker = SemanticChunker()
         self.parser = LLMExamParser()
+
+        # Initialize legal expert for question enrichment
+        self.use_legal_enrichment = use_legal_enrichment
+        if use_legal_enrichment:
+            print("🤖 Initializing Legal Expert for question enrichment...")
+            self.legal_expert = LegalExpertAgent(use_thinking_model=True, top_k=15)
+        else:
+            self.legal_expert = None
 
         print("✅ Pipeline ready\n")
 
@@ -207,8 +216,41 @@ class ExamQuestionIngestion:
             print("❌ No valid questions to ingest")
             return {'success': False, 'error': 'No valid questions'}
 
+        # Enrich questions with legal context if enabled
+        if self.use_legal_enrichment and self.legal_expert:
+            print(f"\n🤖 Enriching questions with legal context...")
+            print(f"   (Using {self.legal_expert.model} with top_k=15)")
+
+            for i, q in enumerate(valid_questions, 1):
+                try:
+                    # Skip if already has all enrichment data
+                    if q.get('explanation') and q.get('topic') and q.get('legal_reference'):
+                        continue
+
+                    if i % 5 == 0:
+                        print(f"   Enriching question {i}/{len(valid_questions)}...")
+
+                    # Enrich using legal expert
+                    enrichment = self.legal_expert.enrich_exam_question(
+                        question_text=q['question'],
+                        options=q['options'],
+                        correct_answer=q['correct_answer']
+                    )
+
+                    # Update question with enrichment
+                    q['explanation'] = enrichment.get('explanation', q.get('explanation'))
+                    q['topic'] = enrichment.get('topic', q.get('topic'))
+                    q['difficulty'] = enrichment.get('difficulty', q.get('difficulty', 'medium'))
+                    q['legal_reference'] = enrichment.get('legal_reference', q.get('legal_reference'))
+
+                except Exception as e:
+                    print(f"   ⚠️  Failed to enrich question {i}: {e}")
+                    # Continue with default values
+
+            print(f"✅ Enrichment complete")
+
         # Generate embeddings
-        print(f"🔄 Generating embeddings for {len(valid_questions)} questions...")
+        print(f"\n🔄 Generating embeddings for {len(valid_questions)} questions...")
 
         supabase_records = []
 
@@ -348,10 +390,11 @@ def main():
     parser.add_argument('--stats', action='store_true', help='Show database statistics')
     parser.add_argument('--dry-run', action='store_true', help='Parse without inserting to database')
     parser.add_argument('--no-llm-validation', action='store_true', help='Skip LLM validation (faster but less accurate)')
+    parser.add_argument('--no-enrichment', action='store_true', help='Skip legal expert enrichment (faster but no explanations/references)')
 
     args = parser.parse_args()
 
-    pipeline = ExamQuestionIngestion()
+    pipeline = ExamQuestionIngestion(use_legal_enrichment=not args.no_enrichment)
 
     # Just show stats
     if args.stats:

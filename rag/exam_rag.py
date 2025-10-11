@@ -27,6 +27,27 @@ class ExamRAG:
 
         print(f"✅ Exam RAG ready ({self.vector_store.count()} questions available)")
 
+    def search(
+        self,
+        query: str,
+        k: int = RAG_TOP_K,
+        topic: Optional[str] = None,
+        difficulty: Optional[str] = None
+    ) -> List[Dict]:
+        """
+        Search for similar questions (alias for search_similar_questions)
+
+        Args:
+            query: Search query (concept or question text)
+            k: Number of results
+            topic: Optional topic filter
+            difficulty: Optional difficulty filter
+
+        Returns:
+            List of similar questions
+        """
+        return self.search_similar_questions(query, k, topic, difficulty)
+
     def search_similar_questions(
         self,
         query: str,
