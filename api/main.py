@@ -19,13 +19,17 @@ sys.path.append(str(Path(__file__).parent.parent))
 from agent.agents.legal_expert import LegalExpertAgent
 from agent.agents.quiz_generator import QuizGeneratorAgent
 from agent.scripts.quiz_to_pdf import create_quiz_pdf_html
+from api.routes.users import router as users_router
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Quiz Generator & Legal Expert API",
-    description="API for generating exam questions and querying legal expert",
+    description="API for generating exam questions, querying legal expert, and managing users",
     version="1.0.0"
 )
+
+# Include routers
+app.include_router(users_router)
 
 # Initialize agents (singleton pattern)
 legal_expert = None
@@ -132,7 +136,10 @@ async def root():
         "endpoints": {
             "legal_question": "/api/legal/ask",
             "generate_questions": "/api/questions/generate",
-            "generate_quiz": "/api/quiz/generate"
+            "generate_quiz": "/api/quiz/generate",
+            "user_profile": "/api/users/me",
+            "user_stats": "/api/users/me/stats",
+            "clerk_webhook": "/api/users/webhook"
         },
         "docs": "/docs"
     }

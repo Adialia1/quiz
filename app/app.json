@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "קוויז מבחנים",
+    "slug": "quiz-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "locales": {
+      "he": "./locales/he.json"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2196F3"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.quizapp.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
+        "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2196F3"
+      },
+      "package": "com.quizapp.mobile",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

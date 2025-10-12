@@ -29,6 +29,10 @@ pydantic==2.10.5
 pydantic-settings==2.7.0
 python-multipart==0.0.6
 
+# Authentication
+python-jose[cryptography]==3.3.0  # For JWT token verification
+svix==1.42.0  # For Clerk webhook signature verification
+
 # Database
 psycopg2-binary==2.9.10
 sqlalchemy==2.0.37
