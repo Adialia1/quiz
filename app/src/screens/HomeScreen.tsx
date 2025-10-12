@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '@clerk/clerk-expo';
 import { Colors } from '../config/colors';
 import { DrawerMenu } from '../components/DrawerMenu';
+import { examApi } from '../utils/examApi';
+import { useExamStore } from '../stores/examStore';
 
 interface MenuCardProps {
   title: string;
@@ -28,11 +32,71 @@ const MenuCard: React.FC<MenuCardProps> = ({ title, icon, onPress }) => {
  * Home Screen - Dashboard
  */
 export const HomeScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const { getToken } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { setCurrentExam } = useExamStore();
 
-  const handleMenuPress = (menuItem: string) => {
+  const handleMenuPress = async (menuItem: string) => {
     console.log(`Pressed: ${menuItem}`);
-    // TODO: Navigate to respective screens
+
+    // Handle different menu items
+    switch (menuItem) {
+      case 'practice':
+        await createAndStartExam('practice');
+        break;
+      case 'full-exam':
+        await createAndStartExam('full_simulation');
+        break;
+      case 'review-mistakes':
+        await createAndStartExam('review_mistakes');
+        break;
+      case 'ai-instructor':
+        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        break;
+      case 'concepts-laws':
+        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        break;
+      case 'history':
+        // TODO: Navigate to history screen
+        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        break;
+      case 'progress':
+        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        break;
+      default:
+        console.log('Unknown menu item:', menuItem);
+    }
+  };
+
+  /**
+   * Create exam and navigate to ExamScreen
+   */
+  const createAndStartExam = async (examType: 'practice' | 'full_simulation' | 'review_mistakes') => {
+    try {
+      setLoading(true);
+
+      // Create exam via API
+      const examData = await examApi.createExam(
+        {
+          exam_type: examType,
+          question_count: 25, // Default
+        },
+        getToken
+      );
+
+      // Set exam in store
+      setCurrentExam(examData);
+
+      // Navigate to ExamScreen
+      navigation.navigate('Exam');
+    } catch (error: any) {
+      console.error('Create exam error:', error);
+      Alert.alert('שגיאה', error.message || 'שגיאה ביצירת מבחן. נסה שוב.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,6 +104,16 @@ export const HomeScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" />
 
       <DrawerMenu isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+
+      {/* Loading overlay */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>יוצר מבחן...</Text>
+          </View>
+        </View>
+      )}
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
@@ -148,5 +222,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     textAlign: 'center',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  loadingContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
   },
 });

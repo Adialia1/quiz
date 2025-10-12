@@ -67,6 +67,7 @@ async def get_current_user_id(
         # In production, you should verify the signature using Clerk's public key
         payload = jwt.decode(
             token,
+            key='',  # Empty key when not verifying
             options={"verify_signature": False}  # TODO: Enable signature verification
         )
 

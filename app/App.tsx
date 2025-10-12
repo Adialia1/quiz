@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from './src/config/gluestack';
@@ -10,10 +12,59 @@ import { useAuthStore } from './src/stores/authStore';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { ExamScreen } from './src/screens/ExamScreen';
+import { ExamReviewScreen } from './src/screens/ExamReviewScreen';
 import { tokenCache } from './src/utils/tokenCache';
 
 // הגדרת RTL בעת טעינת האפליקציה
 setupRTL();
+
+// Create stack navigator
+const Stack = createNativeStackNavigator();
+
+/**
+ * Auth Stack - Screens for unauthenticated users
+ */
+function AuthStack() {
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  if (showWelcome) {
+    return (
+      <>
+        <WelcomeScreen onGetStarted={() => setShowWelcome(false)} />
+        <StatusBar style="light" />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <AuthScreen onAuthSuccess={() => {}} />
+      <StatusBar style="dark" />
+    </>
+  );
+}
+
+/**
+ * Main Stack - Screens for authenticated users
+ */
+function MainStack() {
+  return (
+    <>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Exam" component={ExamScreen} />
+        <Stack.Screen name="ExamResults" component={ExamReviewScreen} />
+      </Stack.Navigator>
+      <StatusBar style="dark" />
+    </>
+  );
+}
 
 /**
  * רכיב ניתוב ראשי
@@ -22,7 +73,6 @@ setupRTL();
 function AppContent() {
   const { isSignedIn, isLoaded: clerkLoaded } = useAuth();
   const { isAuthenticated, isLoading, hydrate } = useAuthStore();
-  const [showWelcome, setShowWelcome] = useState(true);
 
   // טעינת מצב האימות מהאחסון
   useEffect(() => {
@@ -38,31 +88,10 @@ function AppContent() {
     );
   }
 
-  // אם המשתמש מחובר, הצג מסך ראשי
-  if (isSignedIn || isAuthenticated) {
-    return (
-      <>
-        <HomeScreen />
-        <StatusBar style="dark" />
-      </>
-    );
-  }
-
-  // אם המשתמש לא מחובר
-  if (showWelcome) {
-    return (
-      <>
-        <WelcomeScreen onGetStarted={() => setShowWelcome(false)} />
-        <StatusBar style="light" />
-      </>
-    );
-  }
-
   return (
-    <>
-      <AuthScreen onAuthSuccess={() => {}} />
-      <StatusBar style="dark" />
-    </>
+    <NavigationContainer>
+      {isSignedIn || isAuthenticated ? <MainStack /> : <AuthStack />}
+    </NavigationContainer>
   );
 }
 

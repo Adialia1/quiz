@@ -1,0 +1,42 @@
+{
+  "total_generated": 67,
+  "total_inserted": 67,
+  "by_topic": {
+    "מבוא ודיני יסוד": {
+      "easy": 0,
+      "medium": 11,
+      "hard": 0
+    },
+    "חוק ניירות ערך - עבירות": {
+      "easy": 0,
+      "medium": 12,
+      "hard": 0
+    },
+    "חוק השקעות משותפות בנאמנות": {
+      "easy": 0,
+      "medium": 0,
+      "hard": 5
+    },
+    "חוק איסור הלבנת הון": {
+      "easy": 0,
+      "medium": 12,
+      "hard": 0
+    },
+    "עקרונות אתיים כלליים": {
+      "easy": 0,
+      "medium": 0,
+      "hard": 5
+    },
+    "אי־תלות של היועץ": {
+      "easy": 10,
+      "medium": 12,
+      "hard": 0
+    }
+  },
+  "by_difficulty": {
+    "easy": 10,
+    "medium": 47,
+    "hard": 10
+  },
+  "failed": 0
+}

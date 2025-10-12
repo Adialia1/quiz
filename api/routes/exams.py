@@ -60,7 +60,7 @@ class ExamResponse(BaseModel):
     total_questions: int
     questions: List[QuestionResponse]
     started_at: str
-    time_limit_minutes: Optional[int]
+    time_limit_minutes: Optional[int] = None  # Computed based on exam_type, not stored in DB
 
 
 class ExamDetailsResponse(BaseModel):
@@ -86,6 +86,28 @@ class SubmitAnswerRequest(BaseModel):
                 "question_id": "uuid-here",
                 "user_answer": "B",
                 "time_taken_seconds": 45
+            }
+        }
+
+
+class BatchAnswerRequest(BaseModel):
+    answers: List[SubmitAnswerRequest]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "answers": [
+                    {
+                        "question_id": "uuid-1",
+                        "user_answer": "A",
+                        "time_taken_seconds": 45
+                    },
+                    {
+                        "question_id": "uuid-2",
+                        "user_answer": "C",
+                        "time_taken_seconds": 32
+                    }
+                ]
             }
         }
 
@@ -128,6 +150,11 @@ class ExamHistoryResponse(BaseModel):
 class DetailedQuestionResult(BaseModel):
     question_id: str
     question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+    option_e: str
     user_answer: str
     correct_answer: str
     is_correct: bool
@@ -326,8 +353,8 @@ def calculate_exam_results(exam_id: str, user_id: str) -> Dict:
     score_percentage = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
     passed = score_percentage >= 70  # 70% passing grade
 
-    # Calculate time taken
-    total_time = sum(a.get('time_taken_seconds', 0) for a in answers.data)
+    # Calculate time taken (handle None values)
+    total_time = sum((a.get('time_taken_seconds') or 0) for a in answers.data)
 
     # Analyze topics
     topic_performance = {}
@@ -398,19 +425,13 @@ async def create_exam(
         user_id=user['id']
     )
 
-    # Determine time limit based on exam type
-    time_limit_minutes = None
-    if request.exam_type == "full_simulation":
-        time_limit_minutes = 60  # 60 minutes for full simulation
-
     # Create exam record
     exam_data = {
         "user_id": user['id'],
         "exam_type": request.exam_type,
         "status": "in_progress",
         "started_at": datetime.now().isoformat(),
-        "total_questions": len(questions),
-        "time_limit_minutes": time_limit_minutes
+        "total_questions": len(questions)
     }
 
     exam_result = supabase.table("exams").insert(exam_data).execute()
@@ -443,13 +464,18 @@ async def create_exam(
         for q in questions
     ]
 
+    # Determine time limit based on exam type (for frontend timer)
+    time_limit = None
+    if exam['exam_type'] == "full_simulation":
+        time_limit = 60  # 60 minutes for full simulation
+
     return ExamResponse(
         exam_id=exam['id'],
         exam_type=exam['exam_type'],
         total_questions=exam['total_questions'],
         questions=question_responses,
         started_at=exam['started_at'],
-        time_limit_minutes=time_limit_minutes
+        time_limit_minutes=time_limit
     )
 
 
@@ -481,6 +507,11 @@ async def get_exam(
 
     answered_count = len(answers.data)
 
+    # Determine time limit based on exam type
+    time_limit = None
+    if exam.data['exam_type'] == "full_simulation":
+        time_limit = 60  # 60 minutes for full simulation
+
     return ExamDetailsResponse(
         id=exam.data['id'],
         exam_type=exam.data['exam_type'],
@@ -490,7 +521,7 @@ async def get_exam(
         total_questions=exam.data['total_questions'],
         answered_questions=answered_count,
         current_question=answered_count + 1,
-        time_limit_minutes=exam.data.get('time_limit_minutes')
+        time_limit_minutes=time_limit
     )
 
 
@@ -557,28 +588,80 @@ async def submit_answer(
         .eq("question_id", request.question_id)\
         .execute()
 
-    # Update user_question_history
-    history_data = {
-        "user_id": user['id'],
-        "question_id": request.question_id,
-        "user_answer": request.user_answer.upper(),
-        "is_correct": is_correct,
-        "time_taken_seconds": request.time_taken_seconds,
-        "context": f"exam_{exam_id}"
-    }
-    supabase.table("user_question_history").insert(history_data).execute()
+    # Update user_question_history (aggregate stats)
+    # Check if record exists
+    existing = supabase.table("user_question_history")\
+        .select("*")\
+        .eq("user_id", user['id'])\
+        .eq("question_id", request.question_id)\
+        .execute()
 
-    # If incorrect, add to mistakes
-    if not is_correct:
-        mistake_data = {
+    if existing.data:
+        # Update existing record
+        record = existing.data[0]
+        new_times_seen = record['times_seen'] + 1
+        new_times_correct = record['times_correct'] + (1 if is_correct else 0)
+        new_times_wrong = record['times_wrong'] + (0 if is_correct else 1)
+
+        # Calculate new average time
+        old_avg = float(record['average_time_seconds']) if record['average_time_seconds'] else 0
+        new_avg = ((old_avg * record['times_seen']) + request.time_taken_seconds) / new_times_seen
+
+        supabase.table("user_question_history")\
+            .update({
+                "times_seen": new_times_seen,
+                "times_correct": new_times_correct,
+                "times_wrong": new_times_wrong,
+                "last_seen_at": datetime.now().isoformat(),
+                "average_time_seconds": new_avg
+            })\
+            .eq("id", record['id'])\
+            .execute()
+    else:
+        # Insert new record
+        supabase.table("user_question_history").insert({
             "user_id": user['id'],
             "question_id": request.question_id,
-            "user_answer": request.user_answer.upper(),
-            "correct_answer": question.data['correct_answer'],
-            "exam_id": exam_id,
-            "is_resolved": False
-        }
-        supabase.table("user_mistakes").insert(mistake_data).execute()
+            "times_seen": 1,
+            "times_correct": 1 if is_correct else 0,
+            "times_wrong": 0 if is_correct else 1,
+            "first_seen_at": datetime.now().isoformat(),
+            "last_seen_at": datetime.now().isoformat(),
+            "average_time_seconds": request.time_taken_seconds
+        }).execute()
+
+    # If incorrect, add/update mistakes
+    if not is_correct:
+        # Check if mistake record exists
+        existing_mistake = supabase.table("user_mistakes")\
+            .select("*")\
+            .eq("user_id", user['id'])\
+            .eq("question_id", request.question_id)\
+            .execute()
+
+        if existing_mistake.data:
+            # Update existing mistake record
+            record = existing_mistake.data[0]
+            supabase.table("user_mistakes")\
+                .update({
+                    "times_wrong": record['times_wrong'] + 1,
+                    "last_wrong_at": datetime.now().isoformat(),
+                    "exam_id": exam_id
+                })\
+                .eq("id", record['id'])\
+                .execute()
+        else:
+            # Insert new mistake record
+            supabase.table("user_mistakes").insert({
+                "user_id": user['id'],
+                "question_id": request.question_id,
+                "exam_id": exam_id,
+                "times_wrong": 1,
+                "first_wrong_at": datetime.now().isoformat(),
+                "last_wrong_at": datetime.now().isoformat(),
+                "reviewed": False,
+                "marked_for_review": False
+            }).execute()
 
     # Prepare response based on exam type
     immediate_feedback = exam.data['exam_type'] == "practice"
@@ -589,6 +672,165 @@ async def submit_answer(
         explanation=question.data['explanation'] if immediate_feedback else None,
         immediate_feedback=immediate_feedback
     )
+
+
+@router.post("/{exam_id}/answers/batch")
+async def submit_answers_batch(
+    exam_id: str,
+    request: BatchAnswerRequest,
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Submit multiple answers at once (for simulation exams)
+
+    This allows users to answer all questions and submit at the end,
+    enabling them to change answers before final submission.
+    """
+    user = get_user_by_clerk_id(clerk_user_id)
+
+    # Verify exam belongs to user and is in progress
+    exam = supabase.table("exams")\
+        .select("*")\
+        .eq("id", exam_id)\
+        .eq("user_id", user['id'])\
+        .single()\
+        .execute()
+
+    if not exam.data:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    if exam.data['status'] != "in_progress":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Exam already {exam.data['status']}. Cannot submit answers."
+        )
+
+    # Process each answer
+    results = []
+    for answer in request.answers:
+        # Verify question belongs to this exam
+        exam_question = supabase.table("exam_question_answers")\
+            .select("*")\
+            .eq("exam_id", exam_id)\
+            .eq("question_id", answer.question_id)\
+            .single()\
+            .execute()
+
+        if not exam_question.data:
+            continue  # Skip invalid questions
+
+        # Get the question to check correct answer
+        question = supabase.table("ai_generated_questions")\
+            .select("*")\
+            .eq("id", answer.question_id)\
+            .single()\
+            .execute()
+
+        if not question.data:
+            continue
+
+        # Check if answer is correct
+        is_correct = answer.user_answer.upper() == question.data['correct_answer'].upper()
+
+        # Update the exam_question_answers record
+        update_data = {
+            "user_answer": answer.user_answer.upper(),
+            "is_correct": is_correct,
+            "time_taken_seconds": answer.time_taken_seconds,
+            "answered_at": datetime.now().isoformat()
+        }
+
+        supabase.table("exam_question_answers")\
+            .update(update_data)\
+            .eq("exam_id", exam_id)\
+            .eq("question_id", answer.question_id)\
+            .execute()
+
+        # Update user_question_history (aggregate stats)
+        # Check if record exists
+        existing = supabase.table("user_question_history")\
+            .select("*")\
+            .eq("user_id", user['id'])\
+            .eq("question_id", answer.question_id)\
+            .execute()
+
+        if existing.data:
+            # Update existing record
+            record = existing.data[0]
+            new_times_seen = record['times_seen'] + 1
+            new_times_correct = record['times_correct'] + (1 if is_correct else 0)
+            new_times_wrong = record['times_wrong'] + (0 if is_correct else 1)
+
+            # Calculate new average time
+            old_avg = float(record['average_time_seconds']) if record['average_time_seconds'] else 0
+            new_avg = ((old_avg * record['times_seen']) + answer.time_taken_seconds) / new_times_seen
+
+            supabase.table("user_question_history")\
+                .update({
+                    "times_seen": new_times_seen,
+                    "times_correct": new_times_correct,
+                    "times_wrong": new_times_wrong,
+                    "last_seen_at": datetime.now().isoformat(),
+                    "average_time_seconds": new_avg
+                })\
+                .eq("id", record['id'])\
+                .execute()
+        else:
+            # Insert new record
+            supabase.table("user_question_history").insert({
+                "user_id": user['id'],
+                "question_id": answer.question_id,
+                "times_seen": 1,
+                "times_correct": 1 if is_correct else 0,
+                "times_wrong": 0 if is_correct else 1,
+                "first_seen_at": datetime.now().isoformat(),
+                "last_seen_at": datetime.now().isoformat(),
+                "average_time_seconds": answer.time_taken_seconds
+            }).execute()
+
+        # If incorrect, add/update mistakes
+        if not is_correct:
+            # Check if mistake record exists
+            existing_mistake = supabase.table("user_mistakes")\
+                .select("*")\
+                .eq("user_id", user['id'])\
+                .eq("question_id", answer.question_id)\
+                .execute()
+
+            if existing_mistake.data:
+                # Update existing mistake record
+                record = existing_mistake.data[0]
+                supabase.table("user_mistakes")\
+                    .update({
+                        "times_wrong": record['times_wrong'] + 1,
+                        "last_wrong_at": datetime.now().isoformat(),
+                        "exam_id": exam_id
+                    })\
+                    .eq("id", record['id'])\
+                    .execute()
+            else:
+                # Insert new mistake record
+                supabase.table("user_mistakes").insert({
+                    "user_id": user['id'],
+                    "question_id": answer.question_id,
+                    "exam_id": exam_id,
+                    "times_wrong": 1,
+                    "first_wrong_at": datetime.now().isoformat(),
+                    "last_wrong_at": datetime.now().isoformat(),
+                    "reviewed": False,
+                    "marked_for_review": False
+                }).execute()
+
+        results.append({
+            "question_id": answer.question_id,
+            "is_correct": is_correct
+        })
+
+    return {
+        "status": "success",
+        "answers_submitted": len(results),
+        "message": "Answers saved. Call submit endpoint to finalize exam."
+    }
 
 
 @router.post("/{exam_id}/submit", response_model=SubmitExamResponse)
@@ -776,10 +1018,15 @@ async def get_exam_results(
         DetailedQuestionResult(
             question_id=answer['question_id'],
             question_text=answer['ai_generated_questions']['question_text'],
+            option_a=answer['ai_generated_questions']['option_a'],
+            option_b=answer['ai_generated_questions']['option_b'],
+            option_c=answer['ai_generated_questions']['option_c'],
+            option_d=answer['ai_generated_questions']['option_d'],
+            option_e=answer['ai_generated_questions']['option_e'],
             user_answer=answer['user_answer'] or "Not answered",
             correct_answer=answer['ai_generated_questions']['correct_answer'],
-            is_correct=answer.get('is_correct', False),
-            time_taken_seconds=answer.get('time_taken_seconds', 0),
+            is_correct=answer.get('is_correct') if answer.get('is_correct') is not None else False,
+            time_taken_seconds=answer.get('time_taken_seconds') or 0,
             topic=answer['ai_generated_questions']['topic'],
             difficulty_level=answer['ai_generated_questions']['difficulty_level'],
             explanation=answer['ai_generated_questions']['explanation']
