@@ -33,7 +33,8 @@ Run each migration file in order:
 006_create_user_question_history.sql
 007_create_user_topic_performance.sql
 008_create_user_mistakes.sql
-009_create_ai_chat_tables.sql
+009_add_user_mistakes_unique_constraint.sql
+010_create_ai_chat_tables.sql
 ```
 
 ---

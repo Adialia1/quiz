@@ -281,7 +281,15 @@ CREATE INDEX idx_mistakes_marked ON user_mistakes(marked_for_review);
 CREATE INDEX idx_mistakes_user_reviewed ON user_mistakes(user_id, reviewed, marked_for_review);
 
 -- ============================================================
--- Migration 009: Create AI Chat Tables
+-- Migration 009: Add Unique Constraint to User Mistakes
+-- ============================================================
+
+ALTER TABLE user_mistakes
+ADD CONSTRAINT user_mistakes_user_question_unique
+UNIQUE (user_id, question_id);
+
+-- ============================================================
+-- Migration 010: Create AI Chat Tables
 -- ============================================================
 
 CREATE TABLE ai_chat_sessions (

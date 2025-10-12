@@ -80,9 +80,14 @@ export const ExamReviewScreen: React.FC = () => {
     setCurrentQuestionIndex(index);
   };
 
-  // Handle back navigation
+  // Handle back navigation - always go to Home, not back to ExamScreen
   const handleBackToHome = () => {
-    navigation.goBack();
+    // Use reset to navigate to Home and clear the navigation stack
+    // This prevents going back to ExamScreen which no longer has exam data
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
   };
 
   // Prepare answer options - show ALL options

@@ -806,7 +806,11 @@ async def submit_answers_batch(
     This allows users to answer all questions and submit at the end,
     enabling them to change answers before final submission.
     """
-    user = get_user_by_clerk_id(clerk_user_id)
+    try:
+        user = get_user_by_clerk_id(clerk_user_id)
+    except Exception as e:
+        print(f"❌ Error getting user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
 
     # Verify exam belongs to user and is in progress
     exam = supabase.table("exams")\
@@ -982,8 +986,15 @@ async def submit_answers_batch(
         })
 
     if all_history:
-        # Use upsert to insert or update in one operation
-        supabase.table("user_question_history").upsert(all_history, on_conflict="user_id,question_id").execute()
+        try:
+            # Use upsert to insert or update in one operation
+            print(f"📝 Upserting {len(all_history)} history records...")
+            supabase.table("user_question_history").upsert(all_history, on_conflict="user_id,question_id").execute()
+            print(f"✅ History upserted successfully")
+        except Exception as e:
+            print(f"❌ Error upserting history: {str(e)}")
+            print(f"Sample history data: {all_history[0] if all_history else 'None'}")
+            raise HTTPException(status_code=500, detail=f"Error saving history: {str(e)}")
 
     # Upsert mistakes (insert new + update existing in single operation)
     all_mistakes = mistake_inserts.copy()
@@ -1000,8 +1011,15 @@ async def submit_answers_batch(
         })
 
     if all_mistakes:
-        # Use upsert to insert or update in one operation
-        supabase.table("user_mistakes").upsert(all_mistakes, on_conflict="user_id,question_id").execute()
+        try:
+            # Use upsert to insert or update in one operation
+            print(f"📝 Upserting {len(all_mistakes)} mistakes...")
+            supabase.table("user_mistakes").upsert(all_mistakes, on_conflict="user_id,question_id").execute()
+            print(f"✅ Mistakes upserted successfully")
+        except Exception as e:
+            print(f"❌ Error upserting mistakes: {str(e)}")
+            print(f"Sample mistake data: {all_mistakes[0] if all_mistakes else 'None'}")
+            raise HTTPException(status_code=500, detail=f"Error saving mistakes: {str(e)}")
 
     return {
         "status": "success",
