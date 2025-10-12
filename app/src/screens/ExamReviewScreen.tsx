@@ -22,6 +22,7 @@ export const ExamReviewScreen: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [detailedResults, setDetailedResults] = useState<QuestionResult[]>([]);
+  const [examData, setExamData] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const { setDetailedResults: setStoreDetailedResults } = useExamStore();
@@ -33,6 +34,7 @@ export const ExamReviewScreen: React.FC = () => {
         setLoading(true);
         const data = await examApi.getExamResults(examId, getToken);
         setDetailedResults(data.questions);
+        setExamData(data.exam);
         setStoreDetailedResults(data.questions);
       } catch (error: any) {
         console.error('Fetch results error:', error);
@@ -60,6 +62,11 @@ export const ExamReviewScreen: React.FC = () => {
   const totalQuestions = detailedResults.length;
   const progressPercentage = ((currentQuestionIndex + 1) / totalQuestions) * 100;
 
+  // Calculate score from questions
+  const correctAnswers = detailedResults.filter(q => q.is_correct).length;
+  const scorePercentage = (correctAnswers / totalQuestions) * 100;
+  const passed = scorePercentage >= 85;
+
   // Format time
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -73,9 +80,9 @@ export const ExamReviewScreen: React.FC = () => {
     setCurrentQuestionIndex(index);
   };
 
-  // Handle back to home
+  // Handle back navigation
   const handleBackToHome = () => {
-    navigation.navigate('Home');
+    navigation.goBack();
   };
 
   // Prepare answer options - show ALL options
@@ -103,8 +110,8 @@ export const ExamReviewScreen: React.FC = () => {
           </Text>
 
           {/* Score badge */}
-          <View style={[styles.scoreBadge, results.passed ? styles.scoreBadgeSuccess : styles.scoreBadgeError]}>
-            <Text style={styles.scoreText}>{results.score_percentage.toFixed(0)}%</Text>
+          <View style={[styles.scoreBadge, passed ? styles.scoreBadgeSuccess : styles.scoreBadgeError]}>
+            <Text style={styles.scoreText}>{scorePercentage.toFixed(0)}%</Text>
           </View>
         </View>
 

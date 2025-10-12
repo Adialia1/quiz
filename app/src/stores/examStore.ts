@@ -229,7 +229,7 @@ export const useExamStore = create<ExamStore>((set, get) => ({
   // Get current question
   getCurrentQuestion: () => {
     const { currentExam, currentQuestionIndex } = get();
-    if (!currentExam || currentQuestionIndex >= currentExam.questions.length) {
+    if (!currentExam || !currentExam.questions || !Array.isArray(currentExam.questions) || currentQuestionIndex >= currentExam.questions.length) {
       return null;
     }
     return currentExam.questions[currentQuestionIndex];

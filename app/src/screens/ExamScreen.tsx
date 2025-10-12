@@ -20,6 +20,7 @@ export const ExamScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { getToken } = useAuth();
+  const { examId } = (route.params as { examId?: string }) || {};
 
   const {
     currentExam,
@@ -35,12 +36,42 @@ export const ExamScreen: React.FC = () => {
     getUserAnswer,
     getAnsweredCount,
     resetExam,
+    setCurrentExam,
   } = useExamStore();
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const questionStartTimeRef = useRef<number>(Date.now());
+
+  // Load exam if examId is provided (continuing from history)
+  useEffect(() => {
+    if (examId && !currentExam) {
+      const loadExam = async () => {
+        try {
+          setLoading(true);
+          const examData = await examApi.getExam(examId, getToken);
+          setCurrentExam(examData);
+
+          // Restore previous answers if they exist
+          if (examData.previous_answers && Array.isArray(examData.previous_answers)) {
+            examData.previous_answers.forEach((prevAnswer: any) => {
+              if (prevAnswer.user_answer) {
+                setUserAnswer(prevAnswer.question_id, prevAnswer.user_answer);
+              }
+            });
+          }
+        } catch (error: any) {
+          console.error('Load exam error:', error);
+          Alert.alert('שגיאה', error.message || 'שגיאה בטעינת המבחן');
+          navigation.goBack();
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadExam();
+    }
+  }, [examId]);
 
   const currentQuestion = getCurrentQuestion();
   const currentAnswer = currentQuestion ? getUserAnswer(currentQuestion.id) : undefined;

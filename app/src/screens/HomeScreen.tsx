@@ -59,8 +59,7 @@ export const HomeScreen: React.FC = () => {
         Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
         break;
       case 'history':
-        // TODO: Navigate to history screen
-        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        navigation.navigate('ExamHistory');
         break;
       case 'progress':
         Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
