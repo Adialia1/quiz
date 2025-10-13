@@ -51,7 +51,8 @@ export const HomeScreen: React.FC = () => {
         await createAndStartExam('full_simulation');
         break;
       case 'review-mistakes':
-        await createAndStartExam('review_mistakes');
+        // Navigate to mistake review selection screen
+        navigation.navigate('MistakeReviewSelection');
         break;
       case 'ai-instructor':
         Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');

@@ -30,6 +30,27 @@ class PracticeTopicsResponse(BaseModel):
     topics: List[TopicInfo]
     difficulties: List[str]
 
+class TopicMistake(BaseModel):
+    name: str
+    mistake_count: int
+    accuracy_percentage: float
+    priority: str  # high, medium, low
+    priority_emoji: str  # 🔴, 🟡, 🟢
+    last_mistake_date: str
+
+class MistakeTopicsResponse(BaseModel):
+    topics: List[TopicMistake]
+    total_mistakes: int
+    total_resolved: int
+
+class MistakeAnalytics(BaseModel):
+    total_mistakes: int
+    resolved: int
+    unresolved: int
+    improvement_rate: float
+    weak_concepts: List[str]
+    progress_this_week: Dict
+
 class CreateExamRequest(BaseModel):
     exam_type: str = Field(..., description="Type of exam: practice, full_simulation, review_mistakes")
     question_count: Optional[int] = Field(25, description="Number of questions (default: 25)")
@@ -404,7 +425,186 @@ def calculate_exam_results(exam_id: str, user_id: str) -> Dict:
     }
 
 
+# ==================== Helper Functions for Mistakes ====================
+
+def calculate_priority(mistake_count: int, accuracy_percentage: float) -> tuple[str, str]:
+    """
+    Calculate priority for topic review
+
+    Priority Score = (mistake_count * 2) + (100 - accuracy) / 10
+
+    Thresholds:
+    - >= 15: HIGH (🔴)
+    - 10-14: MEDIUM (🟡)
+    - < 10: LOW (🟢)
+    """
+    score = (mistake_count * 2) + (100 - accuracy_percentage) / 10
+
+    if score >= 15:
+        return "high", "🔴"
+    elif score >= 10:
+        return "medium", "🟡"
+    else:
+        return "low", "🟢"
+
+
 # ==================== Endpoints ====================
+
+@router.get("/mistakes/topics", response_model=MistakeTopicsResponse)
+async def get_mistake_topics(
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get topics where user has unresolved mistakes
+    Ordered by priority (most urgent first)
+    """
+    try:
+        user = get_user_by_clerk_id(clerk_user_id)
+
+        # Get all unresolved mistakes with topic info
+        mistakes = supabase.table("user_mistakes")\
+            .select("last_wrong_at, ai_generated_questions(topic)")\
+            .eq("user_id", user['id'])\
+            .eq("is_resolved", False)\
+            .execute()
+
+        # Group by topic manually
+        topic_data = {}
+        for mistake in mistakes.data:
+            topic = mistake['ai_generated_questions']['topic']
+            if topic not in topic_data:
+                topic_data[topic] = {
+                    'count': 0,
+                    'last_date': mistake['last_wrong_at']
+                }
+            topic_data[topic]['count'] += 1
+            if mistake['last_wrong_at'] > topic_data[topic]['last_date']:
+                topic_data[topic]['last_date'] = mistake['last_wrong_at']
+
+        # Get topic performance for accuracy
+        topic_performance = supabase.table("user_topic_performance")\
+            .select("*")\
+            .eq("user_id", user['id'])\
+            .execute()
+
+        performance_map = {
+            item['topic']: item['accuracy_percentage']
+            for item in topic_performance.data
+        } if topic_performance.data else {}
+
+        # Build topic list with priorities
+        topics = []
+        for topic, data in topic_data.items():
+            accuracy = performance_map.get(topic, 50.0)  # Default 50% if no data
+            priority, emoji = calculate_priority(data['count'], accuracy)
+
+            topics.append(TopicMistake(
+                name=topic,
+                mistake_count=data['count'],
+                accuracy_percentage=round(accuracy, 1),
+                priority=priority,
+                priority_emoji=emoji,
+                last_mistake_date=data['last_date']
+            ))
+
+        # Sort by priority score (descending)
+        topics.sort(
+            key=lambda t: (t.mistake_count * 2) + (100 - t.accuracy_percentage) / 10,
+            reverse=True
+        )
+
+        # Get total counts
+        total_mistakes = sum(t.mistake_count for t in topics)
+
+        # Get resolved count
+        resolved_count = supabase.table("user_mistakes")\
+            .select("id", count="exact")\
+            .eq("user_id", user['id'])\
+            .eq("is_resolved", True)\
+            .execute()
+
+        total_resolved = resolved_count.count if resolved_count.count else 0
+
+        return MistakeTopicsResponse(
+            topics=topics,
+            total_mistakes=total_mistakes,
+            total_resolved=total_resolved
+        )
+
+    except Exception as e:
+        print(f"Error fetching mistake topics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch mistake topics: {str(e)}")
+
+
+@router.get("/mistakes/analytics", response_model=MistakeAnalytics)
+async def get_mistake_analytics(
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get detailed analytics about user's mistakes and improvement
+    """
+    try:
+        user = get_user_by_clerk_id(clerk_user_id)
+
+        # Get all mistakes
+        all_mistakes = supabase.table("user_mistakes")\
+            .select("*")\
+            .eq("user_id", user['id'])\
+            .execute()
+
+        total = len(all_mistakes.data) if all_mistakes.data else 0
+        resolved = sum(1 for m in all_mistakes.data if m.get('is_resolved')) if all_mistakes.data else 0
+        unresolved = total - resolved
+
+        # Calculate improvement rate
+        improvement_rate = (resolved / total * 100) if total > 0 else 0
+
+        # Get weak concepts (topics with < 60% accuracy)
+        topic_performance = supabase.table("user_topic_performance")\
+            .select("topic, accuracy_percentage")\
+            .eq("user_id", user['id'])\
+            .lt("accuracy_percentage", 60)\
+            .order("accuracy_percentage")\
+            .limit(5)\
+            .execute()
+
+        weak_concepts = [item['topic'] for item in topic_performance.data] if topic_performance.data else []
+
+        # Get progress this week
+        from datetime import datetime, timedelta
+        week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+
+        recent_resolved = supabase.table("user_mistakes")\
+            .select("id", count="exact")\
+            .eq("user_id", user['id'])\
+            .eq("is_resolved", True)\
+            .gte("resolved_at", week_ago)\
+            .execute()
+
+        recent_attempts = supabase.table("user_question_history")\
+            .select("id", count="exact")\
+            .eq("user_id", user['id'])\
+            .gte("last_seen_at", week_ago)\
+            .execute()
+
+        progress_this_week = {
+            "questions_reviewed": recent_attempts.count if recent_attempts.count else 0,
+            "newly_resolved": recent_resolved.count if recent_resolved.count else 0
+        }
+
+        return MistakeAnalytics(
+            total_mistakes=total,
+            resolved=resolved,
+            unresolved=unresolved,
+            improvement_rate=round(improvement_rate, 1),
+            weak_concepts=weak_concepts,
+            progress_this_week=progress_this_week
+        )
+
+    except Exception as e:
+        print(f"Error fetching analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch analytics: {str(e)}")
+
 
 @router.get("/practice/topics", response_model=PracticeTopicsResponse)
 async def get_practice_topics(
@@ -811,7 +1011,7 @@ async def submit_answer(
             "average_time_seconds": request.time_taken_seconds
         }).execute()
 
-    # If incorrect, add/update mistakes
+    # Handle mistakes
     if not is_correct:
         # Check if mistake record exists
         existing_mistake = supabase.table("user_mistakes")\
@@ -827,7 +1027,8 @@ async def submit_answer(
                 .update({
                     "times_wrong": record['times_wrong'] + 1,
                     "last_wrong_at": datetime.now().isoformat(),
-                    "exam_id": exam_id
+                    "exam_id": exam_id,
+                    "is_resolved": False  # Mark as unresolved again
                 })\
                 .eq("id", record['id'])\
                 .execute()
@@ -841,11 +1042,31 @@ async def submit_answer(
                 "first_wrong_at": datetime.now().isoformat(),
                 "last_wrong_at": datetime.now().isoformat(),
                 "reviewed": False,
-                "marked_for_review": False
+                "marked_for_review": False,
+                "is_resolved": False
             }).execute()
+    else:
+        # If correct and exam type is review_mistakes, mark as resolved
+        if exam.data['exam_type'] == "review_mistakes":
+            # Check if this was a mistake
+            existing_mistake = supabase.table("user_mistakes")\
+                .select("*")\
+                .eq("user_id", user['id'])\
+                .eq("question_id", request.question_id)\
+                .execute()
+
+            if existing_mistake.data:
+                # Mark as resolved!
+                supabase.table("user_mistakes")\
+                    .update({
+                        "is_resolved": True,
+                        "resolved_at": datetime.now().isoformat()
+                    })\
+                    .eq("id", existing_mistake.data[0]['id'])\
+                    .execute()
 
     # Prepare response based on exam type
-    immediate_feedback = exam.data['exam_type'] == "practice"
+    immediate_feedback = exam.data['exam_type'] in ["practice", "review_mistakes"]
 
     return AnswerResponse(
         is_correct=is_correct,

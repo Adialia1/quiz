@@ -23,6 +23,8 @@ export const ExamHistoryScreen: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   // Fetch history
   const fetchHistory = async (isRefresh = false) => {
@@ -33,14 +35,41 @@ export const ExamHistoryScreen: React.FC = () => {
         setLoading(true);
       }
 
-      const data = await examApi.getExamHistory(getToken);
+      // Reset pagination on refresh
+      const data = await examApi.getExamHistory(getToken, { limit: 20, offset: 0 });
       setHistoryData(data);
+      setHasMore(data.exams.length >= 20);
     } catch (error: any) {
       console.error('Fetch history error:', error);
       Alert.alert('שגיאה', error.message || 'שגיאה בטעינת היסטוריה');
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  // Load more exams
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !historyData) return;
+
+    try {
+      setLoadingMore(true);
+      const offset = historyData.exams.length;
+      const data = await examApi.getExamHistory(getToken, { limit: 20, offset });
+
+      // Append new exams
+      setHistoryData({
+        ...data,
+        exams: [...historyData.exams, ...data.exams],
+      });
+
+      // Check if there are more
+      setHasMore(data.exams.length >= 20);
+    } catch (error: any) {
+      console.error('Load more error:', error);
+      Alert.alert('שגיאה', error.message || 'שגיאה בטעינת נתונים נוספים');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -263,6 +292,23 @@ export const ExamHistoryScreen: React.FC = () => {
             tintColor={Colors.primary}
           />
         }
+        ListFooterComponent={
+          hasMore ? (
+            <Pressable
+              onPress={loadMore}
+              style={styles.loadMoreButton}
+              disabled={loadingMore}
+            >
+              {loadingMore ? (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              ) : (
+                <Text style={styles.loadMoreText}>טען עוד</Text>
+              )}
+            </Pressable>
+          ) : historyData.exams.length > 0 ? (
+            <Text style={styles.endText}>זה הכל! 🎉</Text>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -472,5 +518,29 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.white,
+  },
+  loadMoreButton: {
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  loadMoreText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  endText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.gray[600],
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
   },
 });

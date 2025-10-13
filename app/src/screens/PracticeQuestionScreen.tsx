@@ -224,11 +224,18 @@ export const PracticeQuestionScreen: React.FC = () => {
         {/* Question Info */}
         <View style={styles.questionInfo}>
           <Text style={styles.questionTopic}>📋 {question.topic}</Text>
-          <Text style={styles.questionDifficulty}>
-            {question.difficulty_level === 'easy' && '🟢 קל'}
-            {question.difficulty_level === 'medium' && '🟡 בינוני'}
-            {question.difficulty_level === 'hard' && '🔴 קשה'}
-          </Text>
+          <View style={styles.questionMeta}>
+            {currentSession.exam_type === 'review_mistakes' && (
+              <View style={styles.mistakeBadge}>
+                <Text style={styles.mistakeBadgeText}>🔄 טעות מהעבר</Text>
+              </View>
+            )}
+            <Text style={styles.questionDifficulty}>
+              {question.difficulty_level === 'easy' && '🟢 קל'}
+              {question.difficulty_level === 'medium' && '🟡 בינוני'}
+              {question.difficulty_level === 'hard' && '🔴 קשה'}
+            </Text>
+          </View>
         </View>
 
         {/* Question Text */}
@@ -389,6 +396,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  questionMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mistakeBadge: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFC107',
+  },
+  mistakeBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F57C00',
   },
   questionDifficulty: {
     fontSize: 14,
