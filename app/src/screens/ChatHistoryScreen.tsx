@@ -266,9 +266,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 1,
+    alignItems: 'center',
   },
   conversationContent: {
     flex: 1,
+    paddingRight: 12,
   },
   conversationTitle: {
     fontSize: 16,
@@ -293,10 +295,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   deleteButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 22,
   },
   deleteButtonText: {
     fontSize: 20,

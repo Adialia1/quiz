@@ -50,6 +50,8 @@ export const AIMentorChatScreen: React.FC = () => {
   } = useChatStore();
 
   const [showSources, setShowSources] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [thinkingText, setThinkingText] = useState('מחפש מקורות...');
 
   // Load conversation on mount
   useEffect(() => {
@@ -106,6 +108,25 @@ export const AIMentorChatScreen: React.FC = () => {
 
     try {
       setSendingMessage(true);
+      setIsThinking(true);
+
+      // Animate thinking text - show each step once sequentially
+      const thinkingStates = [
+        'מחפש מקורות...',
+        'מנתח מסמכים...',
+        'מכין תשובה...',
+      ];
+
+      // Show each state sequentially
+      const showThinkingSteps = () => {
+        thinkingStates.forEach((state, index) => {
+          setTimeout(() => {
+            setThinkingText(state);
+          }, index * 3500); // 3.5 seconds per step
+        });
+      };
+
+      showThinkingSteps();
 
       // Add user message to UI immediately
       const tempUserMessage = {
@@ -127,6 +148,8 @@ export const AIMentorChatScreen: React.FC = () => {
         getToken
       );
 
+      console.log('AI Response:', response);
+
       // Update conversation if new
       if (!currentConversation && response.conversation_id) {
         setCurrentConversation({
@@ -139,12 +162,15 @@ export const AIMentorChatScreen: React.FC = () => {
       }
 
       // Add assistant message
+      console.log('Adding assistant message:', response.message);
       addMessage(response.message);
     } catch (error: any) {
       console.error('Error sending message:', error);
       Alert.alert('שגיאה', error.message || 'לא הצלחנו לשלוח את ההודעה. נסה שוב.');
     } finally {
       setSendingMessage(false);
+      setIsThinking(false);
+      setThinkingText('מחפש מקורות...'); // Reset to initial state
     }
   };
 
@@ -226,30 +252,36 @@ export const AIMentorChatScreen: React.FC = () => {
               </View>
             </View>
           ) : (
-            /* Messages List */
-            messages.map((message) => (
-              <ChatMessage
-                key={message.id}
-                role={message.role}
-                content={message.content}
-                timestamp={message.timestamp}
-                sources={message.sources}
-              />
-            ))
+            <>
+              {/* Messages List */}
+              {messages.map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  timestamp={message.timestamp}
+                  sources={message.sources}
+                />
+              ))}
+
+              {/* Thinking Animation */}
+              {isThinking && (
+                <View style={styles.thinkingContainer}>
+                  <View style={styles.thinkingBubble}>
+                    <View style={styles.thinkingContent}>
+                      <View style={styles.thinkingDots}>
+                        <View style={[styles.thinkingDot, styles.thinkingDot1]} />
+                        <View style={[styles.thinkingDot, styles.thinkingDot2]} />
+                        <View style={[styles.thinkingDot, styles.thinkingDot3]} />
+                      </View>
+                      <Text style={styles.thinkingTextStyle}>{thinkingText}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </>
           )}
         </ScrollView>
-
-        {/* Options Bar */}
-        <View style={styles.optionsBar}>
-          <Pressable
-            onPress={() => setShowSources(!showSources)}
-            style={[styles.optionButton, showSources && styles.optionButtonActive]}
-          >
-            <Text style={styles.optionButtonText}>
-              {showSources ? '✓ ' : ''}הצג מקורות
-            </Text>
-          </Pressable>
-        </View>
 
         {/* Input */}
         <ChatInput
@@ -398,5 +430,48 @@ const styles = StyleSheet.create({
   optionButtonText: {
     fontSize: 14,
     color: Colors.textPrimary,
+  },
+  thinkingContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  thinkingBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    maxWidth: '80%',
+  },
+  thinkingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  thinkingDots: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  thinkingTextStyle: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  thinkingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+  },
+  thinkingDot1: {
+    opacity: 0.4,
+  },
+  thinkingDot2: {
+    opacity: 0.7,
+  },
+  thinkingDot3: {
+    opacity: 1,
   },
 });

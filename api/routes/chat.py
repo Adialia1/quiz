@@ -13,8 +13,15 @@ import uuid
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from api.auth import get_current_user
+from api.auth import get_current_user_id
 from agent.agents.legal_expert import LegalExpertAgent
+import os
+from supabase import create_client, Client
+
+# Initialize Supabase client
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Initialize router
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -29,11 +36,6 @@ def get_legal_expert():
     if legal_expert is None:
         legal_expert = LegalExpertAgent(top_k=10, use_thinking_model=True)
     return legal_expert
-
-
-# In-memory storage (TODO: Replace with database)
-# Structure: { user_id: { conversation_id: { messages: [], title: str, created_at: str, updated_at: str } } }
-conversations_storage = {}
 
 
 # ============================================================================
@@ -92,28 +94,17 @@ def generate_conversation_title(first_message: str) -> str:
     return title
 
 
-def get_user_conversations(user_id: str) -> dict:
-    """Get all conversations for a user"""
-    if user_id not in conversations_storage:
-        conversations_storage[user_id] = {}
-    return conversations_storage[user_id]
-
-
 def create_conversation(user_id: str, title: str) -> str:
-    """Create a new conversation"""
-    conversation_id = str(uuid.uuid4())
-    user_convs = get_user_conversations(user_id)
-
-    now = datetime.now().isoformat()
-    user_convs[conversation_id] = {
-        "id": conversation_id,
+    """Create a new conversation in database"""
+    result = supabase.table("chat_conversations").insert({
+        "user_id": user_id,
         "title": title,
-        "created_at": now,
-        "updated_at": now,
-        "messages": [],
-    }
+    }).execute()
 
-    return conversation_id
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create conversation")
+
+    return result.data[0]["id"]
 
 
 def add_message_to_conversation(
@@ -123,28 +114,53 @@ def add_message_to_conversation(
     content: str,
     sources: Optional[List[str]] = None
 ) -> ChatMessage:
-    """Add a message to a conversation"""
-    user_convs = get_user_conversations(user_id)
+    """Add a message to a conversation in database"""
+    # Verify conversation exists and belongs to user
+    conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
 
-    if conversation_id not in user_convs:
+    if not conv_result.data:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    message_id = str(uuid.uuid4())
-    timestamp = datetime.now().isoformat()
+    # Insert message
+    message_result = supabase.table("chat_messages").insert({
+        "conversation_id": conversation_id,
+        "role": role,
+        "content": content,
+        "sources": sources,
+    }).execute()
 
-    message = ChatMessage(
-        id=message_id,
-        conversation_id=conversation_id,
-        role=role,
-        content=content,
-        timestamp=timestamp,
-        sources=sources,
+    if not message_result.data:
+        raise HTTPException(status_code=500, detail="Failed to add message")
+
+    msg_data = message_result.data[0]
+
+    # Update conversation's updated_at
+    supabase.table("chat_conversations").update({
+        "updated_at": msg_data["created_at"]
+    }).eq("id", conversation_id).execute()
+
+    return ChatMessage(
+        id=msg_data["id"],
+        conversation_id=msg_data["conversation_id"],
+        role=msg_data["role"],
+        content=msg_data["content"],
+        timestamp=msg_data["created_at"],
+        sources=msg_data.get("sources"),
     )
 
-    user_convs[conversation_id]["messages"].append(message.dict())
-    user_convs[conversation_id]["updated_at"] = timestamp
 
-    return message
+def get_conversation_messages_from_db(conversation_id: str, user_id: str, limit: int = 10) -> List[dict]:
+    """Get recent messages from a conversation"""
+    # Verify conversation belongs to user
+    conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
+
+    if not conv_result.data:
+        return []
+
+    # Get messages
+    messages_result = supabase.table("chat_messages").select("*").eq("conversation_id", conversation_id).order("created_at", desc=False).limit(limit).execute()
+
+    return messages_result.data if messages_result.data else []
 
 
 # ============================================================================
@@ -154,7 +170,7 @@ def add_message_to_conversation(
 @router.post("/send", response_model=SendMessageResponse)
 async def send_message(
     request: SendMessageRequest,
-    user: dict = Depends(get_current_user)
+    clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
     Send a message to AI Mentor
@@ -162,7 +178,9 @@ async def send_message(
     Creates a new conversation if conversation_id is not provided
     """
     try:
-        user_id = user["user_id"]
+        from api.routes.exams import get_user_by_clerk_id
+        user = get_user_by_clerk_id(clerk_user_id)
+        user_id = user["id"]
 
         # Create new conversation if needed
         if not request.conversation_id:
@@ -171,10 +189,23 @@ async def send_message(
             conversation_title = title
         else:
             conversation_id = request.conversation_id
-            user_convs = get_user_conversations(user_id)
-            if conversation_id not in user_convs:
+            # Verify conversation exists
+            conv_result = supabase.table("chat_conversations").select("title").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
+            if not conv_result.data:
                 raise HTTPException(status_code=404, detail="Conversation not found")
-            conversation_title = user_convs[conversation_id]["title"]
+            conversation_title = conv_result.data[0]["title"]
+
+        # Get conversation history for context BEFORE adding user message
+        conversation_messages = get_conversation_messages_from_db(conversation_id, user_id, limit=10)
+
+        # Build context from recent messages
+        context = ""
+        if conversation_messages:
+            context = "\n\n".join([
+                f"{'שאלה' if msg['role'] == 'user' else 'תשובה'}: {msg['content']}"
+                for msg in conversation_messages
+            ])
+            context = f"הקשר השיחה הקודם:\n{context}\n\n"
 
         # Add user message
         user_message = add_message_to_conversation(
@@ -184,10 +215,23 @@ async def send_message(
             request.message
         )
 
-        # Get AI response
+        # Get AI response with context and mobile-friendly instructions
         expert = get_legal_expert()
+
+        # Add mobile-friendly instructions
+        mobile_instruction = """
+        הנחיות חשובות:
+        - כתוב תשובה קצרה וממוקדת (2-4 פסקאות מקסימום)
+        - השתמש בטקסט רגיל וברור ללא markdown מורכב
+        - אם יש נקודות מרכזיות, רשום אותן בשורות נפרדות עם מקף בהתחלה
+        - הימנע מטבלאות, כותרות מסובכות או עיצוב מורכב
+        - התמקד במידע החשוב ביותר
+
+        """
+
+        query_with_context = f"{mobile_instruction}{context}שאלה נוכחית: {request.message}" if context else f"{mobile_instruction}שאלה: {request.message}"
         response = expert.process_with_rag(
-            query=request.message,
+            query=query_with_context,
             k=10
         )
 
@@ -224,21 +268,31 @@ async def send_message(
 
 
 @router.get("/conversations", response_model=List[ChatConversation])
-async def get_conversations(user: dict = Depends(get_current_user)):
+async def get_conversations(clerk_user_id: str = Depends(get_current_user_id)):
     """
     Get all conversations for the current user
     """
     try:
-        user_id = user["user_id"]
-        user_convs = get_user_conversations(user_id)
+        from api.routes.exams import get_user_by_clerk_id
+        user = get_user_by_clerk_id(clerk_user_id)
+        user_id = user["id"]
+
+        # Get all conversations for user
+        conv_result = supabase.table("chat_conversations").select("*").eq("user_id", user_id).eq("is_deleted", False).order("updated_at", desc=True).execute()
 
         conversations = []
-        for conv_id, conv_data in user_convs.items():
+        for conv_data in conv_result.data:
+            # Get message count
+            msg_count_result = supabase.table("chat_messages").select("id", count="exact").eq("conversation_id", conv_data["id"]).execute()
+            message_count = msg_count_result.count if msg_count_result.count else 0
+
+            # Get last message
             last_message = None
-            if conv_data["messages"]:
-                last_msg = conv_data["messages"][-1]
-                last_message = last_msg["content"][:100]
-                if len(last_msg["content"]) > 100:
+            last_msg_result = supabase.table("chat_messages").select("content").eq("conversation_id", conv_data["id"]).order("created_at", desc=True).limit(1).execute()
+            if last_msg_result.data:
+                last_msg_content = last_msg_result.data[0]["content"]
+                last_message = last_msg_content[:100]
+                if len(last_msg_content) > 100:
                     last_message += "..."
 
             conversations.append(
@@ -247,13 +301,10 @@ async def get_conversations(user: dict = Depends(get_current_user)):
                     title=conv_data["title"],
                     created_at=conv_data["created_at"],
                     updated_at=conv_data["updated_at"],
-                    message_count=len(conv_data["messages"]),
+                    message_count=message_count,
                     last_message=last_message
                 )
             )
-
-        # Sort by updated_at (most recent first)
-        conversations.sort(key=lambda x: x.updated_at, reverse=True)
 
         return conversations
 
@@ -265,20 +316,39 @@ async def get_conversations(user: dict = Depends(get_current_user)):
 @router.get("/conversations/{conversation_id}/messages", response_model=List[ChatMessage])
 async def get_conversation_messages(
     conversation_id: str,
-    user: dict = Depends(get_current_user)
+    clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
     Get all messages for a specific conversation
     """
     try:
-        user_id = user["user_id"]
-        user_convs = get_user_conversations(user_id)
+        from api.routes.exams import get_user_by_clerk_id
+        user = get_user_by_clerk_id(clerk_user_id)
+        user_id = user["id"]
 
-        if conversation_id not in user_convs:
+        # Verify conversation exists and belongs to user
+        conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
+
+        if not conv_result.data:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-        messages = user_convs[conversation_id]["messages"]
-        return [ChatMessage(**msg) for msg in messages]
+        # Get all messages
+        messages_result = supabase.table("chat_messages").select("*").eq("conversation_id", conversation_id).order("created_at", desc=False).execute()
+
+        messages = []
+        for msg_data in messages_result.data:
+            messages.append(
+                ChatMessage(
+                    id=msg_data["id"],
+                    conversation_id=msg_data["conversation_id"],
+                    role=msg_data["role"],
+                    content=msg_data["content"],
+                    timestamp=msg_data["created_at"],
+                    sources=msg_data.get("sources"),
+                )
+            )
+
+        return messages
 
     except HTTPException:
         raise
@@ -290,19 +360,27 @@ async def get_conversation_messages(
 @router.delete("/conversations/{conversation_id}")
 async def delete_conversation(
     conversation_id: str,
-    user: dict = Depends(get_current_user)
+    clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
-    Delete a conversation
+    Delete a conversation (soft delete)
     """
     try:
-        user_id = user["user_id"]
-        user_convs = get_user_conversations(user_id)
+        from api.routes.exams import get_user_by_clerk_id
+        user = get_user_by_clerk_id(clerk_user_id)
+        user_id = user["id"]
 
-        if conversation_id not in user_convs:
+        # Verify conversation exists and belongs to user
+        conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
+
+        if not conv_result.data:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-        del user_convs[conversation_id]
+        # Soft delete
+        supabase.table("chat_conversations").update({
+            "is_deleted": True,
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", conversation_id).execute()
 
         return {"message": "שיחה נמחקה בהצלחה"}
 
@@ -317,20 +395,27 @@ async def delete_conversation(
 async def rename_conversation(
     conversation_id: str,
     request: RenameConversationRequest,
-    user: dict = Depends(get_current_user)
+    clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
     Rename a conversation
     """
     try:
-        user_id = user["user_id"]
-        user_convs = get_user_conversations(user_id)
+        from api.routes.exams import get_user_by_clerk_id
+        user = get_user_by_clerk_id(clerk_user_id)
+        user_id = user["id"]
 
-        if conversation_id not in user_convs:
+        # Verify conversation exists and belongs to user
+        conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
+
+        if not conv_result.data:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-        user_convs[conversation_id]["title"] = request.title
-        user_convs[conversation_id]["updated_at"] = datetime.now().isoformat()
+        # Update title
+        supabase.table("chat_conversations").update({
+            "title": request.title,
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", conversation_id).execute()
 
         return {"message": "שיחה שונתה בהצלחה", "title": request.title}
 

@@ -24,12 +24,30 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   const isUser = role === 'user';
 
+  // Clean markdown formatting for better mobile display
+  const cleanContent = (text: string): string => {
+    return text
+      // Remove markdown headers (##, ###, etc)
+      .replace(/^#{1,6}\s+/gm, '')
+      // Remove bold/italic markers
+      .replace(/\*\*\*/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      // Remove inline code markers
+      .replace(/`([^`]+)`/g, '$1')
+      // Clean up multiple newlines
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove horizontal rules
+      .replace(/^---+$/gm, '')
+      .trim();
+  };
+
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
       {/* Message Bubble */}
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
         <Text style={[styles.content, isUser ? styles.userContent : styles.assistantContent]}>
-          {content}
+          {cleanContent(content)}
         </Text>
 
         {/* Sources (if available) */}
