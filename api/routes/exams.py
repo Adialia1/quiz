@@ -22,6 +22,14 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ==================== Models ====================
 
+class TopicInfo(BaseModel):
+    name: str
+    question_count: int
+
+class PracticeTopicsResponse(BaseModel):
+    topics: List[TopicInfo]
+    difficulties: List[str]
+
 class CreateExamRequest(BaseModel):
     exam_type: str = Field(..., description="Type of exam: practice, full_simulation, review_mistakes")
     question_count: Optional[int] = Field(25, description="Number of questions (default: 25)")
@@ -397,6 +405,59 @@ def calculate_exam_results(exam_id: str, user_id: str) -> Dict:
 
 
 # ==================== Endpoints ====================
+
+@router.get("/practice/topics", response_model=PracticeTopicsResponse)
+async def get_practice_topics(
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get available topics and difficulties for practice mode
+
+    Returns all unique topics from the questions database with their question counts,
+    and the list of available difficulty levels.
+    """
+    try:
+        # Get all topics with their question counts
+        topics_result = supabase.rpc(
+            'get_topic_counts'
+        ).execute()
+
+        # If RPC function doesn't exist, fall back to manual query
+        if not topics_result.data:
+            # Get all active questions grouped by topic
+            questions = supabase.table("ai_generated_questions")\
+                .select("topic")\
+                .eq("is_active", True)\
+                .execute()
+
+            # Count topics manually
+            topic_counts = {}
+            for q in questions.data:
+                topic = q['topic']
+                topic_counts[topic] = topic_counts.get(topic, 0) + 1
+
+            topics = [
+                TopicInfo(name=topic, question_count=count)
+                for topic, count in sorted(topic_counts.items())
+            ]
+        else:
+            topics = [
+                TopicInfo(name=item['topic'], question_count=item['count'])
+                for item in topics_result.data
+            ]
+
+        # Standard difficulty levels
+        difficulties = ["קל", "בינוני", "קשה"]
+
+        return PracticeTopicsResponse(
+            topics=topics,
+            difficulties=difficulties
+        )
+
+    except Exception as e:
+        print(f"Error fetching topics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch topics: {str(e)}")
+
 
 @router.post("", response_model=ExamResponse)
 async def create_exam(

@@ -271,11 +271,11 @@ export const ExamScreen: React.FC = () => {
 
   // Answer options
   const options = [
-    { key: 'A', text: currentQuestion.option_a },
-    { key: 'B', text: currentQuestion.option_b },
-    { key: 'C', text: currentQuestion.option_c },
-    { key: 'D', text: currentQuestion.option_d },
-    { key: 'E', text: currentQuestion.option_e },
+    { key: 'A', label: 'א', text: currentQuestion.option_a },
+    { key: 'B', label: 'ב', text: currentQuestion.option_b },
+    { key: 'C', label: 'ג', text: currentQuestion.option_c },
+    { key: 'D', label: 'ד', text: currentQuestion.option_d },
+    { key: 'E', label: 'ה', text: currentQuestion.option_e },
   ];
 
   return (
@@ -347,7 +347,7 @@ export const ExamScreen: React.FC = () => {
 
                     {/* Answer text - second child = LEFT side in RTL */}
                     <Text style={styles.optionText}>
-                      {option.text}
+                      {option.label}) {option.text}
                     </Text>
                   </Pressable>
                 );

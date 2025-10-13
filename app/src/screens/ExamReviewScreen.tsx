@@ -92,11 +92,11 @@ export const ExamReviewScreen: React.FC = () => {
 
   // Prepare answer options - show ALL options
   const options = [
-    { key: 'A', text: currentQuestion.option_a },
-    { key: 'B', text: currentQuestion.option_b },
-    { key: 'C', text: currentQuestion.option_c },
-    { key: 'D', text: currentQuestion.option_d },
-    { key: 'E', text: currentQuestion.option_e },
+    { key: 'A', label: 'א', text: currentQuestion.option_a },
+    { key: 'B', label: 'ב', text: currentQuestion.option_b },
+    { key: 'C', label: 'ג', text: currentQuestion.option_c },
+    { key: 'D', label: 'ד', text: currentQuestion.option_d },
+    { key: 'E', label: 'ה', text: currentQuestion.option_e },
   ];
 
   return (
@@ -182,7 +182,7 @@ export const ExamReviewScreen: React.FC = () => {
                       isCorrectAnswer && styles.optionTextCorrect,
                       isUserAnswer && !currentQuestion.is_correct && styles.optionTextWrong,
                     ]}>
-                      {option.text}
+                      {option.label}) {option.text}
                     </Text>
                   </View>
                 );

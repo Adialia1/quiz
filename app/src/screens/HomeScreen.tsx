@@ -44,7 +44,8 @@ export const HomeScreen: React.FC = () => {
     // Handle different menu items
     switch (menuItem) {
       case 'practice':
-        await createAndStartExam('practice');
+        // Navigate to practice topic selection screen
+        navigation.navigate('PracticeTopicSelection');
         break;
       case 'full-exam':
         await createAndStartExam('full_simulation');
