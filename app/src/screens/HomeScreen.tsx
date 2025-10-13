@@ -55,7 +55,8 @@ export const HomeScreen: React.FC = () => {
         navigation.navigate('MistakeReviewSelection');
         break;
       case 'ai-instructor':
-        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        // Navigate to AI Mentor chat history
+        navigation.navigate('ChatHistory');
         break;
       case 'concepts-laws':
         Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');

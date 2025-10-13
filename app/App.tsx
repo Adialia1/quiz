@@ -18,6 +18,8 @@ import { ExamHistoryScreen } from './src/screens/ExamHistoryScreen';
 import { PracticeTopicSelectionScreen } from './src/screens/PracticeTopicSelectionScreen';
 import { PracticeQuestionScreen } from './src/screens/PracticeQuestionScreen';
 import { MistakeReviewSelectionScreen } from './src/screens/MistakeReviewSelectionScreen';
+import { ChatHistoryScreen } from './src/screens/ChatHistoryScreen';
+import { AIMentorChatScreen } from './src/screens/AIMentorChatScreen';
 import { tokenCache } from './src/utils/tokenCache';
 
 // הגדרת RTL בעת טעינת האפליקציה
@@ -68,6 +70,8 @@ function MainStack() {
         <Stack.Screen name="PracticeTopicSelection" component={PracticeTopicSelectionScreen} />
         <Stack.Screen name="PracticeQuestion" component={PracticeQuestionScreen} />
         <Stack.Screen name="MistakeReviewSelection" component={MistakeReviewSelectionScreen} />
+        <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} />
+        <Stack.Screen name="AIMentorChat" component={AIMentorChatScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>
