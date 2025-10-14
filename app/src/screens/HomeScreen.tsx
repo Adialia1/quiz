@@ -59,7 +59,10 @@ export const HomeScreen: React.FC = () => {
         navigation.navigate('ChatHistory');
         break;
       case 'concepts-laws':
-        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        navigation.navigate('TopicSelection');
+        break;
+      case 'starred':
+        navigation.navigate('StarredConcepts');
         break;
       case 'history':
         navigation.navigate('ExamHistory');
@@ -147,9 +150,10 @@ export const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.menuRow}>
             <MenuCard title="מושגים וחוקים" icon="📇" onPress={() => handleMenuPress('concepts-laws')} />
-            <MenuCard title="היסטוריית מבחנים" icon="📝" onPress={() => handleMenuPress('history')} />
+            <MenuCard title="מועדפים" icon="⭐" onPress={() => handleMenuPress('starred')} />
           </View>
           <View style={styles.menuRow}>
+            <MenuCard title="היסטוריית מבחנים" icon="📝" onPress={() => handleMenuPress('history')} />
             <MenuCard title="מעקב התקדמות" icon="🏆" onPress={() => handleMenuPress('progress')} />
           </View>
         </View>

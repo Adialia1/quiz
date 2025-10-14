@@ -20,6 +20,10 @@ import { PracticeQuestionScreen } from './src/screens/PracticeQuestionScreen';
 import { MistakeReviewSelectionScreen } from './src/screens/MistakeReviewSelectionScreen';
 import { ChatHistoryScreen } from './src/screens/ChatHistoryScreen';
 import { AIMentorChatScreen } from './src/screens/AIMentorChatScreen';
+import { TopicSelectionScreen } from './src/screens/TopicSelectionScreen';
+import { TopicDetailScreen } from './src/screens/TopicDetailScreen';
+import { FlashcardStudyScreen } from './src/screens/FlashcardStudyScreen';
+import { StarredConceptsScreen } from './src/screens/StarredConceptsScreen';
 import { tokenCache } from './src/utils/tokenCache';
 
 // הגדרת RTL בעת טעינת האפליקציה
@@ -72,6 +76,10 @@ function MainStack() {
         <Stack.Screen name="MistakeReviewSelection" component={MistakeReviewSelectionScreen} />
         <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} />
         <Stack.Screen name="AIMentorChat" component={AIMentorChatScreen} />
+        <Stack.Screen name="TopicSelection" component={TopicSelectionScreen} />
+        <Stack.Screen name="TopicDetail" component={TopicDetailScreen} />
+        <Stack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
+        <Stack.Screen name="StarredConcepts" component={StarredConceptsScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>

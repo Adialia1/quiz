@@ -22,11 +22,12 @@ from agent.scripts.quiz_to_pdf import create_quiz_pdf_html
 from api.routes.users import router as users_router
 from api.routes.exams import router as exams_router
 from api.routes.chat import router as chat_router
+from api.routes.concepts import router as concepts_router
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Quiz Generator & Legal Expert API",
-    description="API for generating exam questions, querying legal expert, managing users, exams, and AI chat",
+    description="API for generating exam questions, querying legal expert, managing users, exams, AI chat, and concepts",
     version="1.0.0"
 )
 
@@ -34,6 +35,7 @@ app = FastAPI(
 app.include_router(users_router)
 app.include_router(exams_router)
 app.include_router(chat_router)
+app.include_router(concepts_router)
 
 # Initialize agents (singleton pattern)
 legal_expert = None
@@ -149,7 +151,12 @@ async def root():
             "exam_details": "/api/exams/{exam_id}",
             "submit_answer": "/api/exams/{exam_id}/answer",
             "submit_exam": "/api/exams/{exam_id}/submit",
-            "exam_results": "/api/exams/{exam_id}/results"
+            "exam_results": "/api/exams/{exam_id}/results",
+            "concepts_topics": "/api/concepts/topics",
+            "concepts_by_topic": "/api/concepts/topics/{topic}",
+            "concept_detail": "/api/concepts/{concept_id}",
+            "concepts_search": "/api/concepts/search",
+            "concepts_stats": "/api/concepts/stats"
         },
         "docs": "/docs"
     }
