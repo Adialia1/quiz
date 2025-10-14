@@ -20,7 +20,8 @@
       "bundleIdentifier": "com.quizapp.mobile",
       "infoPlist": {
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
-        "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה"
+        "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה",
+        "NSUserNotificationsUsageDescription": "האפליקציה שולחת לך תזכורות יומיות ללמוד למבחן"
       }
     },
     "android": {
@@ -42,11 +43,26 @@
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
-      }
+        "projectId": "c4d773b3-b1ec-40d7-9c5c-6d8af489b238"
+      },
+      "apiUrl": "https://accepted-awfully-bug.ngrok-free.app"
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#2196F3",
+          "sounds": ["./assets/notification.wav"]
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#2196F3",
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} תזכורות חדשות"
+    }
   }
 }

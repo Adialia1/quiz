@@ -24,7 +24,10 @@ import { TopicSelectionScreen } from './src/screens/TopicSelectionScreen';
 import { TopicDetailScreen } from './src/screens/TopicDetailScreen';
 import { FlashcardStudyScreen } from './src/screens/FlashcardStudyScreen';
 import { StarredConceptsScreen } from './src/screens/StarredConceptsScreen';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { tokenCache } from './src/utils/tokenCache';
+import { API_URL } from './src/config/api';
+import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 
 // הגדרת RTL בעת טעינת האפליקציה
 setupRTL();
@@ -93,11 +96,48 @@ function MainStack() {
 function AppContent() {
   const { isSignedIn, isLoaded: clerkLoaded } = useAuth();
   const { isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // טעינת מצב האימות מהאחסון
   useEffect(() => {
     hydrate();
   }, []);
+
+  // Check if onboarding is completed from API
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (isSignedIn || isAuthenticated) {
+        try {
+          // Get auth token
+          const token = await tokenCache.getToken('__clerk_client_jwt');
+          if (!token) {
+            console.log('No token available for onboarding check');
+            setShowOnboarding(false);
+            return;
+          }
+
+          // Fetch user profile from API
+          const response = await fetch(`${API_URL}/api/users/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            setShowOnboarding(!userData.onboarding_completed);
+          } else {
+            console.log('Failed to fetch user profile:', response.status);
+            setShowOnboarding(false);
+          }
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+          setShowOnboarding(false);
+        }
+      }
+    };
+    checkOnboarding();
+  }, [isSignedIn, isAuthenticated]);
 
   // אם Clerk או האפליקציה עדיין טוענים
   if (!clerkLoaded || isLoading) {
@@ -105,6 +145,16 @@ function AppContent() {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
       </View>
+    );
+  }
+
+  // Show onboarding if user just registered
+  if ((isSignedIn || isAuthenticated) && showOnboarding) {
+    return (
+      <>
+        <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
+        <StatusBar style="dark" />
+      </>
     );
   }
 

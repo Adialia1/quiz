@@ -12,6 +12,7 @@ import { useUser, useClerk } from '@clerk/clerk-expo';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../config/colors';
 import { useAuthStore } from '../stores/authStore';
+import { StorageUtils } from '../utils/storage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
@@ -80,6 +81,9 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
             style: 'destructive',
             onPress: async () => {
               onClose(); // Close drawer first
+
+              // Clear all local storage
+              await StorageUtils.clearAll();
 
               // Clear local state
               await logout();

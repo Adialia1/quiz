@@ -63,6 +63,20 @@ class UpdateUserRequest(BaseModel):
     )
 
 
+class OnboardingRequest(BaseModel):
+    """Complete onboarding request"""
+    exam_date: str = Field(..., description="Exam date in ISO format (YYYY-MM-DD)")
+    study_hours: list[int] = Field(..., description="Array of hours (0-23) for study reminders")
+    expo_push_token: Optional[str] = Field(None, description="Expo push notification token")
+    notification_preferences: Optional[dict] = Field(
+        default_factory=lambda: {
+            "study_reminders_enabled": True,
+            "exam_countdown_enabled": True,
+            "achievement_notifications_enabled": True
+        }
+    )
+
+
 class UserStats(BaseModel):
     """User statistics response"""
     total_questions_answered: int
@@ -400,3 +414,122 @@ async def get_user_stats(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching stats: {str(e)}")
+
+
+# ============================================================================
+# ONBOARDING
+# ============================================================================
+
+@router.post("/me/onboarding")
+async def complete_onboarding(
+    onboarding_data: OnboardingRequest,
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Save user's onboarding data
+
+    Requires: Authorization header with Clerk JWT token
+
+    Saves:
+    - Exam date
+    - Study hours for reminders
+    - Expo push token (for server-side notifications)
+    - Notification preferences
+    - Onboarding completion status
+    """
+    try:
+        # Validate study hours
+        if not all(0 <= hour <= 23 for hour in onboarding_data.study_hours):
+            raise HTTPException(status_code=400, detail="Study hours must be between 0-23")
+
+        # Parse exam date
+        try:
+            exam_date = datetime.fromisoformat(onboarding_data.exam_date.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid exam date format. Use ISO format (YYYY-MM-DD)")
+
+        # Prepare update data
+        update_data = {
+            "onboarding_completed": True,
+            "exam_date": exam_date.date().isoformat(),
+            "study_hours": json.dumps(onboarding_data.study_hours),
+            "notification_preferences": json.dumps(onboarding_data.notification_preferences),
+            "updated_at": datetime.now().isoformat()
+        }
+
+        # Add push token if provided
+        if onboarding_data.expo_push_token:
+            update_data["expo_push_token"] = onboarding_data.expo_push_token
+
+        # Update user in database
+        print(f"[ONBOARDING] Updating user with clerk_user_id: {clerk_user_id}")
+        print(f"[ONBOARDING] Update data: {update_data}")
+
+        result = supabase.table("users")\
+            .update(update_data)\
+            .eq("clerk_user_id", clerk_user_id)\
+            .execute()
+
+        print(f"[ONBOARDING] Update result: {result}")
+
+        if not result.data:
+            # Check if user exists at all
+            user_check = supabase.table("users")\
+                .select("id, clerk_user_id")\
+                .eq("clerk_user_id", clerk_user_id)\
+                .execute()
+
+            print(f"[ONBOARDING] User check result: {user_check}")
+
+            if not user_check.data:
+                # User doesn't exist - create them
+                print(f"[ONBOARDING] User not found, creating new user...")
+
+                # For now, use a placeholder email - ideally should fetch from Clerk API
+                # The email should have been set via webhook, but if webhook failed,
+                # we'll use the clerk_user_id as a placeholder
+                create_data = {
+                    "clerk_user_id": clerk_user_id,
+                    "email": f"{clerk_user_id}@placeholder.local",  # Placeholder until proper email is available
+                    "created_at": datetime.now().isoformat(),
+                    "last_login_at": datetime.now().isoformat(),
+                    **update_data
+                }
+
+                create_result = supabase.table("users").insert(create_data).execute()
+
+                if not create_result.data:
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Failed to create user in database"
+                    )
+
+                print(f"[ONBOARDING] User created successfully: {create_result.data[0]['id']}")
+
+                return {
+                    "status": "success",
+                    "message": "Onboarding completed successfully",
+                    "user_id": create_result.data[0]["id"],
+                    "exam_date": exam_date.date().isoformat(),
+                    "study_hours": onboarding_data.study_hours,
+                    "push_token_saved": bool(onboarding_data.expo_push_token)
+                }
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to update user. The database columns might not exist. Please run the migration: migrations/add_onboarding_fields.sql"
+                )
+
+        return {
+            "status": "success",
+            "message": "Onboarding completed successfully",
+            "user_id": result.data[0]["id"],
+            "exam_date": exam_date.date().isoformat(),
+            "study_hours": onboarding_data.study_hours,
+            "push_token_saved": bool(onboarding_data.expo_push_token)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error completing onboarding: {str(e)}")
