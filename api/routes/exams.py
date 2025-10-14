@@ -753,22 +753,24 @@ async def get_exam_history(
     type: Optional[str] = Query(None, description="Filter by exam type"),
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Get user's exam history"""
+    """Get user's exam history (excluding archived exams)"""
     user = get_user_by_clerk_id(clerk_user_id)
 
-    # Build query
+    # Build query - exclude archived exams
     query = supabase.table("exams")\
         .select("*")\
         .eq("user_id", user['id'])\
+        .eq("is_archived", False)\
         .order("started_at", desc=True)
 
     if type:
         query = query.eq("exam_type", type)
 
-    # Get total count
+    # Get total count - exclude archived exams
     count_result = supabase.table("exams")\
         .select("id", count="exact")\
-        .eq("user_id", user['id'])
+        .eq("user_id", user['id'])\
+        .eq("is_archived", False)
 
     if type:
         count_result = count_result.eq("exam_type", type)
@@ -1368,6 +1370,34 @@ async def submit_exam(
         weak_topics=results['weak_topics'],
         strong_topics=results['strong_topics']
     )
+
+
+@router.patch("/{exam_id}/archive")
+async def archive_exam(
+    exam_id: str,
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """Archive an exam (hide from history)"""
+    user = get_user_by_clerk_id(clerk_user_id)
+
+    # Verify exam belongs to user
+    exam = supabase.table("exams")\
+        .select("*")\
+        .eq("id", exam_id)\
+        .eq("user_id", user['id'])\
+        .single()\
+        .execute()
+
+    if not exam.data:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    # Update exam to archived
+    supabase.table("exams")\
+        .update({"is_archived": True})\
+        .eq("id", exam_id)\
+        .execute()
+
+    return {"status": "success", "message": "Exam archived", "exam_id": exam_id}
 
 
 @router.delete("/{exam_id}")

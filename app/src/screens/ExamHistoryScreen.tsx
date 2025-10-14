@@ -25,6 +25,7 @@ export const ExamHistoryScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [archiving, setArchiving] = useState<string | null>(null);
 
   // Fetch history
   const fetchHistory = async (isRefresh = false) => {
@@ -165,10 +166,64 @@ export const ExamHistoryScreen: React.FC = () => {
     }
   };
 
+  // Handle archive exam
+  const handleArchiveExam = (examId: string) => {
+    Alert.alert(
+      'העברה לארכיון',
+      'האם אתה בטוח שברצונך להעביר מבחן זה לארכיון?',
+      [
+        { text: 'ביטול', style: 'cancel' },
+        {
+          text: 'העבר לארכיון',
+          style: 'destructive',
+          onPress: () => archiveExam(examId)
+        },
+      ]
+    );
+  };
+
+  // Archive exam
+  const archiveExam = async (examId: string) => {
+    try {
+      setArchiving(examId);
+
+      const token = await getToken();
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+
+      const response = await fetch(`${API_URL}/api/exams/${examId}/archive`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to archive exam');
+      }
+
+      // Remove exam from local state
+      if (historyData) {
+        setHistoryData({
+          ...historyData,
+          exams: historyData.exams.filter(e => e.id !== examId),
+          total_count: historyData.total_count - 1,
+        });
+      }
+    } catch (error: any) {
+      console.error('Archive exam error:', error);
+      Alert.alert('שגיאה', error.message || 'לא ניתן להעביר לארכיון כרגע');
+    } finally {
+      setArchiving(null);
+    }
+  };
+
   // Render exam card
   const renderExamCard = ({ item }: { item: ExamHistoryItem }) => {
     const statusBadge = getStatusBadge(item);
     const canTap = item.status === 'completed' || item.status === 'in_progress';
+    const isArchiving = archiving === item.id;
 
     return (
       <Pressable
@@ -184,9 +239,26 @@ export const ExamHistoryScreen: React.FC = () => {
               <Text style={styles.statusBadgeText}>{statusBadge.text}</Text>
             </View>
           </View>
-          <View style={styles.dateContainer}>
-            <Text style={styles.dateText}>{formatDate(item.started_at)}</Text>
-            <Text style={styles.timeText}>{formatTime(item.started_at)}</Text>
+          <View style={styles.dateAndArchive}>
+            <View style={styles.dateContainer}>
+              <Text style={styles.dateText}>{formatDate(item.started_at)}</Text>
+              <Text style={styles.timeText}>{formatTime(item.started_at)}</Text>
+            </View>
+            {/* Archive button */}
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                handleArchiveExam(item.id);
+              }}
+              style={styles.archiveButton}
+              disabled={isArchiving}
+            >
+              {isArchiving ? (
+                <ActivityIndicator size="small" color="#9CA3AF" />
+              ) : (
+                <Text style={styles.archiveButtonText}>📦</Text>
+              )}
+            </Pressable>
           </View>
         </View>
 
@@ -430,6 +502,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.white,
   },
+  dateAndArchive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   dateContainer: {
     alignItems: 'flex-end',
   },
@@ -538,9 +615,20 @@ const styles = StyleSheet.create({
   endText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.gray[600],
+    color: '#6B7280',
     textAlign: 'center',
     marginTop: 12,
     marginBottom: 20,
+  },
+  archiveButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  archiveButtonText: {
+    fontSize: 18,
   },
 });
