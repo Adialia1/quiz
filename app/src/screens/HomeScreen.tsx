@@ -10,7 +10,7 @@ import { useExamStore } from '../stores/examStore';
 
 interface MenuCardProps {
   title: string;
-  icon: string;
+  iconSource: any; // Image source (require)
   onPress: () => void;
 }
 
@@ -18,10 +18,10 @@ interface MenuCardProps {
  * קומפוננט כרטיס תפריט
  * Menu card component
  */
-const MenuCard: React.FC<MenuCardProps> = ({ title, icon, onPress }) => {
+const MenuCard: React.FC<MenuCardProps> = ({ title, iconSource, onPress }) => {
   return (
     <Pressable onPress={onPress} style={styles.menuCard}>
-      <Text style={styles.menuIcon}>{icon}</Text>
+      <Image source={iconSource} style={styles.cardIcon} contentFit="contain" />
       <Text style={styles.menuTitle}>{title}</Text>
     </Pressable>
   );
@@ -141,20 +141,20 @@ export const HomeScreen: React.FC = () => {
         {/* Menu Grid */}
         <View style={styles.menuGrid}>
           <View style={styles.menuRow}>
-            <MenuCard title="תרגול שאלות" icon="❓" onPress={() => handleMenuPress('practice')} />
-            <MenuCard title="סימולציית מבחן" icon="📋" onPress={() => handleMenuPress('full-exam')} />
+            <MenuCard title="תרגול שאלות" iconSource={require('../../assets/survey.png')} onPress={() => handleMenuPress('practice')} />
+            <MenuCard title="סימולציית מבחן" iconSource={require('../../assets/law-book.png')} onPress={() => handleMenuPress('full-exam')} />
           </View>
           <View style={styles.menuRow}>
-            <MenuCard title="חזרה על טעויות" icon="⚠️" onPress={() => handleMenuPress('review-mistakes')} />
-            <MenuCard title="מרצה AI" icon="👨‍🏫" onPress={() => handleMenuPress('ai-instructor')} />
+            <MenuCard title="חזרה על טעויות" iconSource={require('../../assets/close.png')} onPress={() => handleMenuPress('review-mistakes')} />
+            <MenuCard title="מרצה AI" iconSource={require('../../assets/owl.png')} onPress={() => handleMenuPress('ai-instructor')} />
           </View>
           <View style={styles.menuRow}>
-            <MenuCard title="מושגים וחוקים" icon="📇" onPress={() => handleMenuPress('concepts-laws')} />
-            <MenuCard title="מועדפים" icon="⭐" onPress={() => handleMenuPress('starred')} />
+            <MenuCard title="מושגים וחוקים" iconSource={require('../../assets/law.png')} onPress={() => handleMenuPress('concepts-laws')} />
+            <MenuCard title="מועדפים" iconSource={require('../../assets/star.png')} onPress={() => handleMenuPress('starred')} />
           </View>
           <View style={styles.menuRow}>
-            <MenuCard title="היסטוריית מבחנים" icon="📝" onPress={() => handleMenuPress('history')} />
-            <MenuCard title="מעקב התקדמות" icon="🏆" onPress={() => handleMenuPress('progress')} />
+            <MenuCard title="היסטוריית מבחנים" iconSource={require('../../assets/test.png')} onPress={() => handleMenuPress('history')} />
+            <MenuCard title="מעקב התקדמות" iconSource={require('../../assets/trophy.png')} onPress={() => handleMenuPress('progress')} />
           </View>
         </View>
       </ScrollView>
@@ -213,11 +213,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 140,
+    // iOS shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    // Android shadow
+    elevation: 4,
+  },
+  cardIcon: {
+    width: 56,
+    height: 56,
+    marginBottom: 12,
   },
   menuIcon: {
     fontSize: 48,
