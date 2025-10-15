@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   View,
   Text,
@@ -10,6 +9,7 @@ import {
   ActivityIndicator,
   Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
 import { Colors } from '../config/colors';
@@ -183,6 +183,59 @@ export const ProgressScreen: React.FC = () => {
           <Text style={styles.headerTitle}>התקדמות שלי</Text>
           <View style={styles.placeholder} />
         </View>
+
+        {/* Exam Countdown Card */}
+        {overview && overview.exam_date && (
+          <View style={styles.examCountdownCard}>
+            <View style={styles.examCountdownContent}>
+              <Text style={styles.examCountdownIcon}>📅</Text>
+              <View style={styles.examCountdownInfo}>
+                <Text style={styles.examCountdownTitle}>מועד המבחן שלך</Text>
+                <Text style={styles.examCountdownDate}>
+                  {formatDate(overview.exam_date)}
+                </Text>
+              </View>
+            </View>
+
+            {overview.days_until_exam !== null && (
+              <View style={styles.examCountdownDays}>
+                <Text style={styles.examCountdownDaysNumber}>
+                  {overview.days_until_exam}
+                </Text>
+                <Text style={styles.examCountdownDaysLabel}>
+                  {overview.days_until_exam === 1 ? 'יום נותר' : 'ימים נותרים'}
+                </Text>
+
+                {/* Motivational message based on days remaining */}
+                {overview.days_until_exam <= 7 && overview.days_until_exam > 0 && (
+                  <Text style={styles.examCountdownMotivation}>
+                    🔥 השבוע האחרון! זמן לסיכום
+                  </Text>
+                )}
+                {overview.days_until_exam > 7 && overview.days_until_exam <= 30 && (
+                  <Text style={styles.examCountdownMotivation}>
+                    💪 חודש אחרון - תתמקד בנקודות החולשה
+                  </Text>
+                )}
+                {overview.days_until_exam > 30 && (
+                  <Text style={styles.examCountdownMotivation}>
+                    📚 יש לך זמן - לימוד יציב ועקבי
+                  </Text>
+                )}
+                {overview.days_until_exam === 0 && (
+                  <Text style={styles.examCountdownMotivation}>
+                    🎯 היום הגדול הגיע! בהצלחה!
+                  </Text>
+                )}
+                {overview.days_until_exam < 0 && (
+                  <Text style={styles.examCountdownMotivation}>
+                    המבחן עבר - המשך תרגול!
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Overview Stats Cards */}
         {overview && (
@@ -488,6 +541,71 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
+  },
+  examCountdownCard: {
+    backgroundColor: Colors.primary,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  examCountdownContent: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  examCountdownIcon: {
+    fontSize: 40,
+    marginLeft: 16,
+  },
+  examCountdownInfo: {
+    flex: 1,
+  },
+  examCountdownTitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textAlign: 'right',
+    fontWeight: '600',
+  },
+  examCountdownDate: {
+    fontSize: 22,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'right',
+  },
+  examCountdownDays: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  examCountdownDaysNumber: {
+    fontSize: 48,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  examCountdownDaysLabel: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginTop: 4,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  examCountdownMotivation: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginTop: 12,
+    textAlign: 'center',
+    fontWeight: '500',
+    opacity: 0.95,
   },
   statsGrid: {
     flexDirection: 'row-reverse',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,9 @@ import { Colors } from '../config/colors';
 import { DrawerMenu } from '../components/DrawerMenu';
 import { examApi } from '../utils/examApi';
 import { useExamStore } from '../stores/examStore';
+import { useAuthStore } from '../stores/authStore';
+import { fetchUserProfile } from '../utils/userApi';
+import { getTimeBasedGreeting } from '../utils/greetings';
 
 interface MenuCardProps {
   title: string;
@@ -37,6 +40,38 @@ export const HomeScreen: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { setCurrentExam } = useExamStore();
+  const { user, setUser } = useAuthStore();
+  const [greeting, setGreeting] = useState<string>('');
+
+  // Fetch user data and set greeting
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Fetch user profile if not already in store
+        if (!user?.first_name && !user?.firstName) {
+          const userData = await fetchUserProfile(getToken);
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+          });
+          // Set greeting with fetched name
+          setGreeting(getTimeBasedGreeting(userData.first_name));
+        } else {
+          // Use existing user data
+          const firstName = user.first_name || user.firstName;
+          setGreeting(getTimeBasedGreeting(firstName));
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        // Set greeting without name if error
+        setGreeting(getTimeBasedGreeting());
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const handleMenuPress = async (menuItem: string) => {
     console.log(`Pressed: ${menuItem}`);
@@ -124,18 +159,25 @@ export const HomeScreen: React.FC = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            {/* Menu Icon */}
-            <Pressable onPress={() => setIsDrawerOpen(true)} style={styles.menuButton}>
-              <Text style={styles.menuIcon}>☰</Text>
-            </Pressable>
-
-            {/* Logo */}
+            {/* Logo - Right Side */}
             <Image
               source={require('../../assets/logo.png')}
               style={styles.logo}
               contentFit="contain"
             />
+
+            {/* Menu Icon - Left Side */}
+            <Pressable onPress={() => setIsDrawerOpen(true)} style={styles.menuButton}>
+              <Text style={styles.menuIcon}>☰</Text>
+            </Pressable>
           </View>
+
+          {/* Personalized Greeting */}
+          {greeting && (
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greetingText}>{greeting}</Text>
+            </View>
+          )}
         </View>
 
         {/* Menu Grid */}
@@ -183,6 +225,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  greetingContainer: {
+    marginTop: 16,
+    width: '100%',
+    alignItems: 'flex-end', // Align to right side
+  },
+  greetingText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.black,
+    textAlign: 'right',
   },
   menuButton: {
     width: 40,

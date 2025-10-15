@@ -6,7 +6,7 @@ Handles user progress statistics, exam history, topic performance, and trends
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import sys
 from pathlib import Path
 
@@ -32,6 +32,7 @@ class ProgressOverview(BaseModel):
     total_exams: int
     total_questions_answered: int
     average_score: Optional[float]
+    exam_date: Optional[str]
     days_until_exam: Optional[int]
     study_streak_days: int
     exams_this_week: int
@@ -254,17 +255,19 @@ async def get_progress_overview(
         exams_passed = sum(1 for exam in exams if exam.get("passed", False))
         exams_failed = len(exams) - exams_passed
 
-        # Calculate days until exam
+        # Calculate days until exam and format exam_date
         days_until_exam = None
+        exam_date_str = None
         if user.get("exam_date"):
             try:
                 exam_date = datetime.fromisoformat(str(user["exam_date"]))
                 days_until_exam = (exam_date.date() - datetime.now().date()).days
+                exam_date_str = exam_date.strftime("%Y-%m-%d")
             except Exception:
                 pass
 
         # Calculate this week's exams
-        week_ago = datetime.now() - timedelta(days=7)
+        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
         exams_this_week = sum(
             1 for exam in exams
             if exam.get("completed_at") and
@@ -272,7 +275,7 @@ async def get_progress_overview(
         )
 
         # Calculate this month's exams
-        month_ago = datetime.now() - timedelta(days=30)
+        month_ago = datetime.now(timezone.utc) - timedelta(days=30)
         exams_this_month = sum(
             1 for exam in exams
             if exam.get("completed_at") and
@@ -286,6 +289,7 @@ async def get_progress_overview(
             total_exams=user.get("total_exams_taken", 0),
             total_questions_answered=user.get("total_questions_answered", 0),
             average_score=float(user["average_score"]) if user.get("average_score") else None,
+            exam_date=exam_date_str,
             days_until_exam=days_until_exam,
             study_streak_days=streak,
             exams_this_week=exams_this_week,
@@ -297,6 +301,9 @@ async def get_progress_overview(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"❌ ERROR in get_progress_overview: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error fetching overview: {str(e)}")
 
 

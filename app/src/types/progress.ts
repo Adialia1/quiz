@@ -8,6 +8,7 @@ export interface ProgressOverview {
   total_exams: number;
   total_questions_answered: number;
   average_score: number | null;
+  exam_date: string | null;
   days_until_exam: number | null;
   study_streak_days: number;
   exams_this_week: number;

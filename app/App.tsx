@@ -8,7 +8,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from './src/config/gluestack';
 import { CLERK_PUBLISHABLE_KEY } from './src/config/clerk';
-import { setupRTL } from './src/config/rtl';
+import { ForceRTL } from './src/config/rtlForce';
 import { initializeRevenueCat } from './src/config/revenuecat';
 import { useAuthStore } from './src/stores/authStore';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
@@ -36,8 +36,8 @@ import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 
-// הגדרת RTL בעת טעינת האפליקציה
-setupRTL();
+// Force RTL configuration - works immediately without restart
+ForceRTL.init();
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
