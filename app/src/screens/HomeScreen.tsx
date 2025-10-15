@@ -68,7 +68,7 @@ export const HomeScreen: React.FC = () => {
         navigation.navigate('ExamHistory');
         break;
       case 'progress':
-        Alert.alert('בקרוב', 'תכונה זו תהיה זמינה בקרוב');
+        navigation.navigate('Progress');
         break;
       default:
         console.log('Unknown menu item:', menuItem);

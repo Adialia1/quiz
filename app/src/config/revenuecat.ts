@@ -35,10 +35,25 @@ export const initializeRevenueCat = async (userId?: string) => {
       return;
     }
 
-    // Enable debug logs in development
+    // Enable debug logs in development (but not verbose to reduce noise)
     if (__DEV__) {
-      Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      Purchases.setLogLevel(LOG_LEVEL.INFO); // Changed from DEBUG to INFO to reduce noise
     }
+
+    // Suppress the "window.location.search" error in Expo Go
+    // This is a known issue when using RevenueCat in development
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      if (
+        typeof args[0] === 'string' &&
+        (args[0].includes('Cannot read property \'search\' of undefined') ||
+         args[0].includes('Error while tracking event sdk_initialized'))
+      ) {
+        // Suppress this specific error
+        return;
+      }
+      originalConsoleError(...args);
+    };
 
     // Configure SDK
     Purchases.configure({
@@ -46,6 +61,11 @@ export const initializeRevenueCat = async (userId?: string) => {
       appUserID: userId, // Optional - pass Clerk user ID
       usesStoreKit2IfAvailable: false, // Use StoreKit 1 for better sandbox testing
     });
+
+    // Restore console.error after a brief delay
+    setTimeout(() => {
+      console.error = originalConsoleError;
+    }, 1000);
 
     console.log('💰 RevenueCat configured for:', __DEV__ ? 'SANDBOX/TEST' : 'PRODUCTION');
 

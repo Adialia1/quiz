@@ -284,10 +284,15 @@ async def revenuecat_webhook(request: Request):
         update_data = {"updated_at": datetime.now().isoformat()}
 
         if event_type == "INITIAL_PURCHASE":
-            # New subscription
+            # New subscription - determine if it's a trial
+            is_trial = False
+            if product_id and "monthly" in product_id:
+                is_trial = True  # Monthly has 3-day trial
+
             update_data.update({
-                "subscription_status": "active",
+                "subscription_status": "trial" if is_trial else "active",
                 "subscription_will_renew": True,
+                "is_in_trial": is_trial,
             })
 
         elif event_type == "RENEWAL":
@@ -323,6 +328,18 @@ async def revenuecat_webhook(request: Request):
         if expiration_date:
             expires_at = datetime.fromtimestamp(expiration_date / 1000)
             update_data["subscription_expires_at"] = expires_at.isoformat()
+        else:
+            # If no expiration provided, set default based on period
+            # This handles test purchases that don't include expiration_at_ms
+            if product_id:
+                if "monthly" in product_id:
+                    # Monthly with 3-day trial
+                    expires_at = datetime.now() + timedelta(days=30)
+                    update_data["subscription_expires_at"] = expires_at.isoformat()
+                elif "quarterly" in product_id:
+                    # Quarterly (3 months)
+                    expires_at = datetime.now() + timedelta(days=90)
+                    update_data["subscription_expires_at"] = expires_at.isoformat()
 
         # Determine period from product_id
         if product_id:

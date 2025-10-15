@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
+import { Image } from 'expo-image';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
@@ -28,6 +29,9 @@ import { StarredConceptsScreen } from './src/screens/StarredConceptsScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { SubscriptionPlansScreen } from './src/screens/SubscriptionPlansScreen';
 import { SubscriptionManagementScreen } from './src/screens/SubscriptionManagementScreen';
+import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
+import { TermsAndConditionsScreen } from './src/screens/TermsAndConditionsScreen';
+import { ProgressScreen } from './src/screens/ProgressScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
@@ -88,6 +92,9 @@ function MainStack() {
         <Stack.Screen name="StarredConcepts" component={StarredConceptsScreen} />
         <Stack.Screen name="SubscriptionPlans" component={SubscriptionPlansScreen} />
         <Stack.Screen name="SubscriptionManagement" component={SubscriptionManagementScreen} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
+        <Stack.Screen name="Progress" component={ProgressScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>
@@ -234,7 +241,13 @@ function AppContent() {
   if (!clerkLoaded || isLoading || isCheckingStatus) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <Image
+          source={require('./assets/logo.png')}
+          style={styles.loadingLogo}
+          contentFit="contain"
+          transition={200}
+        />
+        <ActivityIndicator size="large" color="#2196F3" style={styles.loadingSpinner} />
       </View>
     );
   }
@@ -332,5 +345,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+  },
+  loadingLogo: {
+    width: 180,
+    height: 180,
+    marginBottom: 32,
+  },
+  loadingSpinner: {
+    marginTop: 16,
   },
 });

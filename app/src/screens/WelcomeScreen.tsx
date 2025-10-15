@@ -27,12 +27,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) =>
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
-              source={require('../../assets/logo.png')}
+              source={require('../../assets/logo2.png')}
               style={styles.logo}
               contentFit="contain"
             />
           </View>
-          <Text style={styles.appTitle}>קוויז מבחנים</Text>
+          <Text style={styles.appTitle}>אתיקה פלוס</Text>
           <Text style={styles.appSubtitle}>התכונן למבחנים בצורה החכמה ביותר</Text>
         </View>
 
@@ -80,11 +80,11 @@ interface FeatureItemProps {
 
 const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }) => (
   <View style={styles.featureItem}>
-    <Text style={styles.featureIcon}>{icon}</Text>
     <View style={styles.featureTextContainer}>
       <Text style={styles.featureTitle}>{title}</Text>
       <Text style={styles.featureDescription}>{description}</Text>
     </View>
+    <Text style={styles.featureIcon}>{icon}</Text>
   </View>
 );
 
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -122,12 +122,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.white,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   appSubtitle: {
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   featuresContainer: {
     flex: 1,
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   featureItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     padding: 16,
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
   },
   featureTextContainer: {
     flex: 1,
+    alignItems: 'flex-end',
   },
   featureTitle: {
     fontSize: 18,
@@ -154,11 +157,13 @@ const styles = StyleSheet.create({
     color: Colors.white,
     marginBottom: 4,
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   featureDescription: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   buttonContainer: {
     marginTop: 'auto',

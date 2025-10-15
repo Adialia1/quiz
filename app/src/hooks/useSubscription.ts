@@ -24,18 +24,41 @@ export const useSubscription = () => {
    * Parse CustomerInfo to SubscriptionInfo
    */
   const parseCustomerInfo = useCallback((customerInfo: CustomerInfo): SubscriptionInfo => {
+    console.log('[SUBSCRIPTION] 🔍 Parsing CustomerInfo...');
+    console.log('[SUBSCRIPTION] Available entitlements:', Object.keys(customerInfo.entitlements.all));
+    console.log('[SUBSCRIPTION] Active entitlements:', Object.keys(customerInfo.entitlements.active));
+    console.log('[SUBSCRIPTION] Looking for entitlement ID:', ENTITLEMENT_ID);
+
     const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
 
     if (!entitlement) {
+      console.log('[SUBSCRIPTION] ❌ No active entitlement found for:', ENTITLEMENT_ID);
+
+      // Check if entitlement exists but is expired
+      const expiredEntitlement = customerInfo.entitlements.all[ENTITLEMENT_ID];
+      if (expiredEntitlement) {
+        console.log('[SUBSCRIPTION] ⏰ Found EXPIRED entitlement:');
+        console.log('[SUBSCRIPTION] - Expiration date:', expiredEntitlement.expirationDate);
+        console.log('[SUBSCRIPTION] - Is sandbox:', expiredEntitlement.isSandbox);
+        console.log('[SUBSCRIPTION] 💡 TIP: Sandbox subscriptions expire quickly (5 min for monthly). Make a new test purchase to continue testing.');
+      }
+
       return {
-        status: 'none',
-        period: null,
-        expirationDate: null,
+        status: 'expired',
+        period: expiredEntitlement?.productIdentifier.includes('monthly') ? 'monthly' :
+                expiredEntitlement?.productIdentifier.includes('quarterly') ? 'quarterly' : null,
+        expirationDate: expiredEntitlement ? new Date(expiredEntitlement.expirationDate) : null,
         willRenew: false,
         isInTrial: false,
         trialEndDate: null,
       };
     }
+
+    console.log('[SUBSCRIPTION] ✅ Found active entitlement!');
+    console.log('[SUBSCRIPTION] Product ID:', entitlement.productIdentifier);
+    console.log('[SUBSCRIPTION] Is active:', entitlement.isActive);
+    console.log('[SUBSCRIPTION] Period type:', entitlement.periodType);
+    console.log('[SUBSCRIPTION] Will renew:', entitlement.willRenew);
 
     const expirationDate = new Date(entitlement.expirationDate || '');
     const isActive = entitlement.isActive;

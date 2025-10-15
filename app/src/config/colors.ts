@@ -30,6 +30,8 @@ export const Colors = {
   black: '#000000',
   textPrimary: '#212121',
   textSecondary: '#757575',
+  textDark: '#212121',
+  textLight: '#757575',
   lightGray: '#E0E0E0',
   secondaryLight: '#E3F2FD',
   gray: {

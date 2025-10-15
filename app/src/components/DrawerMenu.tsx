@@ -151,8 +151,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
             title="שנה סיסמא"
             iconColor={Colors.primary}
             onPress={() => {
-              console.log('Change password');
               onClose();
+              navigation.navigate('ChangePassword' as never);
             }}
           />
           <MenuItem
@@ -171,8 +171,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
             title="תנאי שימוש"
             iconColor={Colors.gray[600]}
             onPress={() => {
-              console.log('Terms of use');
               onClose();
+              navigation.navigate('TermsAndConditions' as never);
             }}
           />
           <MenuItem
