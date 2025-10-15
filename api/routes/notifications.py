@@ -3,7 +3,7 @@ Notification API Routes
 
 Handles sending push notifications to users
 """
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -17,6 +17,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
 from supabase import create_client, Client
+from api.auth import get_current_admin_user_id
 import requests
 
 # Initialize Supabase
@@ -27,9 +28,6 @@ router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
 # Expo Push API endpoint
 EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
-
-# Simple API key for protection (set in environment)
-NOTIFICATION_API_KEY = os.getenv("NOTIFICATION_API_KEY", "your-secret-key-here")
 
 
 # ============================================================================
@@ -104,12 +102,12 @@ def send_push_notification(push_token: str, title: str, body: str, data: dict = 
 @router.post("/send", response_model=NotificationResponse)
 async def send_notifications(
     request: NotificationRequest,
-    x_api_key: str = Header(None, description="API key for authentication")
+    admin_user_id: str = Depends(get_current_admin_user_id)
 ):
     """
     Send push notifications to users
 
-    Requires: X-API-Key header for authentication
+    Requires: Bearer token with admin privileges
 
     Query parameters:
     - title: Notification title
@@ -120,7 +118,7 @@ async def send_notifications(
     Example:
     ```bash
     curl -X POST "http://localhost:8000/api/notifications/send" \\
-         -H "X-API-Key: your-secret-key-here" \\
+         -H "Authorization: Bearer <clerk-token>" \\
          -H "Content-Type: application/json" \\
          -d '{
            "title": "זמן ללמוד! 📚",
@@ -128,9 +126,6 @@ async def send_notifications(
          }'
     ```
     """
-    # Verify API key
-    if x_api_key != NOTIFICATION_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
 
     try:
         # Build query
@@ -231,24 +226,21 @@ async def send_notifications(
 
 @router.post("/send-study-reminders")
 async def send_study_reminders(
-    x_api_key: str = Header(None, description="API key for authentication")
+    admin_user_id: str = Depends(get_current_admin_user_id)
 ):
     """
     Send study reminders to all users whose study hour matches current time
 
     This endpoint should be called every hour by a scheduler
 
-    Requires: X-API-Key header for authentication
+    Requires: Bearer token with admin privileges
 
     Example:
     ```bash
     curl -X POST "http://localhost:8000/api/notifications/send-study-reminders" \\
-         -H "X-API-Key: your-secret-key-here"
+         -H "Authorization: Bearer <clerk-token>"
     ```
     """
-    # Verify API key
-    if x_api_key != NOTIFICATION_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
 
     try:
         # Get current hour in Israel timezone

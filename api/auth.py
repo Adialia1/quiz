@@ -8,6 +8,16 @@ from jose import jwt, JWTError
 from typing import Optional
 import os
 from functools import lru_cache
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from supabase import create_client, Client
+
+# Initialize Supabase
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 # Clerk Configuration
 CLERK_PUBLISHABLE_KEY = os.getenv("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY", "")
@@ -106,12 +116,56 @@ async def get_optional_user_id(
         return None
 
 
-def verify_admin_role(user_id: str) -> bool:
+async def verify_admin_user(clerk_user_id: str) -> bool:
     """
-    Check if user has admin role
+    Check if user has admin role by querying the database
 
-    TODO: Implement proper role checking from database or Clerk
-    For now, we'll use environment variable
+    Args:
+        clerk_user_id: Clerk user ID from JWT token
+
+    Returns:
+        True if user is admin, False otherwise
     """
-    admin_users = os.getenv("ADMIN_USER_IDS", "").split(",")
-    return user_id in admin_users
+    try:
+        # Query database for user
+        result = supabase.table('users').select('is_admin').eq('clerk_user_id', clerk_user_id).execute()
+
+        if not result.data or len(result.data) == 0:
+            return False
+
+        user = result.data[0]
+        return user.get('is_admin', False)
+
+    except Exception as e:
+        print(f"Error checking admin status: {e}")
+        return False
+
+
+async def get_current_admin_user_id(
+    authorization: str = Header(None, description="Bearer token from Clerk")
+) -> str:
+    """
+    Verify user is authenticated AND has admin privileges
+
+    Args:
+        authorization: Authorization header with Bearer token
+
+    Returns:
+        Clerk user ID if user is admin
+
+    Raises:
+        HTTPException: If token is invalid, missing, or user is not admin
+    """
+    # First, verify the token and get user ID
+    user_id = await get_current_user_id(authorization)
+
+    # Then check if user is admin
+    is_admin = await verify_admin_user(user_id)
+
+    if not is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. Admin privileges required."
+        )
+
+    return user_id

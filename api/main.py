@@ -5,6 +5,8 @@ Provides REST API endpoints for generating quizzes and asking legal questions
 """
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import datetime
@@ -26,6 +28,8 @@ from api.routes.concepts import router as concepts_router
 from api.routes.notifications import router as notifications_router
 from api.routes.subscriptions import router as subscriptions_router
 from api.routes.progress import router as progress_router
+from api.routes.documents import router as documents_router
+from api.routes.admin import router as admin_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -33,6 +37,20 @@ app = FastAPI(
     description="API for generating exam questions, querying legal expert, managing users, exams, AI chat, and concepts",
     version="1.0.0"
 )
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files directory
+STATIC_DIR = Path(__file__).parent / "static"
+STATIC_DIR.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Include routers
 app.include_router(users_router)
@@ -42,6 +60,8 @@ app.include_router(concepts_router)
 app.include_router(notifications_router)
 app.include_router(subscriptions_router)
 app.include_router(progress_router)
+app.include_router(documents_router)
+app.include_router(admin_router)
 
 # Initialize agents (singleton pattern)
 legal_expert = None
@@ -162,7 +182,8 @@ async def root():
             "concepts_by_topic": "/api/concepts/topics/{topic}",
             "concept_detail": "/api/concepts/{concept_id}",
             "concepts_search": "/api/concepts/search",
-            "concepts_stats": "/api/concepts/stats"
+            "concepts_stats": "/api/concepts/stats",
+            "terms_pdf": "/static/documents/terms.pdf"
         },
         "docs": "/docs"
     }

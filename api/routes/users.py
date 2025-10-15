@@ -50,6 +50,7 @@ class UserProfile(BaseModel):
     total_exams_taken: int
     average_score: Optional[float]
     preferred_difficulty: str
+    is_admin: bool = False
 
 
 class UpdateUserRequest(BaseModel):

@@ -1,1632 +1,0 @@
-2025-10-13 19:18:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: GET https://omgykoftsrtyipmykamk.supabase.co/rest/v1/legal_doc_chunks?select=id "HTTP/2 206 Partial Content"
-/Users/adialia/Desktop/quiz/agent/agents/base_agent.py:53: LangChainDeprecationWarning: The class `ChatOpenAI` was deprecated in LangChain 0.0.10 and will be removed in 1.0. An updated version of the class exists in the :class:`~langchain-openai package and should be used instead. To use it run `pip install -U :class:`~langchain-openai` and import as `from :class:`~langchain_openai import ChatOpenAI``.
-  self.llm = ChatOpenAI(
-2025-10-13 19:18:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: GET https://omgykoftsrtyipmykamk.supabase.co/rest/v1/ai_generated_questions?select=topic&is_active=eq.True "HTTP/2 200 OK"
-2025-10-13 19:18:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
-To disable this warning, you can either:
-	- Avoid using `tokenizers` before the fork if possible
-	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
-huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
-To disable this warning, you can either:
-	- Avoid using `tokenizers` before the fork if possible
-	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
-2025-10-13 19:18:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-======================================================================
-🚀 Concept Extraction Script
-======================================================================
-
-🔧 Initializing Legal Expert Agent...
-🔧 Initializing Legal RAG...
-✅ Legal RAG ready (1415 chunks available)
-✅ Legal Expert initialized (model: google/gemini-2.0-flash-001)
-✅ Legal Expert ready
-
-📚 Fetching all topics from database...
-✅ Found 18 topics
-⚠️  Limited to 3 topics for testing
-
-
-📊 Processing 3 topics...
-
-
-[1/3] Processing: אחריות משפטית
-----------------------------------------------------------------------
-
-🔍 Extracting concepts for topic: אחריות משפטית
-   Using top_k=200 for maximum coverage...
-[2025-10-13 19:18:31] [Legal Expert] [INFO] Processing query: 
-    מהם כל החוקים, הכללים והמושגים החשובים בנושא:...
-   ✅ Extracted 206 concept chunks
-   📝 Enriching 206 concepts...
-   Enriching:   0%|          | 0/206 [00:00<?, ?it/s]huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
-To disable this warning, you can either:
-	- Avoid using `tokenizers` before the fork if possible
-	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
-2025-10-13 19:18:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:18:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   0%|          | 1/206 [00:03<13:30,  3.96s/it]2025-10-13 19:18:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:18:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   1%|          | 2/206 [00:08<15:20,  4.51s/it]2025-10-13 19:18:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:18:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   1%|▏         | 3/206 [00:12<14:08,  4.18s/it]2025-10-13 19:18:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:18:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   2%|▏         | 4/206 [00:16<13:20,  3.96s/it]2025-10-13 19:18:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:18:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   2%|▏         | 5/206 [00:20<13:33,  4.05s/it]2025-10-13 19:19:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   3%|▎         | 6/206 [00:24<13:18,  3.99s/it]2025-10-13 19:19:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   3%|▎         | 7/206 [00:27<12:31,  3.77s/it]2025-10-13 19:19:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   4%|▍         | 8/206 [00:30<11:24,  3.46s/it]2025-10-13 19:19:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   4%|▍         | 9/206 [00:33<11:23,  3.47s/it]2025-10-13 19:19:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   5%|▍         | 10/206 [00:36<10:29,  3.21s/it]2025-10-13 19:19:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   5%|▌         | 11/206 [00:39<09:48,  3.02s/it]2025-10-13 19:19:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   6%|▌         | 12/206 [00:44<11:36,  3.59s/it]2025-10-13 19:19:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   6%|▋         | 13/206 [00:47<11:19,  3.52s/it]2025-10-13 19:19:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   7%|▋         | 14/206 [00:51<12:00,  3.75s/it]2025-10-13 19:19:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   8%|▊         | 16/206 [00:54<08:45,  2.76s/it]2025-10-13 19:19:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   8%|▊         | 17/206 [00:58<09:05,  2.89s/it]2025-10-13 19:19:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   9%|▊         | 18/206 [01:01<09:19,  2.98s/it]2025-10-13 19:19:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   9%|▉         | 19/206 [01:04<09:44,  3.13s/it]2025-10-13 19:19:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  10%|▉         | 20/206 [01:08<10:12,  3.30s/it]2025-10-13 19:19:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  10%|█         | 21/206 [01:12<10:35,  3.43s/it]2025-10-13 19:19:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  11%|█         | 22/206 [01:16<10:53,  3.55s/it]2025-10-13 19:19:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:19:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  11%|█         | 23/206 [01:20<11:24,  3.74s/it]2025-10-13 19:20:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  12%|█▏        | 24/206 [01:23<10:45,  3.54s/it]2025-10-13 19:20:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  13%|█▎        | 26/206 [01:26<08:06,  2.70s/it]2025-10-13 19:20:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  13%|█▎        | 27/206 [01:29<08:14,  2.77s/it]2025-10-13 19:20:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  14%|█▎        | 28/206 [01:33<08:51,  2.99s/it]2025-10-13 19:20:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  14%|█▍        | 29/206 [01:37<09:43,  3.30s/it]2025-10-13 19:20:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  15%|█▍        | 30/206 [01:42<10:43,  3.66s/it]2025-10-13 19:20:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  15%|█▌        | 31/206 [01:46<11:28,  3.93s/it]2025-10-13 19:20:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  16%|█▌        | 32/206 [01:50<11:21,  3.92s/it]2025-10-13 19:20:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  16%|█▌        | 33/206 [01:55<12:07,  4.20s/it]2025-10-13 19:20:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  17%|█▋        | 35/206 [01:59<08:47,  3.08s/it]2025-10-13 19:20:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  17%|█▋        | 36/206 [02:02<08:42,  3.08s/it]2025-10-13 19:20:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  18%|█▊        | 38/206 [02:06<07:43,  2.76s/it]2025-10-13 19:20:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  19%|█▉        | 39/206 [02:09<07:27,  2.68s/it]2025-10-13 19:20:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  19%|█▉        | 40/206 [02:12<07:45,  2.81s/it]2025-10-13 19:20:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  20%|█▉        | 41/206 [02:16<08:23,  3.05s/it]2025-10-13 19:20:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  21%|██        | 43/206 [02:19<06:44,  2.48s/it]2025-10-13 19:20:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:20:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  22%|██▏       | 45/206 [02:22<05:40,  2.11s/it]2025-10-13 19:21:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  23%|██▎       | 47/206 [02:24<04:17,  1.62s/it]2025-10-13 19:21:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  23%|██▎       | 48/206 [02:29<06:14,  2.37s/it]2025-10-13 19:21:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  24%|██▍       | 49/206 [02:30<05:43,  2.19s/it]2025-10-13 19:21:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  25%|██▍       | 51/206 [02:34<05:25,  2.10s/it]2025-10-13 19:21:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:15 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  25%|██▌       | 52/206 [02:38<06:01,  2.35s/it]2025-10-13 19:21:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  26%|██▌       | 53/206 [02:42<07:09,  2.80s/it]2025-10-13 19:21:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  26%|██▌       | 54/206 [02:45<07:26,  2.94s/it]2025-10-13 19:21:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  27%|██▋       | 56/206 [02:48<05:49,  2.33s/it]2025-10-13 19:21:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  28%|██▊       | 57/206 [02:52<06:28,  2.61s/it]2025-10-13 19:21:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  29%|██▊       | 59/206 [02:55<05:28,  2.23s/it]2025-10-13 19:21:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  29%|██▉       | 60/206 [02:59<06:05,  2.50s/it]2025-10-13 19:21:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  30%|██▉       | 61/206 [03:02<06:33,  2.71s/it]2025-10-13 19:21:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  30%|███       | 62/206 [03:04<06:24,  2.67s/it]2025-10-13 19:21:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  31%|███       | 63/206 [03:08<06:45,  2.83s/it][2025-10-13 19:18:39] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:18:43] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:18:48] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:18:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:18:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:18:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:03] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:07] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:18] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:31] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:34] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:40] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:44] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:48] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:51] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:19:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:12] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:21] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:30] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:38] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:41] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:48] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:51] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:20:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:03] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:08] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:14] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:21] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 3 column 166 (char 216)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 3 column 166 (char 216)
-[2025-10-13 19:21:25] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:28] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:31] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:34] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:38] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:41] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:44] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:47] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...2025-10-13 19:21:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  31%|███       | 64/206 [03:11<06:58,  2.95s/it]2025-10-13 19:21:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  32%|███▏      | 65/206 [03:14<07:03,  3.00s/it]2025-10-13 19:21:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  32%|███▏      | 66/206 [03:18<07:38,  3.28s/it]2025-10-13 19:21:58 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:21:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  33%|███▎      | 67/206 [03:23<08:37,  3.72s/it]2025-10-13 19:22:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  33%|███▎      | 69/206 [03:27<06:36,  2.89s/it]2025-10-13 19:22:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:08 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  34%|███▍      | 70/206 [03:31<07:36,  3.35s/it]2025-10-13 19:22:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  34%|███▍      | 71/206 [03:36<08:11,  3.64s/it]2025-10-13 19:22:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  35%|███▌      | 73/206 [03:40<06:20,  2.86s/it]2025-10-13 19:22:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  36%|███▌      | 74/206 [03:43<06:45,  3.07s/it]2025-10-13 19:22:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  36%|███▋      | 75/206 [03:46<06:38,  3.04s/it]2025-10-13 19:22:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  37%|███▋      | 76/206 [03:51<07:26,  3.43s/it]2025-10-13 19:22:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  37%|███▋      | 77/206 [03:55<07:35,  3.53s/it]2025-10-13 19:22:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  38%|███▊      | 78/206 [03:57<06:57,  3.26s/it]2025-10-13 19:22:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  38%|███▊      | 79/206 [04:00<06:32,  3.09s/it]2025-10-13 19:22:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  39%|███▉      | 80/206 [04:03<06:50,  3.26s/it]2025-10-13 19:22:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  39%|███▉      | 81/206 [04:07<06:45,  3.25s/it]2025-10-13 19:22:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  40%|███▉      | 82/206 [04:10<06:34,  3.18s/it]2025-10-13 19:22:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  41%|████      | 84/206 [04:13<04:55,  2.42s/it]2025-10-13 19:22:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  41%|████▏     | 85/206 [04:16<05:16,  2.61s/it]2025-10-13 19:22:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:22:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  42%|████▏     | 87/206 [04:19<04:27,  2.24s/it]2025-10-13 19:22:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  43%|████▎     | 88/206 [04:23<04:55,  2.50s/it]2025-10-13 19:23:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  44%|████▎     | 90/206 [04:26<04:05,  2.12s/it]2025-10-13 19:23:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  45%|████▍     | 92/206 [04:30<03:55,  2.07s/it]2025-10-13 19:23:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  46%|████▌     | 94/206 [04:33<03:40,  1.97s/it]2025-10-13 19:23:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  46%|████▌     | 95/206 [04:36<03:57,  2.14s/it]2025-10-13 19:23:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  47%|████▋     | 96/206 [04:40<04:31,  2.47s/it]2025-10-13 19:23:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  47%|████▋     | 97/206 [04:44<05:14,  2.89s/it]2025-10-13 19:23:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  48%|████▊     | 98/206 [04:47<05:22,  2.99s/it]2025-10-13 19:23:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  49%|████▊     | 100/206 [04:51<04:15,  2.41s/it]2025-10-13 19:23:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  49%|████▉     | 101/206 [04:54<04:34,  2.61s/it]2025-10-13 19:23:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|████▉     | 102/206 [04:58<04:58,  2.87s/it]2025-10-13 19:23:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|█████     | 103/206 [05:01<05:21,  3.12s/it]2025-10-13 19:23:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|█████     | 104/206 [05:04<05:15,  3.10s/it]2025-10-13 19:23:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  51%|█████     | 105/206 [05:07<05:12,  3.09s/it]2025-10-13 19:23:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  52%|█████▏    | 107/206 [05:12<04:25,  2.68s/it]2025-10-13 19:23:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  52%|█████▏    | 108/206 [05:15<04:46,  2.93s/it]2025-10-13 19:23:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:23:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  53%|█████▎    | 109/206 [05:19<05:03,  3.13s/it]2025-10-13 19:23:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  53%|█████▎    | 110/206 [05:22<05:01,  3.14s/it]2025-10-13 19:24:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  54%|█████▍    | 111/206 [05:25<04:56,  3.12s/it]2025-10-13 19:24:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  54%|█████▍    | 112/206 [05:29<05:09,  3.30s/it]2025-10-13 19:24:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  55%|█████▍    | 113/206 [05:32<04:57,  3.20s/it]2025-10-13 19:24:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  55%|█████▌    | 114/206 [05:36<05:14,  3.42s/it]2025-10-13 19:24:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  56%|█████▌    | 115/206 [05:40<05:26,  3.58s/it]2025-10-13 19:24:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  56%|█████▋    | 116/206 [05:42<04:27,  2.98s/it]2025-10-13 19:24:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  57%|█████▋    | 117/206 [05:45<04:23,  2.97s/it]2025-10-13 19:24:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  57%|█████▋    | 118/206 [05:47<04:17,  2.93s/it]2025-10-13 19:24:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  58%|█████▊    | 119/206 [05:51<04:27,  3.08s/it]2025-10-13 19:24:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  58%|█████▊    | 120/206 [05:54<04:19,  3.01s/it]2025-10-13 19:24:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  59%|█████▊    | 121/206 [05:56<04:10,  2.94s/it]2025-10-13 19:24:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  60%|█████▉    | 123/206 [06:00<03:12,  2.32s/it]2025-10-13 19:24:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  60%|██████    | 124/206 [06:03<03:40,  2.69s/it]2025-10-13 19:24:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  61%|██████    | 125/206 [06:07<03:51,  2.86s/it]2025-10-13 19:24:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  61%|██████    | 126/206 [06:10<03:52,  2.90s/it]
-[2025-10-13 19:21:50] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:54] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:21:57] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:11] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:30] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:34] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:39] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:43] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:22:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:16] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:27] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:30] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:33] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:41] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:44] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:47] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:51] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:23:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 3 column 74 (char 144)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 3 column 74 (char 144)
-[2025-10-13 19:24:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:12] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:21] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:24] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:27] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:30] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:33] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:36] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:39] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:43] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 3 column 27 (char 78)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 3 column 27 (char 78)
-[2025-10-13 19:24:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...2025-10-13 19:24:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  62%|██████▏   | 127/206 [06:15<04:30,  3.42s/it]2025-10-13 19:24:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  62%|██████▏   | 128/206 [06:18<04:35,  3.53s/it]2025-10-13 19:24:58 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:24:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  63%|██████▎   | 130/206 [06:22<03:26,  2.72s/it]2025-10-13 19:25:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  64%|██████▎   | 131/206 [06:25<03:36,  2.89s/it]2025-10-13 19:25:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  64%|██████▍   | 132/206 [06:29<03:41,  3.00s/it]2025-10-13 19:25:08 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  65%|██████▍   | 133/206 [06:32<03:50,  3.15s/it]2025-10-13 19:25:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  65%|██████▌   | 134/206 [06:35<03:47,  3.15s/it]2025-10-13 19:25:15 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  66%|██████▌   | 135/206 [06:40<04:10,  3.53s/it]2025-10-13 19:25:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 137/206 [06:43<02:59,  2.60s/it]2025-10-13 19:25:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 138/206 [06:47<03:23,  2.99s/it]2025-10-13 19:25:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 139/206 [06:50<03:15,  2.92s/it]2025-10-13 19:25:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  68%|██████▊   | 140/206 [06:54<03:37,  3.29s/it]2025-10-13 19:25:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  68%|██████▊   | 141/206 [06:58<03:43,  3.44s/it]2025-10-13 19:25:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  69%|██████▉   | 142/206 [07:01<03:34,  3.36s/it]2025-10-13 19:25:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  69%|██████▉   | 143/206 [07:04<03:27,  3.29s/it]2025-10-13 19:25:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  70%|██████▉   | 144/206 [07:08<03:32,  3.43s/it]2025-10-13 19:25:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  70%|███████   | 145/206 [07:12<03:41,  3.62s/it]2025-10-13 19:25:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  71%|███████   | 146/206 [07:15<03:33,  3.55s/it]2025-10-13 19:25:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  71%|███████▏  | 147/206 [07:19<03:34,  3.63s/it]2025-10-13 19:25:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:25:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  72%|███████▏  | 149/206 [07:23<02:40,  2.82s/it]2025-10-13 19:26:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  73%|███████▎  | 150/206 [07:27<02:56,  3.15s/it]2025-10-13 19:26:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  74%|███████▍  | 152/206 [07:30<02:18,  2.56s/it]2025-10-13 19:26:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  75%|███████▍  | 154/206 [07:34<01:56,  2.23s/it]2025-10-13 19:26:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:15 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  75%|███████▌  | 155/206 [07:38<02:14,  2.64s/it]2025-10-13 19:26:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  76%|███████▌  | 156/206 [07:41<02:18,  2.77s/it]2025-10-13 19:26:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  76%|███████▌  | 157/206 [07:45<02:33,  3.13s/it]2025-10-13 19:26:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  77%|███████▋  | 158/206 [07:49<02:32,  3.18s/it]2025-10-13 19:26:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  77%|███████▋  | 159/206 [07:52<02:27,  3.15s/it]2025-10-13 19:26:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  78%|███████▊  | 160/206 [07:56<02:36,  3.41s/it]2025-10-13 19:26:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  79%|███████▊  | 162/206 [07:59<01:56,  2.65s/it]2025-10-13 19:26:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  80%|███████▉  | 164/206 [08:03<01:39,  2.37s/it]2025-10-13 19:26:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  81%|████████  | 166/206 [08:07<01:29,  2.24s/it]2025-10-13 19:26:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  81%|████████  | 167/206 [08:10<01:33,  2.39s/it]2025-10-13 19:26:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  82%|████████▏ | 168/206 [08:14<01:41,  2.67s/it]2025-10-13 19:26:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  82%|████████▏ | 169/206 [08:17<01:41,  2.75s/it]2025-10-13 19:26:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:26:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  83%|████████▎ | 170/206 [08:19<01:38,  2.74s/it]2025-10-13 19:26:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  83%|████████▎ | 171/206 [08:23<01:42,  2.93s/it]2025-10-13 19:27:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  84%|████████▍ | 173/206 [08:27<01:21,  2.45s/it]2025-10-13 19:27:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  84%|████████▍ | 174/206 [08:29<01:18,  2.47s/it]2025-10-13 19:27:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  85%|████████▍ | 175/206 [08:32<01:20,  2.61s/it]2025-10-13 19:27:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  85%|████████▌ | 176/206 [08:36<01:28,  2.96s/it]2025-10-13 19:27:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▌ | 177/206 [08:39<01:26,  2.98s/it]2025-10-13 19:27:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▋ | 178/206 [08:42<01:25,  3.06s/it]2025-10-13 19:27:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  87%|████████▋ | 179/206 [08:45<01:20,  2.97s/it]2025-10-13 19:27:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  87%|████████▋ | 180/206 [08:49<01:22,  3.16s/it]2025-10-13 19:27:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  88%|████████▊ | 182/206 [08:53<01:02,  2.62s/it]2025-10-13 19:27:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  89%|████████▉ | 183/206 [08:56<01:03,  2.78s/it]2025-10-13 19:27:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  89%|████████▉ | 184/206 [08:59<01:03,  2.90s/it]2025-10-13 19:27:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  90%|████████▉ | 185/206 [09:03<01:05,  3.13s/it]2025-10-13 19:27:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  90%|█████████ | 186/206 [09:06<01:04,  3.23s/it]2025-10-13 19:27:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  91%|█████████▏| 188/206 [09:10<00:46,  2.61s/it]
-[2025-10-13 19:24:54] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:24:58] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:01] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 4 column 62 (char 357)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 4 column 62 (char 357)
-[2025-10-13 19:25:08] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:11] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 4 column 101 (char 452)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 4 column 101 (char 452)
-[2025-10-13 19:25:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:22] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 3 column 95 (char 126)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 3 column 95 (char 126)
-[2025-10-13 19:25:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:33] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:40] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:43] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:47] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:51] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:25:58] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:25] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:28] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:31] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:39] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:42] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:53] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:56] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:26:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:08] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:11] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:18] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:22] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:24] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:28] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:32] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:38] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:42] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...2025-10-13 19:27:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  92%|█████████▏| 190/206 [09:14<00:36,  2.31s/it]2025-10-13 19:27:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  93%|█████████▎| 191/206 [09:18<00:39,  2.64s/it]2025-10-13 19:27:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:27:58 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  93%|█████████▎| 192/206 [09:21<00:38,  2.77s/it]2025-10-13 19:28:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  94%|█████████▎| 193/206 [09:24<00:38,  2.92s/it]2025-10-13 19:28:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  95%|█████████▍| 195/206 [09:27<00:26,  2.38s/it]2025-10-13 19:28:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:08 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  96%|█████████▌| 197/206 [09:31<00:18,  2.11s/it]2025-10-13 19:28:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  96%|█████████▌| 198/206 [09:34<00:18,  2.29s/it]2025-10-13 19:28:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  97%|█████████▋| 199/206 [09:38<00:18,  2.68s/it]2025-10-13 19:28:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  97%|█████████▋| 200/206 [09:40<00:16,  2.72s/it]2025-10-13 19:28:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  98%|█████████▊| 201/206 [09:44<00:14,  2.90s/it]2025-10-13 19:28:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  98%|█████████▊| 202/206 [09:46<00:11,  2.83s/it]2025-10-13 19:28:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  99%|█████████▊| 203/206 [09:49<00:08,  2.82s/it]2025-10-13 19:28:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  99%|█████████▉| 204/206 [09:53<00:06,  3.07s/it]2025-10-13 19:28:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching: 100%|█████████▉| 205/206 [09:57<00:03,  3.21s/it]2025-10-13 19:28:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching: 100%|██████████| 206/206 [09:59<00:00,  3.08s/it]   Enriching: 100%|██████████| 206/206 [09:59<00:00,  2.91s/it]
-2025-10-13 19:28:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-
-[2025-10-13 19:27:53] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:27:57] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:00] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:03] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:07] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:32] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-[2025-10-13 19:28:36] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אחריות משפטית":
-
- ...
-
-[2/3] Processing: אי־תלות של היועץ
-----------------------------------------------------------------------
-
-🔍 Extracting concepts for topic: אי־תלות של היועץ
-   Using top_k=200 for maximum coverage...
-[2025-10-13 19:28:39] [Legal Expert] [INFO] Processing query: 
-    מהם כל החוקים, הכללים והמושגים החשובים בנושא:...
-   ✅ Extracted 206 concept chunks
-   📝 Enriching 206 concepts...
-   Enriching:   0%|          | 0/206 [00:00<?, ?it/s]2025-10-13 19:28:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:   6%|▋         | 13/206 [00:03<00:56,  3.43it/s]2025-10-13 19:28:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  12%|█▏        | 25/206 [00:07<00:52,  3.44it/s]2025-10-13 19:28:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  14%|█▎        | 28/206 [00:10<01:12,  2.44it/s]2025-10-13 19:28:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:28:58 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  14%|█▍        | 29/206 [00:13<01:44,  1.70it/s]2025-10-13 19:29:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  15%|█▌        | 31/206 [00:15<02:06,  1.39it/s]2025-10-13 19:29:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  16%|█▌        | 32/206 [00:19<02:58,  1.03s/it]2025-10-13 19:29:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  16%|█▌        | 33/206 [00:22<03:42,  1.29s/it]2025-10-13 19:29:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  17%|█▋        | 34/206 [00:25<04:27,  1.55s/it]2025-10-13 19:29:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  19%|█▉        | 40/206 [00:28<02:47,  1.01s/it]2025-10-13 19:29:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  20%|█▉        | 41/206 [00:32<03:38,  1.32s/it]2025-10-13 19:29:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  24%|██▍       | 50/206 [00:35<01:53,  1.38it/s]2025-10-13 19:29:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  26%|██▌       | 54/206 [00:38<01:51,  1.36it/s]2025-10-13 19:29:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  28%|██▊       | 57/206 [00:41<02:03,  1.21it/s]2025-10-13 19:29:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  29%|██▉       | 60/206 [00:45<02:09,  1.13it/s]2025-10-13 19:29:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  32%|███▏      | 65/206 [00:48<01:57,  1.20it/s]2025-10-13 19:29:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  35%|███▍      | 72/206 [00:53<01:41,  1.32it/s]2025-10-13 19:29:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  36%|███▌      | 74/206 [00:56<01:53,  1.16it/s]2025-10-13 19:29:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  36%|███▋      | 75/206 [00:59<02:25,  1.11s/it]2025-10-13 19:29:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  37%|███▋      | 76/206 [01:02<02:46,  1.28s/it]2025-10-13 19:29:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  38%|███▊      | 78/206 [01:05<02:55,  1.37s/it]2025-10-13 19:29:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  39%|███▉      | 80/206 [01:08<03:00,  1.43s/it]2025-10-13 19:29:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:29:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  40%|███▉      | 82/206 [01:12<03:18,  1.60s/it]2025-10-13 19:30:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  40%|████      | 83/206 [01:16<03:56,  1.93s/it]2025-10-13 19:30:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  41%|████▏     | 85/206 [01:19<03:44,  1.85s/it]2025-10-13 19:30:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:08 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  42%|████▏     | 86/206 [01:23<04:23,  2.19s/it]2025-10-13 19:30:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  44%|████▎     | 90/206 [01:27<03:06,  1.61s/it]2025-10-13 19:30:15 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:15 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  46%|████▌     | 94/206 [01:31<02:25,  1.30s/it]2025-10-13 19:30:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  46%|████▌     | 95/206 [01:34<02:55,  1.58s/it]2025-10-13 19:30:22 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|████▉     | 102/206 [01:38<01:45,  1.01s/it]2025-10-13 19:30:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|█████     | 104/206 [01:42<01:58,  1.16s/it]2025-10-13 19:30:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  53%|█████▎    | 109/206 [01:46<01:37,  1.00s/it]2025-10-13 19:30:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  53%|█████▎    | 110/206 [01:50<02:06,  1.32s/it]2025-10-13 19:30:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  54%|█████▍    | 111/206 [01:53<02:25,  1.53s/it]2025-10-13 19:30:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  54%|█████▍    | 112/206 [01:57<02:56,  1.88s/it]2025-10-13 19:30:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  55%|█████▍    | 113/206 [02:00<03:13,  2.08s/it]2025-10-13 19:30:47 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  56%|█████▌    | 115/206 [02:03<02:56,  1.94s/it]2025-10-13 19:30:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:51 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  56%|█████▋    | 116/206 [02:06<03:06,  2.08s/it]2025-10-13 19:30:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  57%|█████▋    | 117/206 [02:09<03:37,  2.44s/it]2025-10-13 19:30:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:30:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  57%|█████▋    | 118/206 [02:13<04:02,  2.76s/it]2025-10-13 19:31:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  58%|█████▊    | 120/206 [02:16<03:15,  2.28s/it]2025-10-13 19:31:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  60%|█████▉    | 123/206 [02:20<02:24,  1.74s/it]2025-10-13 19:31:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  61%|██████    | 125/206 [02:23<02:15,  1.67s/it]2025-10-13 19:31:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:11 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  62%|██████▏   | 128/206 [02:26<01:57,  1.51s/it]2025-10-13 19:31:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  63%|██████▎   | 130/206 [02:30<01:56,  1.53s/it]2025-10-13 19:31:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:18 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  64%|██████▎   | 131/206 [02:33<02:14,  1.79s/it]2025-10-13 19:31:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  65%|██████▍   | 133/206 [02:36<02:02,  1.68s/it]2025-10-13 19:31:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  66%|██████▌   | 136/206 [02:38<01:34,  1.35s/it]2025-10-13 19:31:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 137/206 [02:42<01:56,  1.69s/it]2025-10-13 19:31:29 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 139/206 [02:44<01:48,  1.61s/it]2025-10-13 19:31:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  70%|███████   | 145/206 [02:48<01:02,  1.03s/it]2025-10-13 19:31:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  72%|███████▏  | 149/206 [02:51<00:52,  1.08it/s]2025-10-13 19:31:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  75%|███████▍  | 154/206 [02:54<00:42,  1.23it/s][2025-10-13 19:28:47] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:28:50] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:28:54] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:28:57] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:00] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:12] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:22] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:25] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:32] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 3 column 463 (char 516)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 3 column 463 (char 516)
-[2025-10-13 19:29:40] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:43] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:29:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:00] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:03] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:06] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:14] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:18] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:21] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:25] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:33] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:40] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:44] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:47] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:50] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:53] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:30:56] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:00] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:03] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:07] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:25] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:32] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:38] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:41] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...2025-10-13 19:31:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  75%|███████▌  | 155/206 [02:58<00:54,  1.07s/it]2025-10-13 19:31:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  76%|███████▌  | 156/206 [03:01<01:10,  1.41s/it]2025-10-13 19:31:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  77%|███████▋  | 158/206 [03:05<01:10,  1.47s/it]2025-10-13 19:31:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  79%|███████▉  | 163/206 [03:08<00:48,  1.13s/it]2025-10-13 19:31:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:31:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  80%|███████▉  | 164/206 [03:13<01:03,  1.51s/it]2025-10-13 19:32:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:01 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  80%|████████  | 165/206 [03:17<01:15,  1.85s/it]2025-10-13 19:32:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:04 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  83%|████████▎ | 170/206 [03:19<00:43,  1.20s/it]2025-10-13 19:32:07 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:08 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  83%|████████▎ | 171/206 [03:22<00:50,  1.43s/it]2025-10-13 19:32:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  83%|████████▎ | 172/206 [03:26<00:58,  1.73s/it]2025-10-13 19:32:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:14 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  85%|████████▍ | 175/206 [03:30<00:47,  1.54s/it]2025-10-13 19:32:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▌ | 177/206 [03:32<00:43,  1.51s/it]2025-10-13 19:32:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▋ | 178/206 [03:36<00:53,  1.91s/it]2025-10-13 19:32:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:25 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  89%|████████▉ | 183/206 [03:40<00:29,  1.30s/it]2025-10-13 19:32:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  90%|████████▉ | 185/206 [03:43<00:28,  1.37s/it]2025-10-13 19:32:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  91%|█████████ | 187/206 [03:48<00:30,  1.58s/it]2025-10-13 19:32:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  91%|█████████▏| 188/206 [03:55<00:42,  2.36s/it]2025-10-13 19:32:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  92%|█████████▏| 190/206 [03:58<00:35,  2.19s/it]2025-10-13 19:32:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  93%|█████████▎| 191/206 [04:02<00:36,  2.41s/it]2025-10-13 19:32:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  93%|█████████▎| 192/206 [04:05<00:35,  2.55s/it]2025-10-13 19:32:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  96%|█████████▌| 197/206 [04:09<00:13,  1.50s/it]2025-10-13 19:32:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  97%|█████████▋| 199/206 [04:11<00:10,  1.44s/it]2025-10-13 19:32:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:32:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  98%|█████████▊| 201/206 [04:14<00:07,  1.50s/it]2025-10-13 19:33:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  99%|█████████▉| 204/206 [04:18<00:02,  1.37s/it]2025-10-13 19:33:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching: 100%|█████████▉| 205/206 [04:22<00:01,  1.71s/it]   Enriching: 100%|██████████| 206/206 [04:22<00:00,  1.27s/it]
-2025-10-13 19:33:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-
-[2025-10-13 19:31:45] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:48] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:31:56] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:00] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:04] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:07] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:10] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:13] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:17] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:24] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:27] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:31] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:42] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:45] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:56] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:32:58] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:33:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-[2025-10-13 19:33:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "אי־תלות של היועץ":...
-
-[3/3] Processing: דיני חברות רלוונטיים
-----------------------------------------------------------------------
-
-🔍 Extracting concepts for topic: דיני חברות רלוונטיים
-   Using top_k=200 for maximum coverage...
-[2025-10-13 19:33:09] [Legal Expert] [INFO] Processing query: 
-    מהם כל החוקים, הכללים והמושגים החשובים בנושא:...
-   ✅ Extracted 203 concept chunks
-   📝 Enriching 203 concepts...
-   Enriching:   0%|          | 0/203 [00:00<?, ?it/s]2025-10-13 19:33:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  10%|█         | 21/203 [00:03<00:27,  6.51it/s]2025-10-13 19:33:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  13%|█▎        | 26/203 [00:06<00:47,  3.76it/s]2025-10-13 19:33:26 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  25%|██▍       | 50/203 [00:09<00:28,  5.43it/s]2025-10-13 19:33:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:30 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  26%|██▌       | 53/203 [00:12<00:38,  3.90it/s]2025-10-13 19:33:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:33 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  29%|██▊       | 58/203 [00:15<00:48,  3.00it/s]2025-10-13 19:33:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:36 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  31%|███       | 63/203 [00:19<00:58,  2.37it/s]2025-10-13 19:33:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:40 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  37%|███▋      | 76/203 [00:22<00:42,  2.95it/s]2025-10-13 19:33:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:43 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  39%|███▉      | 79/203 [00:25<00:53,  2.32it/s]2025-10-13 19:33:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  42%|████▏     | 85/203 [00:29<00:57,  2.04it/s]2025-10-13 19:33:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  44%|████▍     | 90/203 [00:32<00:57,  1.96it/s]2025-10-13 19:33:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  49%|████▉     | 99/203 [00:35<00:46,  2.22it/s]2025-10-13 19:33:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:33:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  50%|█████     | 102/203 [00:39<00:58,  1.74it/s]2025-10-13 19:33:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  51%|█████     | 103/203 [00:42<01:16,  1.30it/s]2025-10-13 19:34:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  53%|█████▎    | 108/203 [00:44<01:04,  1.48it/s]2025-10-13 19:34:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  55%|█████▍    | 111/203 [00:48<01:13,  1.25it/s]2025-10-13 19:34:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  55%|█████▌    | 112/203 [00:51<01:34,  1.03s/it]2025-10-13 19:34:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  59%|█████▉    | 120/203 [00:55<00:59,  1.39it/s]2025-10-13 19:34:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  60%|██████    | 122/203 [00:58<01:11,  1.13it/s]2025-10-13 19:34:19 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  61%|██████    | 123/203 [01:03<01:39,  1.25s/it]2025-10-13 19:34:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  62%|██████▏   | 125/203 [01:06<01:43,  1.33s/it]2025-10-13 19:34:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  63%|██████▎   | 127/203 [01:10<01:55,  1.52s/it]2025-10-13 19:34:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  63%|██████▎   | 128/203 [01:14<02:17,  1.84s/it]2025-10-13 19:34:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  64%|██████▍   | 130/203 [01:18<02:13,  1.82s/it]2025-10-13 19:34:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:39 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  66%|██████▌   | 133/203 [01:21<01:49,  1.57s/it]2025-10-13 19:34:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:42 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  67%|██████▋   | 136/203 [01:25<01:40,  1.49s/it]2025-10-13 19:34:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:46 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  68%|██████▊   | 139/203 [01:29<01:31,  1.43s/it]2025-10-13 19:34:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:50 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  69%|██████▉   | 140/203 [01:33<01:47,  1.71s/it]2025-10-13 19:34:53 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:54 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  73%|███████▎  | 149/203 [01:36<00:44,  1.20it/s]2025-10-13 19:34:56 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:34:57 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  76%|███████▋  | 155/203 [01:39<00:33,  1.43it/s]2025-10-13 19:34:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:00 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  77%|███████▋  | 157/203 [01:41<00:36,  1.24it/s]2025-10-13 19:35:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:03 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  79%|███████▉  | 160/203 [01:45<00:38,  1.11it/s]2025-10-13 19:35:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  79%|███████▉  | 161/203 [01:48<00:49,  1.19s/it]2025-10-13 19:35:09 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:10 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  82%|████████▏ | 167/203 [01:52<00:31,  1.15it/s]2025-10-13 19:35:12 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:13 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▌ | 174/203 [01:56<00:21,  1.35it/s]2025-10-13 19:35:16 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:17 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  86%|████████▌ | 175/203 [01:59<00:27,  1.00it/s]2025-10-13 19:35:20 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:21 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  87%|████████▋ | 176/203 [02:02<00:32,  1.20s/it]2025-10-13 19:35:23 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:24 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  88%|████████▊ | 178/203 [02:07<00:35,  1.43s/it]2025-10-13 19:35:27 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:28 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  90%|████████▉ | 182/203 [02:10<00:24,  1.19s/it]2025-10-13 19:35:31 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:32 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  91%|█████████ | 185/203 [02:13<00:20,  1.15s/it]2025-10-13 19:35:34 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:35 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  92%|█████████▏| 186/203 [02:16<00:23,  1.40s/it]2025-10-13 19:35:37 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:38 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  92%|█████████▏| 187/203 [02:20<00:27,  1.74s/it]2025-10-13 19:35:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:41 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  93%|█████████▎| 188/203 [02:24<00:30,  2.06s/it]2025-10-13 19:35:44 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:45 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  96%|█████████▌| 194/203 [02:27<00:10,  1.20s/it]2025-10-13 19:35:48 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:49 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  96%|█████████▌| 195/203 [02:31<00:12,  1.54s/it]2025-10-13 19:35:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:52 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  97%|█████████▋| 196/203 [02:34<00:12,  1.75s/it]2025-10-13 19:35:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:55 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  97%|█████████▋| 197/203 [02:38<00:12,  2.04s/it]2025-10-13 19:35:58 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:35:59 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching:  99%|█████████▉| 201/203 [02:41<00:02,  1.40s/it]2025-10-13 19:36:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:36:02 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching: 100%|█████████▉| 202/203 [02:44<00:01,  1.74s/it]2025-10-13 19:36:05 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://omgykoftsrtyipmykamk.supabase.co/rest/v1/rpc/match_legal_chunks "HTTP/2 200 OK"
-2025-10-13 19:36:06 - httpx - INFO - _client.py:1025 - _send_single_request() - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
-   Enriching: 100%|██████████| 203/203 [02:47<00:00,  1.91s/it]   Enriching: 100%|██████████| 203/203 [02:47<00:00,  1.21it/s]
-[2025-10-13 19:33:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:29] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:32] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:35] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:39] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:42] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:45] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:33:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:08] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:12] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:15] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:19] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:26] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:31] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:34] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:38] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:41] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:46] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:49] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:53] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:56] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:34:59] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:02] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:09] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:12] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:16] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:20] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:23] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:27] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:30] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:34] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:37] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:40] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:44] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:48] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:52] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:55] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:35:58] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-[2025-10-13 19:36:01] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-      ⚠️  Failed to parse JSON from code block: Expecting ',' delimiter: line 4 column 106 (char 396)
-      ⚠️  Failed to parse JSON without code block: Expecting ',' delimiter: line 4 column 106 (char 396)
-[2025-10-13 19:36:05] [Legal Expert] [INFO] Processing query: 
-    בהתבסס על המידע הבא מנושא "דיני חברות רלוונטי...
-
-💾 Saving 297 concepts to concepts_test.json...
-✅ Dataset saved to concepts_test.json
-
-======================================================================
-📊 SUMMARY
-======================================================================
-Topics processed: 3
-Total concepts extracted: 297
-Average concepts per topic: 99.0
-Output file: concepts_test.json
-======================================================================

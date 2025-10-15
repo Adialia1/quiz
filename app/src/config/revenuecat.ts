@@ -81,8 +81,8 @@ export const initializeRevenueCat = async (userId?: string) => {
  * These should match the product IDs in RevenueCat dashboard
  */
 export const SUBSCRIPTION_PLANS = {
-  MONTHLY: 'quiz_monthly_1999',
-  QUARTERLY: 'quiz_quarterly_4999', // 3 months - ~16.66 ILS/month (16.7% discount)
+  MONTHLY: 'quiz_monthly_1999', //Old name so keep it like this
+  QUARTERLY: 'quiz_quarterly_4999', // 3 months - //Old name so keep it like this
 } as const;
 
 /**
@@ -99,8 +99,8 @@ export const PLAN_DETAILS = {
     id: SUBSCRIPTION_PLANS.MONTHLY,
     title: 'חודשי',
     titleEnglish: 'Monthly',
-    price: 19.99,
-    priceDisplay: '$19.99',
+    price: 39,
+    priceDisplay: '$39',
     period: 'לחודש',
     periodEnglish: 'per month',
     trialDays: 3,
@@ -113,16 +113,16 @@ export const PLAN_DETAILS = {
     id: SUBSCRIPTION_PLANS.QUARTERLY,
     title: '3 חודשים',
     titleEnglish: '3 Months',
-    price: 49.99,
-    priceDisplay: '$49.99',
+    price: 99,
+    priceDisplay: '$99',
     period: 'ל-3 חודשים',
     periodEnglish: 'per 3 months',
-    pricePerMonth: 16.66,
-    pricePerMonthDisplay: '$16.66',
+    pricePerMonth: 33,
+    pricePerMonthDisplay: '$33',
     trialDays: 0,
     trialText: null,
-    savings: 10, // 19.99*3 - 49.99 = 9.98 ≈ $10 savings
-    savingsPercent: 16.7, // ~17% discount
+    savings: 18,
+    savingsPercent: 15.4, // ~17% discount
     popular: true,
     badge: 'הכי משתלם! 🎉',
   },

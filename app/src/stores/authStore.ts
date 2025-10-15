@@ -13,6 +13,7 @@ export interface User {
   first_name?: string;
   last_name?: string;
   imageUrl?: string;
+  is_admin?: boolean;  // Admin flag - bypasses subscription checks and sees admin panel
 }
 
 /**

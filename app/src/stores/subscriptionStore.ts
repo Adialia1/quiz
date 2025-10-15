@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { SubscriptionInfo, SubscriptionStatus, SubscriptionPeriod } from '../types/subscription';
+import { useAuthStore } from './authStore';
 
 /**
  * Subscription Store
@@ -46,6 +47,12 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
 
   // Computed properties
   isPremium: () => {
+    // Admin users have full access regardless of subscription status
+    const user = useAuthStore.getState().user;
+    if (user?.is_admin) {
+      return true;
+    }
+
     const { subscriptionInfo } = get();
     if (!subscriptionInfo) return false;
     return subscriptionInfo.status === 'active' || subscriptionInfo.status === 'trial';

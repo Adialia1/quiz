@@ -19,6 +19,7 @@ export interface UserData {
   total_exams_taken: number;
   average_score?: number;
   preferred_difficulty: string;
+  is_admin: boolean;
 }
 
 /**

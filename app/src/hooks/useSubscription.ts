@@ -168,7 +168,43 @@ export const useSubscription = () => {
           return false;
         }
 
-        setError('שגיאה בביצוע הרכישה');
+        // Handle specific error codes
+        let errorMessage = 'שגיאה בביצוע הרכישה';
+
+        if (err.code) {
+          switch (err.code) {
+            case '1': // PURCHASE_CANCELLED
+              errorMessage = 'הרכישה בוטלה';
+              break;
+            case '2': // STORE_PROBLEM
+              errorMessage = 'בעיה בחנות האפליקציות. נסה שוב מאוחר יותר';
+              break;
+            case '3': // PURCHASE_NOT_ALLOWED
+              errorMessage = 'הרכישה אינה מורשת. ודא שהתשלומים מופעלים במכשיר';
+              break;
+            case '4': // PURCHASE_INVALID
+              errorMessage = 'פרטי הרכישה אינם תקינים';
+              break;
+            case '5': // PRODUCT_NOT_AVAILABLE / Test failure
+              // This is a sandbox test error - show friendly message
+              if (err.message && err.message.includes('Test purchase failure')) {
+                errorMessage = 'בדיקת תשלום נכשל (מצב sandbox)';
+              } else {
+                errorMessage = 'המוצר אינו זמין כרגע. נסה שוב מאוחר יותר';
+              }
+              break;
+            case '6': // PRODUCT_ALREADY_PURCHASED
+              errorMessage = 'כבר יש לך מנוי פעיל';
+              break;
+            case '7': // NETWORK_ERROR
+              errorMessage = 'בעיית רשת. בדוק את החיבור לאינטרנט';
+              break;
+            default:
+              errorMessage = `שגיאה בביצוע הרכישה (קוד: ${err.code})`;
+          }
+        }
+
+        setError(errorMessage);
         return false;
       } finally {
         setLoading(false);

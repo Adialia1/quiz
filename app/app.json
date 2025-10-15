@@ -21,7 +21,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
         "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה",
-        "NSUserNotificationsUsageDescription": "האפליקציה שולחת לך תזכורות יומיות ללמוד למבחן"
+        "NSUserNotificationsUsageDescription": "האפליקציה שולחת לך תזכורות יומיות ללמוד למבחן",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

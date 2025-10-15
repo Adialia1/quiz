@@ -47,22 +47,17 @@ export const HomeScreen: React.FC = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Fetch user profile if not already in store
-        if (!user?.first_name && !user?.firstName) {
-          const userData = await fetchUserProfile(getToken);
-          setUser({
-            id: userData.id,
-            email: userData.email,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-          });
-          // Set greeting with fetched name
-          setGreeting(getTimeBasedGreeting(userData.first_name));
-        } else {
-          // Use existing user data
-          const firstName = user.first_name || user.firstName;
-          setGreeting(getTimeBasedGreeting(firstName));
-        }
+        // Always fetch fresh user profile to ensure we have latest data (including is_admin)
+        const userData = await fetchUserProfile(getToken);
+        setUser({
+          id: userData.id,
+          email: userData.email,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          is_admin: userData.is_admin,
+        });
+        // Set greeting with fetched name
+        setGreeting(getTimeBasedGreeting(userData.first_name));
       } catch (error) {
         console.error('Error loading user data:', error);
         // Set greeting without name if error

@@ -32,6 +32,7 @@ import { SubscriptionManagementScreen } from './src/screens/SubscriptionManageme
 import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 import { TermsAndConditionsScreen } from './src/screens/TermsAndConditionsScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
+import { AdminScreen } from './src/screens/AdminScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
@@ -95,6 +96,7 @@ function MainStack() {
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
         <Stack.Screen name="Progress" component={ProgressScreen} />
+        <Stack.Screen name="Admin" component={AdminScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>
@@ -196,7 +198,11 @@ function AppContent() {
           console.log('[STATUS CHECK] ✅ Database response:', {
             onboarding_completed: userData.onboarding_completed,
             subscription_status: userData.subscription_status,
+            is_admin: userData.is_admin,
           });
+
+          // Admins bypass all subscription checks
+          const isAdmin = userData.is_admin === true;
 
           // Check subscription status - user has active subscription or in trial
           const hasActiveSubscription =
@@ -205,11 +211,16 @@ function AppContent() {
             userData.subscription_status === 'trial';
 
           // LOGIC:
+          // 0. If user is admin → allow full access (bypass everything)
           // 1. If onboarding NOT completed → show onboarding
           // 2. If onboarding completed BUT no subscription → show paywall
           // 3. If onboarding completed AND has subscription → allow access to app
 
-          if (!userData.onboarding_completed) {
+          if (isAdmin) {
+            console.log('[STATUS CHECK] → 👑 Admin user - full access granted');
+            setShowOnboarding(false);
+            setShowSubscriptionPaywall(false);
+          } else if (!userData.onboarding_completed) {
             console.log('[STATUS CHECK] → 🔵 Show onboarding (not completed in DB)');
             setShowOnboarding(true);
             setShowSubscriptionPaywall(false);
@@ -276,14 +287,21 @@ function AppContent() {
                 console.log('[ONBOARDING] Updated user data:', {
                   onboarding_completed: userData.onboarding_completed,
                   subscription_status: userData.subscription_status,
+                  is_admin: userData.is_admin,
                 });
+
+                // Admins bypass subscription check
+                const isAdmin = userData.is_admin === true;
 
                 const hasActiveSubscription =
                   userData.subscription_status === 'active' ||
                   userData.subscription_status === 'premium' ||
                   userData.subscription_status === 'trial';
 
-                if (!hasActiveSubscription) {
+                if (isAdmin) {
+                  console.log('[ONBOARDING] Admin user - going to home');
+                  setShowSubscriptionPaywall(false);
+                } else if (!hasActiveSubscription) {
                   console.log('[ONBOARDING] Showing subscription paywall');
                   setShowSubscriptionPaywall(true);
                 } else {
