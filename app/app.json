@@ -52,14 +52,11 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#2196F3",
-          "sounds": ["./assets/notification.wav"]
+          "color": "#2196F3"
         }
       ]
     ],
     "notification": {
-      "icon": "./assets/notification-icon.png",
       "color": "#2196F3",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} תזכורות חדשות"

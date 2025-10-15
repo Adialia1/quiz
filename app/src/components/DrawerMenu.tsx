@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useUser, useClerk } from '@clerk/clerk-expo';
+import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../config/colors';
 import { useAuthStore } from '../stores/authStore';
@@ -45,6 +46,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ iconName, iconLibrary, title, onPre
 
 export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
   const slideAnim = useRef(new Animated.Value(DRAWER_WIDTH)).current;
+  const navigation = useNavigation();
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const { logout } = useAuthStore();
@@ -156,11 +158,11 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
           <MenuItem
             iconName="card"
             iconLibrary="Ionicons"
-            title="מנוי"
+            title="ניהול מנוי"
             iconColor={Colors.accent}
             onPress={() => {
-              console.log('Subscription');
               onClose();
+              navigation.navigate('SubscriptionManagement' as never);
             }}
           />
           <MenuItem

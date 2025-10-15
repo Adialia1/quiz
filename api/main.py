@@ -24,6 +24,7 @@ from api.routes.exams import router as exams_router
 from api.routes.chat import router as chat_router
 from api.routes.concepts import router as concepts_router
 from api.routes.notifications import router as notifications_router
+from api.routes.subscriptions import router as subscriptions_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -38,6 +39,7 @@ app.include_router(exams_router)
 app.include_router(chat_router)
 app.include_router(concepts_router)
 app.include_router(notifications_router)
+app.include_router(subscriptions_router)
 
 # Initialize agents (singleton pattern)
 legal_expert = None

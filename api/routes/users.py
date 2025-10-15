@@ -43,6 +43,7 @@ class UserProfile(BaseModel):
     phone: Optional[str]
     created_at: str
     last_login_at: Optional[str]
+    onboarding_completed: bool = False
     subscription_status: str
     subscription_expires_at: Optional[str]
     total_questions_answered: int

@@ -8,6 +8,7 @@ import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from './src/config/gluestack';
 import { CLERK_PUBLISHABLE_KEY } from './src/config/clerk';
 import { setupRTL } from './src/config/rtl';
+import { initializeRevenueCat } from './src/config/revenuecat';
 import { useAuthStore } from './src/stores/authStore';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
@@ -25,6 +26,8 @@ import { TopicDetailScreen } from './src/screens/TopicDetailScreen';
 import { FlashcardStudyScreen } from './src/screens/FlashcardStudyScreen';
 import { StarredConceptsScreen } from './src/screens/StarredConceptsScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { SubscriptionPlansScreen } from './src/screens/SubscriptionPlansScreen';
+import { SubscriptionManagementScreen } from './src/screens/SubscriptionManagementScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
@@ -83,6 +86,8 @@ function MainStack() {
         <Stack.Screen name="TopicDetail" component={TopicDetailScreen} />
         <Stack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
         <Stack.Screen name="StarredConcepts" component={StarredConceptsScreen} />
+        <Stack.Screen name="SubscriptionPlans" component={SubscriptionPlansScreen} />
+        <Stack.Screen name="SubscriptionManagement" component={SubscriptionManagementScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>
@@ -94,53 +99,139 @@ function MainStack() {
  * Main Navigation Component
  */
 function AppContent() {
-  const { isSignedIn, isLoaded: clerkLoaded } = useAuth();
+  const { isSignedIn, isLoaded: clerkLoaded, getToken } = useAuth();
   const { isAuthenticated, isLoading, hydrate } = useAuthStore();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null); // null = checking
+  const [showSubscriptionPaywall, setShowSubscriptionPaywall] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
   // טעינת מצב האימות מהאחסון
   useEffect(() => {
     hydrate();
   }, []);
 
-  // Check if onboarding is completed from API
+  // Initialize RevenueCat when user is authenticated
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const initRC = async () => {
       if (isSignedIn || isAuthenticated) {
         try {
-          // Get auth token
-          const token = await tokenCache.getToken('__clerk_client_jwt');
-          if (!token) {
-            console.log('No token available for onboarding check');
-            setShowOnboarding(false);
-            return;
-          }
+          // Get Clerk user ID
+          const token = await getToken();
+          if (token) {
+            // Decode JWT to get user ID (clerk_user_id is in the token)
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+              atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            );
+            const payload = JSON.parse(jsonPayload);
+            const clerkUserId = payload.sub; // Clerk user ID is in 'sub' field
 
-          // Fetch user profile from API
-          const response = await fetch(`${API_URL}/api/users/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
+            console.log('[RevenueCat] Initializing with Clerk user ID:', clerkUserId);
 
-          if (response.ok) {
-            const userData = await response.json();
-            setShowOnboarding(!userData.onboarding_completed);
+            // Initialize RevenueCat with Clerk user ID
+            await initializeRevenueCat(clerkUserId);
           } else {
-            console.log('Failed to fetch user profile:', response.status);
-            setShowOnboarding(false);
+            // Fallback: initialize without user ID
+            console.log('[RevenueCat] No token available, initializing without user ID');
+            await initializeRevenueCat();
           }
         } catch (error) {
-          console.error('Error checking onboarding status:', error);
-          setShowOnboarding(false);
+          console.error('[RevenueCat] Error initializing:', error);
+          // Fallback: initialize without user ID
+          await initializeRevenueCat();
         }
       }
     };
-    checkOnboarding();
+
+    initRC();
+  }, [isSignedIn, isAuthenticated, getToken]);
+
+  // Check if onboarding is completed and subscription status from API
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      console.log('[STATUS CHECK] Starting check...', { isSignedIn, isAuthenticated });
+
+      // If user is NOT authenticated, clear all flags and show auth screen
+      if (!isSignedIn && !isAuthenticated) {
+        console.log('[STATUS CHECK] User not authenticated, clearing flags');
+        setShowOnboarding(false);
+        setShowSubscriptionPaywall(false);
+        setIsCheckingStatus(false);
+        return;
+      }
+
+      // User IS authenticated, check their status from database
+      try {
+        setIsCheckingStatus(true);
+
+        // Get auth token from Clerk
+        const token = await getToken();
+        if (!token) {
+          console.log('[STATUS CHECK] No token available');
+          setIsCheckingStatus(false);
+          return;
+        }
+
+        // Fetch user profile from API
+        console.log('[STATUS CHECK] Fetching user profile from database...');
+        const response = await fetch(`${API_URL}/api/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('[STATUS CHECK] ✅ Database response:', {
+            onboarding_completed: userData.onboarding_completed,
+            subscription_status: userData.subscription_status,
+          });
+
+          // Check subscription status - user has active subscription or in trial
+          const hasActiveSubscription =
+            userData.subscription_status === 'active' ||
+            userData.subscription_status === 'premium' ||
+            userData.subscription_status === 'trial';
+
+          // LOGIC:
+          // 1. If onboarding NOT completed → show onboarding
+          // 2. If onboarding completed BUT no subscription → show paywall
+          // 3. If onboarding completed AND has subscription → allow access to app
+
+          if (!userData.onboarding_completed) {
+            console.log('[STATUS CHECK] → 🔵 Show onboarding (not completed in DB)');
+            setShowOnboarding(true);
+            setShowSubscriptionPaywall(false);
+          } else if (!hasActiveSubscription) {
+            console.log('[STATUS CHECK] → 💳 Show subscription paywall (no active subscription)');
+            setShowOnboarding(false);
+            setShowSubscriptionPaywall(true);
+          } else {
+            console.log('[STATUS CHECK] → ✅ Allow app access (onboarding done + subscription active)');
+            setShowOnboarding(false);
+            setShowSubscriptionPaywall(false);
+          }
+        } else {
+          console.log('[STATUS CHECK] ❌ Failed to fetch user profile:', response.status);
+          const errorText = await response.text();
+          console.log('[STATUS CHECK] Error details:', errorText);
+        }
+      } catch (error) {
+        console.error('[STATUS CHECK] ❌ Error:', error);
+      } finally {
+        setIsCheckingStatus(false);
+      }
+    };
+
+    checkUserStatus();
   }, [isSignedIn, isAuthenticated]);
 
   // אם Clerk או האפליקציה עדיין טוענים
-  if (!clerkLoaded || isLoading) {
+  if (!clerkLoaded || isLoading || isCheckingStatus) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
@@ -148,11 +239,60 @@ function AppContent() {
     );
   }
 
-  // Show onboarding if user just registered
-  if ((isSignedIn || isAuthenticated) && showOnboarding) {
+  // Show onboarding if user just registered and onboarding not completed
+  if ((isSignedIn || isAuthenticated) && showOnboarding === true) {
     return (
       <>
-        <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
+        <OnboardingScreen
+          onComplete={async () => {
+            console.log('[ONBOARDING] Complete callback triggered');
+            setShowOnboarding(false);
+
+            // Wait a bit for the database to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // After onboarding, check subscription status
+            const token = await getToken();
+            if (token) {
+              console.log('[ONBOARDING] Fetching updated user data...');
+              const response = await fetch(`${API_URL}/api/users/me`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (response.ok) {
+                const userData = await response.json();
+                console.log('[ONBOARDING] Updated user data:', {
+                  onboarding_completed: userData.onboarding_completed,
+                  subscription_status: userData.subscription_status,
+                });
+
+                const hasActiveSubscription =
+                  userData.subscription_status === 'active' ||
+                  userData.subscription_status === 'premium' ||
+                  userData.subscription_status === 'trial';
+
+                if (!hasActiveSubscription) {
+                  console.log('[ONBOARDING] Showing subscription paywall');
+                  setShowSubscriptionPaywall(true);
+                } else {
+                  console.log('[ONBOARDING] User has subscription, going to home');
+                }
+              }
+            }
+          }}
+        />
+        <StatusBar style="dark" />
+      </>
+    );
+  }
+
+  // Show subscription paywall if no active subscription
+  if ((isSignedIn || isAuthenticated) && showSubscriptionPaywall) {
+    return (
+      <>
+        <SubscriptionPlansScreen
+          onComplete={() => setShowSubscriptionPaywall(false)}
+          showSkip={false}
+        />
         <StatusBar style="dark" />
       </>
     );
