@@ -45,15 +45,12 @@ pytest_cache/
 .pytest_cache/
 *.pyc
 
-# Node modules (for app folder)
-app/node_modules/
-app/.expo/
-app/.expo-shared/
-app/dist/
-app/build/
-
-# Exclude entire React Native app from backend Docker build
+# IMPORTANT: Exclude entire React Native app from backend Docker build
+# This saves ~500MB+ from the Docker image!
 app/
+*.apk
+*.ipa
+*.aab
 
 # Temporary files
 *.tmp
