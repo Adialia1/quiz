@@ -32,3 +32,25 @@ async def get_terms_pdf():
             "Access-Control-Allow-Origin": "*",
         }
     )
+
+
+@router.get("/privacy-policy")
+async def get_privacy_policy_pdf():
+    """
+    Get privacy policy PDF
+    Returns the PDF file directly with proper headers
+    """
+    pdf_path = DOCUMENTS_DIR / "Privacy.pdf"
+
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Privacy policy PDF not found")
+
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename="Privacy.pdf",
+        headers={
+            "Content-Disposition": "inline; filename=Privacy.pdf",
+            "Access-Control-Allow-Origin": "*",
+        }
+    )
