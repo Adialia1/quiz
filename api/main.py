@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import datetime
@@ -15,6 +16,8 @@ from pathlib import Path
 import json
 import tempfile
 import os
+import time
+from fastapi import Request
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -30,6 +33,8 @@ from api.routes.subscriptions import router as subscriptions_router
 from api.routes.progress import router as progress_router
 from api.routes.documents import router as documents_router
 from api.routes.admin import router as admin_router
+from api.utils.cache import get_redis, close_redis
+from api.utils.database import get_db_pool, close_db_pool, test_connection
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -46,6 +51,45 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add GZip compression middleware for faster mobile responses
+# Compresses responses > 1KB by ~70-90%
+# Reduces 50KB response to ~5-10KB = 200-500ms faster on mobile
+app.add_middleware(
+    GZipMiddleware,
+    minimum_size=1000,  # Only compress responses larger than 1KB
+    compresslevel=6      # Balance between compression ratio and speed (1-9, 6 is optimal)
+)
+
+# Performance monitoring middleware - tracks request timing
+@app.middleware("http")
+async def performance_monitoring_middleware(request: Request, call_next):
+    """
+    Monitor request performance and log slow endpoints
+
+    Helps identify performance bottlenecks and track optimization improvements
+    """
+    start_time = time.time()
+
+    # Process request
+    response = await call_next(request)
+
+    # Calculate duration
+    duration_ms = (time.time() - start_time) * 1000
+
+    # Add timing header for debugging
+    response.headers["X-Response-Time"] = f"{duration_ms:.2f}ms"
+
+    # Log slow requests (> 1 second)
+    if duration_ms > 1000:
+        print(f"🐌 SLOW REQUEST: {request.method} {request.url.path} - {duration_ms:.0f}ms")
+    elif duration_ms > 500:
+        print(f"⚠️  SLOW: {request.method} {request.url.path} - {duration_ms:.0f}ms")
+    else:
+        # Log normal requests in development
+        print(f"✅ {request.method} {request.url.path} - {duration_ms:.0f}ms")
+
+    return response
 
 # Mount static files directory
 STATIC_DIR = Path(__file__).parent / "static"
@@ -447,11 +491,33 @@ async def internal_error_handler(request, exc):
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize agents on startup"""
+    """Initialize agents and services on startup"""
     print("🚀 Starting Quiz Generator & Legal Expert API...")
-    print("📝 Initializing agents (this may take a moment)...")
+
+    # Initialize async database connection pool (Week 2 optimization)
+    print("📊 Initializing async database connection pool...")
+    try:
+        pool = await get_db_pool()
+        if pool:
+            print("✅ Async database pool ready")
+            # Test connection
+            await test_connection()
+        else:
+            print("⚠️  Running without async database pool")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not initialize database pool: {e}")
+        print("⚠️  Falling back to synchronous database operations")
+
+    # Initialize Redis cache
+    print("📦 Initializing Redis cache...")
+    redis = await get_redis()
+    if redis:
+        print("✅ Redis cache ready")
+    else:
+        print("⚠️  Running without cache layer")
 
     # Pre-initialize agents for faster first request
+    print("📝 Initializing agents (this may take a moment)...")
     try:
         get_legal_expert()
         print("✅ Legal Expert Agent initialized")
@@ -472,6 +538,13 @@ async def startup_event():
 async def shutdown_event():
     """Cleanup on shutdown"""
     print("👋 Shutting down API...")
+
+    # Close async database pool
+    await close_db_pool()
+
+    # Close Redis connection
+    await close_redis()
+    print("✅ All connections closed")
 
 
 if __name__ == "__main__":

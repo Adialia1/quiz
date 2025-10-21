@@ -4,7 +4,7 @@ import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
 import { Image } from 'expo-image';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { ClerkProvider, useAuth, useClerk } from '@clerk/clerk-expo';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from './src/config/gluestack';
 import { CLERK_PUBLISHABLE_KEY } from './src/config/clerk';
@@ -109,7 +109,8 @@ function MainStack() {
  */
 function AppContent() {
   const { isSignedIn, isLoaded: clerkLoaded, getToken } = useAuth();
-  const { isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const { signOut } = useClerk();
+  const { isAuthenticated, isLoading, hydrate, logout } = useAuthStore();
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null); // null = checking
   const [showSubscriptionPaywall, setShowSubscriptionPaywall] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -237,9 +238,27 @@ function AppContent() {
           console.log('[STATUS CHECK] ❌ Failed to fetch user profile:', response.status);
           const errorText = await response.text();
           console.log('[STATUS CHECK] Error details:', errorText);
+
+          // Session is invalid - log out the user and clear cache
+          console.log('[STATUS CHECK] 🔄 Disconnected session detected - logging out...');
+          await logout(); // Clear local storage
+          await signOut(); // Clear Clerk session
+
+          // Reset state to show auth screen
+          setShowOnboarding(false);
+          setShowSubscriptionPaywall(false);
         }
       } catch (error) {
         console.error('[STATUS CHECK] ❌ Error:', error);
+
+        // Network error or other exception - also log out for safety
+        console.log('[STATUS CHECK] 🔄 Error loading user - logging out for safety...');
+        await logout(); // Clear local storage
+        await signOut(); // Clear Clerk session
+
+        // Reset state to show auth screen
+        setShowOnboarding(false);
+        setShowSubscriptionPaywall(false);
       } finally {
         setIsCheckingStatus(false);
       }

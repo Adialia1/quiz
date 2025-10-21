@@ -251,7 +251,7 @@ export const ExamScreen: React.FC = () => {
               }
             }
             resetExam();
-            navigation.goBack();
+            navigation.navigate('Home' as never);
           },
         },
       ]

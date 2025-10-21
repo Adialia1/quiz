@@ -244,16 +244,6 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
             )}
 
             <MenuItem
-              iconName="settings-outline"
-              iconLibrary="Ionicons"
-              title="הגדרות"
-              onPress={() => {
-                onClose();
-                // navigation.navigate('Settings' as never);
-              }}
-            />
-
-            <MenuItem
               iconName="document-text-outline"
               iconLibrary="Ionicons"
               title="תנאי שימוש"

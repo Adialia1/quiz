@@ -37,6 +37,12 @@ svix==1.42.0  # For Clerk webhook signature verification
 psycopg2-binary==2.9.10
 sqlalchemy==2.0.37
 alembic==1.14.1
+asyncpg==0.30.0  # Async PostgreSQL driver
+databases[postgresql]==0.9.0  # Async database abstraction
+
+# Caching
+redis==5.2.1  # Redis client
+redis[hiredis]==5.2.1  # Redis with C parser for better performance
 
 # Utilities
 python-dotenv==1.0.1

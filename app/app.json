@@ -1,15 +1,12 @@
 {
   "expo": {
-    "name": "Ethics Plus - אתיקה פלוס",
+    "name": "אתיקה פלוס",
     "slug": "ethics-plus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "locales": {
-      "he": "./locales/he.json"
-    },
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

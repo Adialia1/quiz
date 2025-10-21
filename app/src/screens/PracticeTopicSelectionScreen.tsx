@@ -52,7 +52,7 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
     try {
       setLoading(true);
 
-      // Create practice session
+      // Try to create session with requested count first to check availability
       const session = await practiceApi.createPracticeSession(
         config.selectedTopic === 'all' ? null : config.selectedTopic,
         config.selectedDifficulty,
@@ -60,31 +60,53 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
         getToken
       );
 
-      // Start session in store
+      // Success - start the session
       usePracticeStore.getState().startSession(session);
-
-      // Navigate to practice question screen
       navigation.navigate('PracticeQuestion' as never);
+      setLoading(false);
     } catch (error: any) {
-      console.error('Failed to start practice:', error);
-
-      // Better error message for insufficient questions
+      // Handle insufficient questions - automatically create with available count
       if (error.message && error.message.includes('Not enough questions')) {
         const match = error.message.match(/Available: (\d+)/);
-        const available = match ? match[1] : 'מעט';
-        Alert.alert(
-          'אין מספיק שאלות',
-          `לא נמצאו מספיק שאלות עבור הנושא והרמה שנבחרו.\n\n` +
-          `מומלץ:\n` +
-          `• להפחית את מספר השאלות ל-${available} או פחות\n` +
-          `• לבחור "כל הנושאים"\n` +
-          `• לבחור רמת קושי אחרת`
-        );
+        const available = match ? parseInt(match[1]) : 10;
+        const requested = config.questionCount;
+
+        // Automatically retry with available count
+        try {
+          const retrySession = await practiceApi.createPracticeSession(
+            config.selectedTopic === 'all' ? null : config.selectedTopic,
+            config.selectedDifficulty,
+            available, // Use the available count
+            getToken
+          );
+
+          // Start the session
+          usePracticeStore.getState().startSession(retrySession);
+
+          // Update config for next time
+          setConfig({ questionCount: available });
+          setMaxQuestions(available);
+
+          // Navigate to practice screen
+          navigation.navigate('PracticeQuestion' as never);
+          setLoading(false);
+
+          // Show informational message AFTER navigation
+          setTimeout(() => {
+            Alert.alert(
+              'הודעה',
+              `לא נמצאו ${requested} שאלות עבור הנושא והרמה שנבחרו.\n\nהתרגול התחיל עם ${available} שאלות זמינות.`
+            );
+          }, 500);
+        } catch (retryError: any) {
+          setLoading(false);
+          console.error('Retry failed:', retryError);
+          Alert.alert('שגיאה', retryError.message || 'שגיאה ביצירת תרגול');
+        }
       } else {
+        setLoading(false);
         Alert.alert('שגיאה', error.message || 'שגיאה ביצירת תרגול');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -166,7 +188,9 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
 
         {/* Topic Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 בחר נושא:</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>📋 בחר נושא:</Text>
+          </View>
           <View style={styles.optionsContainer}>
             {/* All Topics Option */}
             <Pressable
@@ -204,7 +228,7 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
                   styles.optionText,
                   config.selectedTopic === topic.name && styles.optionTextSelected,
                 ]}>
-                  {topic.name} ({topic.question_count})
+                  {topic.name}
                 </Text>
               </Pressable>
             ))}
@@ -213,7 +237,9 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
 
         {/* Difficulty Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎯 בחר רמת קושי:</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>🎯 בחר רמת קושי:</Text>
+          </View>
           <View style={styles.optionsContainer}>
             {/* All difficulties option - only shown for "all topics" */}
             {config.selectedTopic === 'all' && (
@@ -260,7 +286,9 @@ export const PracticeTopicSelectionScreen: React.FC = () => {
 
         {/* Question Count */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 מספר שאלות:</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>📊 מספר שאלות:</Text>
+          </View>
           <View style={styles.counterContainer}>
             <Pressable style={styles.counterButton} onPress={() => handleQuestionCountChange(5)}>
               <Text style={styles.counterButtonText}>+</Text>
@@ -358,11 +386,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 32,
   },
+  sectionTitleContainer: {
+    width: '100%',
+    alignItems: 'flex-start', // In RTL, flex-start is the right side
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.primary,
-    marginBottom: 16,
     textAlign: 'right',
   },
   optionsContainer: {
@@ -389,7 +421,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray[400],
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    marginRight: 12,
   },
   radioSelected: {
     width: 12,
@@ -400,7 +432,6 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     color: Colors.gray[800],
-    flex: 1,
     textAlign: 'right',
   },
   optionTextSelected: {

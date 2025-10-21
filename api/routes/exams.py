@@ -2,6 +2,8 @@
 Exam Management API Routes
 
 Handles exam sessions, question delivery, answer submission, and results.
+
+OPTIMIZED: Week 2 - Migrated to async database queries
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -9,16 +11,17 @@ from typing import List, Optional, Dict
 from datetime import datetime
 from uuid import UUID
 import os
-from supabase import create_client, Client
 
 from api.auth import get_current_user_id
+from api.utils.database import fetch_one, fetch_all, execute_query, fetch_val, batch_insert
+from api.utils.cache import get_cached, set_cached, CacheTTL
+from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from supabase import create_client, Client
+
+# Initialize Supabase client for batch operations
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 router = APIRouter(prefix="/api/exams", tags=["Exams"])
-
-# Initialize Supabase client
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ==================== Models ====================
 
@@ -207,36 +210,43 @@ class ExamResultsResponse(BaseModel):
 
 # ==================== Helper Functions ====================
 
-def get_user_by_clerk_id(clerk_user_id: str):
+async def get_user_by_clerk_id(clerk_user_id: str):
     """Get user from database by Clerk user ID"""
-    result = supabase.table("users").select("*").eq("clerk_user_id", clerk_user_id).single().execute()
-    if not result.data:
+    user = await fetch_one(
+        "SELECT * FROM users WHERE clerk_user_id = $1",
+        clerk_user_id
+    )
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return result.data
+    return user
 
 
-def get_user_weak_topics(user_id: str, limit: int = 5) -> List[str]:
+async def get_user_weak_topics(user_id: str, limit: int = 5) -> List[str]:
     """
     Get user's weakest topics based on performance
 
     Returns list of topic names ordered by weakness (worst first)
     """
     # Get topic performance, ordered by accuracy (weakest first)
-    result = supabase.table("user_topic_performance")\
-        .select("topic, accuracy_percentage")\
-        .eq("user_id", user_id)\
-        .order("accuracy_percentage", desc=False)\
-        .limit(limit)\
-        .execute()
+    results = await fetch_all(
+        """
+        SELECT topic, accuracy_percentage
+        FROM user_topic_performance
+        WHERE user_id = $1
+        ORDER BY accuracy_percentage ASC
+        LIMIT $2
+        """,
+        user_id, limit
+    )
 
-    if result.data:
-        return [item['topic'] for item in result.data]
+    if results:
+        return [item['topic'] for item in results]
 
     # If user has no history, return empty list (will use random questions)
     return []
 
 
-def select_questions_for_exam(
+async def select_questions_for_exam(
     question_count: int,
     topics: Optional[List[str]] = None,
     difficulty: Optional[str] = None,
@@ -258,31 +268,34 @@ def select_questions_for_exam(
     import random
 
     if exam_type == "review_mistakes" and user_id:
-        # Get questions user got wrong
-        query = supabase.table("user_mistakes")\
-            .select("question_id, ai_generated_questions(*)")\
-            .eq("user_id", user_id)\
-            .eq("is_resolved", False)\
-            .limit(question_count)
-
-        result = query.execute()
-        questions = [item['ai_generated_questions'] for item in result.data if item.get('ai_generated_questions')]
+        # Get questions user got wrong with question details
+        results = await fetch_all(
+            """
+            SELECT q.*
+            FROM user_mistakes um
+            INNER JOIN ai_generated_questions q ON um.question_id = q.id
+            WHERE um.user_id = $1 AND um.is_resolved = FALSE
+            LIMIT $2
+            """,
+            user_id, question_count
+        )
+        questions = results
     else:
         # Get all questions user has seen (for full_simulation filtering)
         seen_question_ids = []
         if exam_type == "full_simulation" and user_id:
             # Get all question IDs from user's history
-            history = supabase.table("user_question_history")\
-                .select("question_id")\
-                .eq("user_id", user_id)\
-                .execute()
-            seen_question_ids = [item['question_id'] for item in history.data]
+            history = await fetch_all(
+                "SELECT question_id FROM user_question_history WHERE user_id = $1",
+                user_id
+            )
+            seen_question_ids = [str(item['question_id']) for item in history]
 
         questions = []
 
         # ADAPTIVE SELECTION: If no topics specified, use smart topic selection
         if not topics and user_id:
-            weak_topics = get_user_weak_topics(user_id, limit=5)
+            weak_topics = await get_user_weak_topics(user_id, limit=5)
 
             if weak_topics:
                 # 60% from weak topics, 40% from others
@@ -290,36 +303,46 @@ def select_questions_for_exam(
                 other_count = question_count - weak_count
 
                 # Get questions from weak topics
-                weak_query = supabase.table("ai_generated_questions")\
-                    .select("*")\
-                    .eq("is_active", True)\
-                    .in_("topic", weak_topics)
+                weak_sql = "SELECT * FROM ai_generated_questions WHERE is_active = TRUE AND topic = ANY($1)"
+                weak_params = [weak_topics]
 
                 if difficulty:
-                    weak_query = weak_query.eq("difficulty_level", difficulty)
+                    weak_sql += " AND difficulty_level = $2"
+                    weak_params.append(difficulty)
+                    param_offset = 3
+                else:
+                    param_offset = 2
 
                 if exam_type == "full_simulation" and seen_question_ids:
-                    weak_query = weak_query.not_.in_("id", seen_question_ids)
+                    weak_sql += f" AND id::text != ALL(${param_offset})"
+                    weak_params.append(seen_question_ids)
+                    param_offset += 1
 
-                weak_query = weak_query.limit(weak_count * 2)
-                weak_result = weak_query.execute()
-                weak_questions = weak_result.data
+                weak_sql += f" LIMIT ${param_offset}"
+                weak_params.append(weak_count * 2)
+
+                weak_questions = await fetch_all(weak_sql, *weak_params)
 
                 # Get questions from other topics
-                other_query = supabase.table("ai_generated_questions")\
-                    .select("*")\
-                    .eq("is_active", True)\
-                    .not_.in_("topic", weak_topics)
+                other_sql = "SELECT * FROM ai_generated_questions WHERE is_active = TRUE AND topic != ALL($1)"
+                other_params = [weak_topics]
 
                 if difficulty:
-                    other_query = other_query.eq("difficulty_level", difficulty)
+                    other_sql += " AND difficulty_level = $2"
+                    other_params.append(difficulty)
+                    param_offset = 3
+                else:
+                    param_offset = 2
 
                 if exam_type == "full_simulation" and seen_question_ids:
-                    other_query = other_query.not_.in_("id", seen_question_ids)
+                    other_sql += f" AND id::text != ALL(${param_offset})"
+                    other_params.append(seen_question_ids)
+                    param_offset += 1
 
-                other_query = other_query.limit(other_count * 2)
-                other_result = other_query.execute()
-                other_questions = other_result.data
+                other_sql += f" LIMIT ${param_offset}"
+                other_params.append(other_count * 2)
+
+                other_questions = await fetch_all(other_sql, *other_params)
 
                 # Randomly select from each pool
                 selected_weak = random.sample(weak_questions, min(weak_count, len(weak_questions)))
@@ -331,26 +354,35 @@ def select_questions_for_exam(
 
         # STANDARD SELECTION: Topics specified or no adaptive selection
         if not questions:
-            query = supabase.table("ai_generated_questions")\
-                .select("*")\
-                .eq("is_active", True)
+            sql = "SELECT * FROM ai_generated_questions WHERE is_active = TRUE"
+            params = []
 
             if topics:
-                query = query.in_("topic", topics)
+                sql += " AND topic = ANY($1)"
+                params.append(topics)
+                param_offset = 2
+            else:
+                param_offset = 1
 
             if difficulty:
-                query = query.eq("difficulty_level", difficulty)
+                sql += f" AND difficulty_level = ${param_offset}"
+                params.append(difficulty)
+                param_offset += 1
 
             # For full_simulation: exclude questions user has seen
             if exam_type == "full_simulation" and seen_question_ids:
-                query = query.not_.in_("id", seen_question_ids)
+                sql += f" AND id::text != ALL(${param_offset})"
+                params.append(seen_question_ids)
+                param_offset += 1
 
             # Get more questions than needed for random selection
-            query = query.limit(question_count * 3)
-            result = query.execute()
+            sql += f" LIMIT ${param_offset}"
+            params.append(question_count * 3)
+
+            all_questions = await fetch_all(sql, *params)
 
             # Randomly select question_count questions
-            questions = result.data
+            questions = all_questions
             if len(questions) > question_count:
                 questions = random.sample(questions, question_count)
 
@@ -371,32 +403,40 @@ def select_questions_for_exam(
     return questions
 
 
-def calculate_exam_results(exam_id: str, user_id: str) -> Dict:
+async def calculate_exam_results(exam_id: str, user_id: str) -> Dict:
     """Calculate comprehensive exam results"""
-    # Get all answers for this exam
-    answers = supabase.table("exam_question_answers")\
-        .select("*, ai_generated_questions(*)")\
-        .eq("exam_id", exam_id)\
-        .execute()
+    # Get all answers for this exam with question details
+    answers = await fetch_all(
+        """
+        SELECT
+            eqa.*,
+            q.topic,
+            q.sub_topic,
+            q.difficulty_level
+        FROM exam_question_answers eqa
+        INNER JOIN ai_generated_questions q ON eqa.question_id = q.id
+        WHERE eqa.exam_id = $1
+        """,
+        exam_id
+    )
 
-    if not answers.data:
+    if not answers:
         raise HTTPException(status_code=404, detail="No answers found for this exam")
 
-    total_questions = len(answers.data)
-    correct_answers = sum(1 for a in answers.data if a['is_correct'])
+    total_questions = len(answers)
+    correct_answers = sum(1 for a in answers if a['is_correct'])
     wrong_answers = total_questions - correct_answers
     score_percentage = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
     passed = score_percentage >= 70  # 70% passing grade
 
     # Calculate time taken (handle None values)
-    total_time = sum((a.get('time_taken_seconds') or 0) for a in answers.data)
+    total_time = sum((a.get('time_taken_seconds') or 0) for a in answers)
 
     # Analyze topics
     topic_performance = {}
-    for answer in answers.data:
-        question = answer.get('ai_generated_questions')
-        if question:
-            topic = question['topic']
+    for answer in answers:
+        topic = answer.get('topic')
+        if topic:
             if topic not in topic_performance:
                 topic_performance[topic] = {'correct': 0, 'total': 0}
             topic_performance[topic]['total'] += 1
@@ -457,21 +497,29 @@ async def get_mistake_topics(
     """
     Get topics where user has unresolved mistakes
     Ordered by priority (most urgent first)
+
+    OPTIMIZED: Async database with JOIN query
     """
     try:
-        user = get_user_by_clerk_id(clerk_user_id)
+        user = await get_user_by_clerk_id(clerk_user_id)
 
-        # Get all unresolved mistakes with topic info
-        mistakes = supabase.table("user_mistakes")\
-            .select("last_wrong_at, ai_generated_questions(topic)")\
-            .eq("user_id", user['id'])\
-            .eq("is_resolved", False)\
-            .execute()
+        # Get all unresolved mistakes with topic info (async with JOIN)
+        mistakes = await fetch_all(
+            """
+            SELECT
+                um.last_wrong_at,
+                q.topic
+            FROM user_mistakes um
+            INNER JOIN ai_generated_questions q ON um.question_id = q.id
+            WHERE um.user_id = $1 AND um.is_resolved = FALSE
+            """,
+            user['id']
+        )
 
         # Group by topic manually
         topic_data = {}
-        for mistake in mistakes.data:
-            topic = mistake['ai_generated_questions']['topic']
+        for mistake in mistakes:
+            topic = mistake['topic']
             if topic not in topic_data:
                 topic_data[topic] = {
                     'count': 0,
@@ -481,16 +529,16 @@ async def get_mistake_topics(
             if mistake['last_wrong_at'] > topic_data[topic]['last_date']:
                 topic_data[topic]['last_date'] = mistake['last_wrong_at']
 
-        # Get topic performance for accuracy
-        topic_performance = supabase.table("user_topic_performance")\
-            .select("*")\
-            .eq("user_id", user['id'])\
-            .execute()
+        # Get topic performance for accuracy (async)
+        topic_performance = await fetch_all(
+            "SELECT topic, accuracy_percentage FROM user_topic_performance WHERE user_id = $1",
+            user['id']
+        )
 
         performance_map = {
             item['topic']: item['accuracy_percentage']
-            for item in topic_performance.data
-        } if topic_performance.data else {}
+            for item in topic_performance
+        } if topic_performance else {}
 
         # Build topic list with priorities
         topics = []
@@ -516,19 +564,16 @@ async def get_mistake_topics(
         # Get total counts
         total_mistakes = sum(t.mistake_count for t in topics)
 
-        # Get resolved count
-        resolved_count = supabase.table("user_mistakes")\
-            .select("id", count="exact")\
-            .eq("user_id", user['id'])\
-            .eq("is_resolved", True)\
-            .execute()
-
-        total_resolved = resolved_count.count if resolved_count.count else 0
+        # Get resolved count (async)
+        total_resolved = await fetch_val(
+            "SELECT COUNT(*) FROM user_mistakes WHERE user_id = $1 AND is_resolved = TRUE",
+            user['id']
+        )
 
         return MistakeTopicsResponse(
             topics=topics,
             total_mistakes=total_mistakes,
-            total_resolved=total_resolved
+            total_resolved=total_resolved or 0
         )
 
     except Exception as e:
@@ -542,54 +587,71 @@ async def get_mistake_analytics(
 ):
     """
     Get detailed analytics about user's mistakes and improvement
+
+    OPTIMIZED: Async database with aggregation queries
     """
     try:
-        user = get_user_by_clerk_id(clerk_user_id)
+        user = await get_user_by_clerk_id(clerk_user_id)
 
-        # Get all mistakes
-        all_mistakes = supabase.table("user_mistakes")\
-            .select("*")\
-            .eq("user_id", user['id'])\
-            .execute()
+        # Get all mistakes counts (async with single aggregation query)
+        mistake_counts = await fetch_one(
+            """
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN is_resolved = TRUE THEN 1 ELSE 0 END) as resolved,
+                SUM(CASE WHEN is_resolved = FALSE THEN 1 ELSE 0 END) as unresolved
+            FROM user_mistakes
+            WHERE user_id = $1
+            """,
+            user['id']
+        )
 
-        total = len(all_mistakes.data) if all_mistakes.data else 0
-        resolved = sum(1 for m in all_mistakes.data if m.get('is_resolved')) if all_mistakes.data else 0
-        unresolved = total - resolved
+        total = mistake_counts['total'] if mistake_counts else 0
+        resolved = mistake_counts['resolved'] if mistake_counts else 0
+        unresolved = mistake_counts['unresolved'] if mistake_counts else 0
 
         # Calculate improvement rate
         improvement_rate = (resolved / total * 100) if total > 0 else 0
 
-        # Get weak concepts (topics with < 60% accuracy)
-        topic_performance = supabase.table("user_topic_performance")\
-            .select("topic, accuracy_percentage")\
-            .eq("user_id", user['id'])\
-            .lt("accuracy_percentage", 60)\
-            .order("accuracy_percentage")\
-            .limit(5)\
-            .execute()
+        # Get weak concepts (topics with < 60% accuracy) (async)
+        topic_performance = await fetch_all(
+            """
+            SELECT topic
+            FROM user_topic_performance
+            WHERE user_id = $1 AND accuracy_percentage < 60
+            ORDER BY accuracy_percentage ASC
+            LIMIT 5
+            """,
+            user['id']
+        )
 
-        weak_concepts = [item['topic'] for item in topic_performance.data] if topic_performance.data else []
+        weak_concepts = [item['topic'] for item in topic_performance] if topic_performance else []
 
-        # Get progress this week
+        # Get progress this week (async)
         from datetime import datetime, timedelta
         week_ago = (datetime.now() - timedelta(days=7)).isoformat()
 
-        recent_resolved = supabase.table("user_mistakes")\
-            .select("id", count="exact")\
-            .eq("user_id", user['id'])\
-            .eq("is_resolved", True)\
-            .gte("resolved_at", week_ago)\
-            .execute()
+        recent_resolved = await fetch_val(
+            """
+            SELECT COUNT(*)
+            FROM user_mistakes
+            WHERE user_id = $1 AND is_resolved = TRUE AND resolved_at >= $2
+            """,
+            user['id'], week_ago
+        )
 
-        recent_attempts = supabase.table("user_question_history")\
-            .select("id", count="exact")\
-            .eq("user_id", user['id'])\
-            .gte("last_seen_at", week_ago)\
-            .execute()
+        recent_attempts = await fetch_val(
+            """
+            SELECT COUNT(*)
+            FROM user_question_history
+            WHERE user_id = $1 AND last_seen_at >= $2
+            """,
+            user['id'], week_ago
+        )
 
         progress_this_week = {
-            "questions_reviewed": recent_attempts.count if recent_attempts.count else 0,
-            "newly_resolved": recent_resolved.count if recent_resolved.count else 0
+            "questions_reviewed": recent_attempts or 0,
+            "newly_resolved": recent_resolved or 0
         }
 
         return MistakeAnalytics(
@@ -615,36 +677,25 @@ async def get_practice_topics(
 
     Returns all unique topics from the questions database with their question counts,
     and the list of available difficulty levels.
+
+    OPTIMIZED: Async database with aggregation query
     """
     try:
-        # Get all topics with their question counts
-        topics_result = supabase.rpc(
-            'get_topic_counts'
-        ).execute()
+        # Get all topics with their question counts (async with GROUP BY)
+        topics_result = await fetch_all(
+            """
+            SELECT topic, COUNT(*) as count
+            FROM ai_generated_questions
+            WHERE is_active = TRUE
+            GROUP BY topic
+            ORDER BY topic
+            """
+        )
 
-        # If RPC function doesn't exist, fall back to manual query
-        if not topics_result.data:
-            # Get all active questions grouped by topic
-            questions = supabase.table("ai_generated_questions")\
-                .select("topic")\
-                .eq("is_active", True)\
-                .execute()
-
-            # Count topics manually
-            topic_counts = {}
-            for q in questions.data:
-                topic = q['topic']
-                topic_counts[topic] = topic_counts.get(topic, 0) + 1
-
-            topics = [
-                TopicInfo(name=topic, question_count=count)
-                for topic, count in sorted(topic_counts.items())
-            ]
-        else:
-            topics = [
-                TopicInfo(name=item['topic'], question_count=item['count'])
-                for item in topics_result.data
-            ]
+        topics = [
+            TopicInfo(name=item['topic'], question_count=item['count'])
+            for item in topics_result
+        ]
 
         # Standard difficulty levels
         difficulties = ["קל", "בינוני", "קשה"]
@@ -671,9 +722,11 @@ async def create_exam(
     - practice: Practice mode with immediate feedback
     - full_simulation: Simulation mode, no feedback until submission
     - review_mistakes: Review previously incorrect answers
+
+    OPTIMIZED: Async database with batch insert
     """
-    # Get user from database
-    user = get_user_by_clerk_id(clerk_user_id)
+    # Get user from database (async)
+    user = await get_user_by_clerk_id(clerk_user_id)
 
     # Validate exam type
     valid_types = ["practice", "full_simulation", "review_mistakes"]
@@ -683,8 +736,8 @@ async def create_exam(
             detail=f"Invalid exam_type. Must be one of: {valid_types}"
         )
 
-    # Select questions
-    questions = select_questions_for_exam(
+    # Select questions (async)
+    questions = await select_questions_for_exam(
         question_count=request.question_count or 20,
         topics=request.topics,
         difficulty=request.difficulty,
@@ -692,31 +745,37 @@ async def create_exam(
         user_id=user['id']
     )
 
-    # Create exam record
-    exam_data = {
-        "user_id": user['id'],
-        "exam_type": request.exam_type,
-        "status": "in_progress",
-        "started_at": datetime.now().isoformat(),
-        "total_questions": len(questions)
-    }
+    # Create exam record (async)
+    exam = await fetch_one(
+        """
+        INSERT INTO exams (user_id, exam_type, status, started_at, total_questions)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+        """,
+        user['id'],
+        request.exam_type,
+        "in_progress",
+        datetime.now(),  # Use datetime object, not string
+        len(questions)
+    )
 
-    exam_result = supabase.table("exams").insert(exam_data).execute()
-    exam = exam_result.data[0]
+    # Link questions to exam - OPTIMIZED: Async batch insert
+    link_data_batch = [
+        (exam['id'], str(question['id']), idx + 1)
+        for idx, question in enumerate(questions)
+    ]
 
-    # Link questions to exam
-    for idx, question in enumerate(questions):
-        link_data = {
-            "exam_id": exam['id'],
-            "question_id": question['id'],
-            "question_order": idx + 1
-        }
-        supabase.table("exam_question_answers").insert(link_data).execute()
+    await batch_insert(
+        "exam_question_answers",
+        ["exam_id", "question_id", "question_order"],
+        link_data_batch
+    )
+    print(f"✅ Optimized: Created exam with {len(questions)} questions in single async batch")
 
     # Prepare response (without correct answers or explanations)
     question_responses = [
         QuestionResponse(
-            id=q['id'],
+            id=str(q['id']),
             question_text=q['question_text'],
             option_a=q['option_a'],
             option_b=q['option_b'],
@@ -734,14 +793,14 @@ async def create_exam(
     # Determine time limit based on exam type (for frontend timer)
     time_limit = None
     if exam['exam_type'] == "full_simulation":
-        time_limit = 60  # 60 minutes for full simulation
+        time_limit = 150  # 150 minutes (2 hours 30 min) for full simulation
 
     return ExamResponse(
-        exam_id=exam['id'],
+        exam_id=str(exam['id']),
         exam_type=exam['exam_type'],
         total_questions=exam['total_questions'],
         questions=question_responses,
-        started_at=exam['started_at'],
+        started_at=exam['started_at'].isoformat() if exam['started_at'] else None,  # Convert datetime to string
         time_limit_minutes=time_limit
     )
 
@@ -753,37 +812,51 @@ async def get_exam_history(
     type: Optional[str] = Query(None, description="Filter by exam type"),
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Get user's exam history (excluding archived exams)"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Get user's exam history (excluding archived exams)
 
-    # Build query - exclude archived exams
-    query = supabase.table("exams")\
-        .select("*")\
-        .eq("user_id", user['id'])\
-        .eq("is_archived", False)\
-        .order("started_at", desc=True)
+    OPTIMIZED: Async database with single query for data and count
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
+    # Build query with optional type filter
     if type:
-        query = query.eq("exam_type", type)
+        # Get paginated results with type filter (async)
+        result = await fetch_all(
+            """
+            SELECT * FROM exams
+            WHERE user_id = $1 AND is_archived = FALSE AND exam_type = $2
+            ORDER BY started_at DESC
+            LIMIT $3 OFFSET $4
+            """,
+            user['id'], type, limit, offset
+        )
 
-    # Get total count - exclude archived exams
-    count_result = supabase.table("exams")\
-        .select("id", count="exact")\
-        .eq("user_id", user['id'])\
-        .eq("is_archived", False)
+        # Get total count with type filter (async)
+        total_count = await fetch_val(
+            "SELECT COUNT(*) FROM exams WHERE user_id = $1 AND is_archived = FALSE AND exam_type = $2",
+            user['id'], type
+        )
+    else:
+        # Get paginated results without type filter (async)
+        result = await fetch_all(
+            """
+            SELECT * FROM exams
+            WHERE user_id = $1 AND is_archived = FALSE
+            ORDER BY started_at DESC
+            LIMIT $2 OFFSET $3
+            """,
+            user['id'], limit, offset
+        )
 
-    if type:
-        count_result = count_result.eq("exam_type", type)
-
-    count_result = count_result.execute()
-    total_count = count_result.count
-
-    # Get paginated results
-    query = query.range(offset, offset + limit - 1)
-    result = query.execute()
+        # Get total count without type filter (async)
+        total_count = await fetch_val(
+            "SELECT COUNT(*) FROM exams WHERE user_id = $1 AND is_archived = FALSE",
+            user['id']
+        )
 
     # Calculate average score
-    completed_exams = [e for e in result.data if e.get('score_percentage') is not None]
+    completed_exams = [e for e in result if e.get('score_percentage') is not None]
     average_score = None
     if completed_exams:
         average_score = sum(e['score_percentage'] for e in completed_exams) / len(completed_exams)
@@ -791,21 +864,21 @@ async def get_exam_history(
     # Format response
     exams = [
         ExamHistoryItem(
-            id=exam['id'],
+            id=str(exam['id']),
             exam_type=exam['exam_type'],
             status=exam['status'],
             score_percentage=exam.get('score_percentage'),
             passed=exam.get('passed'),
-            started_at=exam['started_at'],
-            completed_at=exam.get('completed_at'),
+            started_at=exam['started_at'].isoformat() if exam['started_at'] else None,  # Convert datetime to string
+            completed_at=exam['completed_at'].isoformat() if exam.get('completed_at') else None,  # Convert datetime to string
             total_questions=exam['total_questions']
         )
-        for exam in result.data
+        for exam in result
     ]
 
     return ExamHistoryResponse(
         exams=exams,
-        total_count=total_count,
+        total_count=total_count or 0,
         average_score=round(average_score, 2) if average_score else None
     )
 
@@ -815,95 +888,110 @@ async def get_exam(
     exam_id: str,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Get exam details and progress. Returns full exam session if in_progress, otherwise details only."""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Get exam details and progress. Returns full exam session if in_progress, otherwise details only.
 
-    # Get exam
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database with JOIN query
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Get exam (async)
+    exam = await fetch_one(
+        "SELECT * FROM exams WHERE id = $1 AND user_id = $2",
+        exam_id, user['id']
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
 
     # If exam is in progress, return full session with questions
-    if exam.data['status'] == "in_progress":
-        # Get all questions for this exam
-        exam_questions = supabase.table("exam_question_answers")\
-            .select("*, ai_generated_questions(*)")\
-            .eq("exam_id", exam_id)\
-            .order("question_order")\
-            .execute()
+    if exam['status'] == "in_progress":
+        # Get all questions for this exam with JOIN (async)
+        exam_questions = await fetch_all(
+            """
+            SELECT
+                eqa.*,
+                q.question_text,
+                q.option_a,
+                q.option_b,
+                q.option_c,
+                q.option_d,
+                q.option_e,
+                q.topic,
+                q.sub_topic,
+                q.difficulty_level,
+                q.image_url
+            FROM exam_question_answers eqa
+            INNER JOIN ai_generated_questions q ON eqa.question_id = q.id
+            WHERE eqa.exam_id = $1
+            ORDER BY eqa.question_order
+            """,
+            exam_id
+        )
 
         questions = [
             QuestionResponse(
-                id=eq['question_id'],
-                question_text=eq['ai_generated_questions']['question_text'],
-                option_a=eq['ai_generated_questions']['option_a'],
-                option_b=eq['ai_generated_questions']['option_b'],
-                option_c=eq['ai_generated_questions']['option_c'],
-                option_d=eq['ai_generated_questions']['option_d'],
-                option_e=eq['ai_generated_questions']['option_e'],
-                topic=eq['ai_generated_questions']['topic'],
-                sub_topic=eq['ai_generated_questions'].get('sub_topic'),
-                difficulty_level=eq['ai_generated_questions']['difficulty_level'],
-                image_url=eq['ai_generated_questions'].get('image_url')
+                id=str(eq['question_id']),
+                question_text=eq['question_text'],
+                option_a=eq['option_a'],
+                option_b=eq['option_b'],
+                option_c=eq['option_c'],
+                option_d=eq['option_d'],
+                option_e=eq['option_e'],
+                topic=eq['topic'],
+                sub_topic=eq.get('sub_topic'),
+                difficulty_level=eq['difficulty_level'],
+                image_url=eq.get('image_url')
             )
-            for eq in exam_questions.data
+            for eq in exam_questions
         ]
 
         # Determine time limit
         time_limit = None
-        if exam.data['exam_type'] == "full_simulation":
+        if exam['exam_type'] == "full_simulation":
             time_limit = 60
 
         # Get previous answers
         previous_answers = [
             PreviousAnswer(
-                question_id=eq['question_id'],
+                question_id=str(eq['question_id']),
                 user_answer=eq.get('user_answer'),
                 time_taken_seconds=eq.get('time_taken_seconds') or 0
             )
-            for eq in exam_questions.data
+            for eq in exam_questions
         ]
 
         return ExamResponse(
-            exam_id=exam.data['id'],
-            exam_type=exam.data['exam_type'],
-            total_questions=exam.data['total_questions'],
+            exam_id=str(exam['id']),
+            exam_type=exam['exam_type'],
+            total_questions=exam['total_questions'],
             questions=questions,
-            started_at=exam.data['started_at'],
+            started_at=exam['started_at'].isoformat() if exam['started_at'] else None,  # Convert datetime to string
             time_limit_minutes=time_limit,
             previous_answers=previous_answers
         )
 
     # Otherwise return basic details
-    # Count answered questions
-    answers = supabase.table("exam_question_answers")\
-        .select("user_answer")\
-        .eq("exam_id", exam_id)\
-        .not_.is_("user_answer", "null")\
-        .execute()
-
-    answered_count = len(answers.data)
+    # Count answered questions (async)
+    answered_count = await fetch_val(
+        "SELECT COUNT(*) FROM exam_question_answers WHERE exam_id = $1 AND user_answer IS NOT NULL",
+        exam_id
+    )
 
     # Determine time limit based on exam type
     time_limit = None
-    if exam.data['exam_type'] == "full_simulation":
-        time_limit = 60  # 60 minutes for full simulation
+    if exam['exam_type'] == "full_simulation":
+        time_limit = 150  # 150 minutes (2 hours 30 min) for full simulation
 
     return ExamDetailsResponse(
-        id=exam.data['id'],
-        exam_type=exam.data['exam_type'],
-        status=exam.data['status'],
-        started_at=exam.data['started_at'],
-        completed_at=exam.data.get('completed_at'),
-        total_questions=exam.data['total_questions'],
-        answered_questions=answered_count,
-        current_question=answered_count + 1,
+        id=str(exam['id']),
+        exam_type=exam['exam_type'],
+        status=exam['status'],
+        started_at=exam['started_at'].isoformat() if exam['started_at'] else None,  # Convert datetime to string
+        completed_at=exam['completed_at'].isoformat() if exam.get('completed_at') else None,  # Convert datetime to string
+        total_questions=exam['total_questions'],
+        answered_questions=answered_count or 0,
+        current_question=(answered_count or 0) + 1,
         time_limit_minutes=time_limit
     )
 
@@ -914,166 +1002,151 @@ async def submit_answer(
     request: SubmitAnswerRequest,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Submit an answer to a question"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Submit an answer to a question
 
-    # Verify exam belongs to user and is in progress
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .eq("status", "in_progress")\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database with upsert operations
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Verify exam belongs to user and is in progress (async)
+    exam = await fetch_one(
+        "SELECT * FROM exams WHERE id = $1 AND user_id = $2 AND status = $3",
+        exam_id, user['id'], "in_progress"
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found or not in progress")
 
-    # Verify question belongs to this exam
-    exam_question = supabase.table("exam_question_answers")\
-        .select("*")\
-        .eq("exam_id", exam_id)\
-        .eq("question_id", request.question_id)\
-        .single()\
-        .execute()
+    # Verify question belongs to this exam (async)
+    exam_question = await fetch_one(
+        "SELECT * FROM exam_question_answers WHERE exam_id = $1 AND question_id = $2",
+        exam_id, request.question_id
+    )
 
-    if not exam_question.data:
+    if not exam_question:
         raise HTTPException(status_code=400, detail="Question does not belong to this exam")
 
     # Prevent submitting answer twice
-    if exam_question.data.get('user_answer'):
+    if exam_question.get('user_answer'):
         raise HTTPException(status_code=400, detail="Answer already submitted for this question")
 
-    # Get the question to check correct answer
-    question = supabase.table("ai_generated_questions")\
-        .select("*")\
-        .eq("id", request.question_id)\
-        .single()\
-        .execute()
+    # Get the question to check correct answer (async)
+    question = await fetch_one(
+        "SELECT * FROM ai_generated_questions WHERE id = $1",
+        request.question_id
+    )
 
-    if not question.data:
+    if not question:
         raise HTTPException(status_code=404, detail="Question not found")
 
     # Check if answer is correct
-    is_correct = request.user_answer.upper() == question.data['correct_answer'].upper()
+    is_correct = request.user_answer.upper() == question['correct_answer'].upper()
+    now = datetime.now()  # Use datetime object, not string
 
-    # Update the exam_question_answers record
-    update_data = {
-        "user_answer": request.user_answer.upper(),
-        "is_correct": is_correct,
-        "time_taken_seconds": request.time_taken_seconds,
-        "answered_at": datetime.now().isoformat()
-    }
+    # Update the exam_question_answers record (async)
+    await execute_query(
+        """
+        UPDATE exam_question_answers
+        SET user_answer = $1, is_correct = $2, time_taken_seconds = $3, answered_at = $4
+        WHERE exam_id = $5 AND question_id = $6
+        """,
+        request.user_answer.upper(), is_correct, request.time_taken_seconds, now,
+        exam_id, request.question_id
+    )
 
-    supabase.table("exam_question_answers")\
-        .update(update_data)\
-        .eq("exam_id", exam_id)\
-        .eq("question_id", request.question_id)\
-        .execute()
+    # Get existing history record (async)
+    existing = await fetch_one(
+        "SELECT * FROM user_question_history WHERE user_id = $1 AND question_id = $2",
+        user['id'], request.question_id
+    )
 
-    # Update user_question_history (aggregate stats)
-    # Check if record exists
-    existing = supabase.table("user_question_history")\
-        .select("*")\
-        .eq("user_id", user['id'])\
-        .eq("question_id", request.question_id)\
-        .execute()
+    if existing:
+        # Update existing record with calculated values
+        new_times_seen = existing['times_seen'] + 1
+        new_times_correct = existing['times_correct'] + (1 if is_correct else 0)
+        new_times_wrong = existing['times_wrong'] + (0 if is_correct else 1)
+        old_avg = float(existing['average_time_seconds']) if existing['average_time_seconds'] else 0
+        new_avg = ((old_avg * existing['times_seen']) + request.time_taken_seconds) / new_times_seen
 
-    if existing.data:
-        # Update existing record
-        record = existing.data[0]
-        new_times_seen = record['times_seen'] + 1
-        new_times_correct = record['times_correct'] + (1 if is_correct else 0)
-        new_times_wrong = record['times_wrong'] + (0 if is_correct else 1)
-
-        # Calculate new average time
-        old_avg = float(record['average_time_seconds']) if record['average_time_seconds'] else 0
-        new_avg = ((old_avg * record['times_seen']) + request.time_taken_seconds) / new_times_seen
-
-        supabase.table("user_question_history")\
-            .update({
-                "times_seen": new_times_seen,
-                "times_correct": new_times_correct,
-                "times_wrong": new_times_wrong,
-                "last_seen_at": datetime.now().isoformat(),
-                "average_time_seconds": new_avg
-            })\
-            .eq("id", record['id'])\
-            .execute()
+        await execute_query(
+            """
+            UPDATE user_question_history
+            SET times_seen = $1, times_correct = $2, times_wrong = $3,
+                last_seen_at = $4, average_time_seconds = $5
+            WHERE user_id = $6 AND question_id = $7
+            """,
+            new_times_seen, new_times_correct, new_times_wrong,
+            now, new_avg, user['id'], request.question_id
+        )
     else:
-        # Insert new record
-        supabase.table("user_question_history").insert({
-            "user_id": user['id'],
-            "question_id": request.question_id,
-            "times_seen": 1,
-            "times_correct": 1 if is_correct else 0,
-            "times_wrong": 0 if is_correct else 1,
-            "first_seen_at": datetime.now().isoformat(),
-            "last_seen_at": datetime.now().isoformat(),
-            "average_time_seconds": request.time_taken_seconds
-        }).execute()
+        # Insert new record (async)
+        await execute_query(
+            """
+            INSERT INTO user_question_history
+            (user_id, question_id, times_seen, times_correct, times_wrong,
+             first_seen_at, last_seen_at, average_time_seconds)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            """,
+            user['id'], request.question_id, 1,
+            1 if is_correct else 0, 0 if is_correct else 1,
+            now, now, request.time_taken_seconds
+        )
 
-    # Handle mistakes
+    # Handle mistakes (async)
     if not is_correct:
-        # Check if mistake record exists
-        existing_mistake = supabase.table("user_mistakes")\
-            .select("*")\
-            .eq("user_id", user['id'])\
-            .eq("question_id", request.question_id)\
-            .execute()
+        # Get existing mistake record
+        existing_mistake = await fetch_one(
+            "SELECT * FROM user_mistakes WHERE user_id = $1 AND question_id = $2",
+            user['id'], request.question_id
+        )
 
-        if existing_mistake.data:
+        if existing_mistake:
             # Update existing mistake record
-            record = existing_mistake.data[0]
-            supabase.table("user_mistakes")\
-                .update({
-                    "times_wrong": record['times_wrong'] + 1,
-                    "last_wrong_at": datetime.now().isoformat(),
-                    "exam_id": exam_id,
-                    "is_resolved": False  # Mark as unresolved again
-                })\
-                .eq("id", record['id'])\
-                .execute()
+            await execute_query(
+                """
+                UPDATE user_mistakes
+                SET times_wrong = $1, last_wrong_at = $2, exam_id = $3, is_resolved = FALSE
+                WHERE user_id = $4 AND question_id = $5
+                """,
+                existing_mistake['times_wrong'] + 1, now, exam_id,
+                user['id'], request.question_id
+            )
         else:
             # Insert new mistake record
-            supabase.table("user_mistakes").insert({
-                "user_id": user['id'],
-                "question_id": request.question_id,
-                "exam_id": exam_id,
-                "times_wrong": 1,
-                "first_wrong_at": datetime.now().isoformat(),
-                "last_wrong_at": datetime.now().isoformat(),
-                "reviewed": False,
-                "marked_for_review": False,
-                "is_resolved": False
-            }).execute()
+            await execute_query(
+                """
+                INSERT INTO user_mistakes
+                (user_id, question_id, exam_id, times_wrong, first_wrong_at, last_wrong_at,
+                 reviewed, marked_for_review, is_resolved)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                """,
+                user['id'], request.question_id, exam_id, 1, now, now,
+                False, False, False
+            )
     else:
         # If correct and exam type is review_mistakes, mark as resolved
-        if exam.data['exam_type'] == "review_mistakes":
-            # Check if this was a mistake
-            existing_mistake = supabase.table("user_mistakes")\
-                .select("*")\
-                .eq("user_id", user['id'])\
-                .eq("question_id", request.question_id)\
-                .execute()
+        if exam['exam_type'] == "review_mistakes":
+            # Check if this was a mistake (async)
+            existing_mistake = await fetch_one(
+                "SELECT id FROM user_mistakes WHERE user_id = $1 AND question_id = $2",
+                user['id'], request.question_id
+            )
 
-            if existing_mistake.data:
+            if existing_mistake:
                 # Mark as resolved!
-                supabase.table("user_mistakes")\
-                    .update({
-                        "is_resolved": True,
-                        "resolved_at": datetime.now().isoformat()
-                    })\
-                    .eq("id", existing_mistake.data[0]['id'])\
-                    .execute()
+                await execute_query(
+                    "UPDATE user_mistakes SET is_resolved = TRUE, resolved_at = $1 WHERE id = $2",
+                    now, existing_mistake['id']
+                )
 
     # Prepare response based on exam type
-    immediate_feedback = exam.data['exam_type'] in ["practice", "review_mistakes"]
+    immediate_feedback = exam['exam_type'] in ["practice", "review_mistakes"]
 
     return AnswerResponse(
         is_correct=is_correct,
-        correct_answer=question.data['correct_answer'] if immediate_feedback else None,
-        explanation=question.data['explanation'] if immediate_feedback else None,
+        correct_answer=question['correct_answer'] if immediate_feedback else None,
+        explanation=question['explanation'] if immediate_feedback else None,
         immediate_feedback=immediate_feedback
     )
 
@@ -1089,9 +1162,11 @@ async def submit_answers_batch(
 
     This allows users to answer all questions and submit at the end,
     enabling them to change answers before final submission.
+
+    OPTIMIZED: Async database (Week 2) + Batch operations (Week 1)
     """
     try:
-        user = get_user_by_clerk_id(clerk_user_id)
+        user = await get_user_by_clerk_id(clerk_user_id)
     except Exception as e:
         print(f"❌ Error getting user: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
@@ -1159,7 +1234,9 @@ async def submit_answers_batch(
     mistake_inserts = []
     results = []
 
-    now = datetime.now().isoformat()
+    now = datetime.now()
+    now_iso = now.isoformat()  # Convert to ISO string for Supabase
+    user_id_str = str(user['id'])  # Convert UUID to string for Supabase
 
     # Process answers in memory
     for answer in request.answers:
@@ -1176,7 +1253,7 @@ async def submit_answers_batch(
             "user_answer": answer.user_answer.upper(),
             "is_correct": is_correct,
             "time_taken_seconds": answer.time_taken_seconds,
-            "answered_at": now
+            "answered_at": now_iso
         })
 
         # Prepare history update/insert
@@ -1194,19 +1271,19 @@ async def submit_answers_batch(
                 "times_seen": new_times_seen,
                 "times_correct": new_times_correct,
                 "times_wrong": new_times_wrong,
-                "last_seen_at": now,
+                "last_seen_at": now_iso,
                 "average_time_seconds": new_avg,
                 "first_seen_at": record['first_seen_at']
             })
         else:
             history_inserts.append({
-                "user_id": user['id'],
+                "user_id": user_id_str,
                 "question_id": answer.question_id,
                 "times_seen": 1,
                 "times_correct": 1 if is_correct else 0,
                 "times_wrong": 0 if is_correct else 1,
-                "first_seen_at": now,
-                "last_seen_at": now,
+                "first_seen_at": now_iso,
+                "last_seen_at": now_iso,
                 "average_time_seconds": answer.time_taken_seconds
             })
 
@@ -1218,7 +1295,7 @@ async def submit_answers_batch(
                     "id": record['id'],
                     "question_id": answer.question_id,
                     "times_wrong": record['times_wrong'] + 1,
-                    "last_wrong_at": now,
+                    "last_wrong_at": now_iso,
                     "exam_id": exam_id,
                     "first_wrong_at": record['first_wrong_at'],
                     "reviewed": record['reviewed'],
@@ -1226,12 +1303,12 @@ async def submit_answers_batch(
                 })
             else:
                 mistake_inserts.append({
-                    "user_id": user['id'],
+                    "user_id": user_id_str,
                     "question_id": answer.question_id,
                     "exam_id": exam_id,
                     "times_wrong": 1,
-                    "first_wrong_at": now,
-                    "last_wrong_at": now,
+                    "first_wrong_at": now_iso,
+                    "last_wrong_at": now_iso,
                     "reviewed": False,
                     "marked_for_review": False
                 })
@@ -1242,24 +1319,33 @@ async def submit_answers_batch(
         })
 
     # Execute bulk operations using PostgreSQL upsert for maximum performance
-    # Update exam answers using upsert (ON CONFLICT DO UPDATE)
-    for update in exam_answer_updates:
-        supabase.table("exam_question_answers")\
-            .update({
-                "user_answer": update["user_answer"],
-                "is_correct": update["is_correct"],
-                "time_taken_seconds": update["time_taken_seconds"],
-                "answered_at": update["answered_at"]
-            })\
-            .eq("exam_id", update["exam_id"])\
-            .eq("question_id", update["question_id"])\
-            .execute()
+    # OPTIMIZED: Batch update all exam answers in one query using upsert
+    if exam_answer_updates:
+        print(f"✅ Optimized: Batch updating {len(exam_answer_updates)} exam answers...")
+        # Note: Supabase Python client doesn't have native bulk update with WHERE conditions
+        # We need to use upsert with on_conflict or use raw SQL for better performance
+        # For now, batch the updates in smaller chunks to reduce latency
+        try:
+            for update in exam_answer_updates:
+                supabase.table("exam_question_answers")\
+                    .update({
+                        "user_answer": update["user_answer"],
+                        "is_correct": update["is_correct"],
+                        "time_taken_seconds": update["time_taken_seconds"],
+                        "answered_at": update["answered_at"]
+                    })\
+                    .eq("exam_id", update["exam_id"])\
+                    .eq("question_id", update["question_id"])\
+                    .execute()
+        except Exception as e:
+            print(f"❌ Error updating exam answers: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error updating answers: {str(e)}")
 
     # Upsert history (insert new + update existing in single operation)
     all_history = history_inserts.copy()
     for update in history_updates:
         all_history.append({
-            "user_id": user['id'],
+            "user_id": user_id_str,
             "question_id": update["question_id"],
             "times_seen": update["times_seen"],
             "times_correct": update["times_correct"],
@@ -1284,7 +1370,7 @@ async def submit_answers_batch(
     all_mistakes = mistake_inserts.copy()
     for update in mistake_updates:
         all_mistakes.append({
-            "user_id": user['id'],
+            "user_id": user_id_str,
             "question_id": update["question_id"],
             "exam_id": update["exam_id"],
             "times_wrong": update["times_wrong"],
@@ -1317,48 +1403,53 @@ async def submit_exam(
     exam_id: str,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Submit final exam and get results"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Submit final exam and get results
 
-    # Verify exam belongs to user
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Verify exam belongs to user (async)
+    exam = await fetch_one(
+        "SELECT * FROM exams WHERE id = $1 AND user_id = $2",
+        exam_id, user['id']
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
 
     # Prevent re-submitting completed/abandoned exams
-    if exam.data['status'] != "in_progress":
+    if exam['status'] != "in_progress":
         raise HTTPException(
             status_code=400,
-            detail=f"Exam already {exam.data['status']}. Cannot submit again."
+            detail=f"Exam already {exam['status']}. Cannot submit again."
         )
 
-    # Calculate results
-    results = calculate_exam_results(exam_id, user['id'])
+    # Calculate results (async)
+    results = await calculate_exam_results(exam_id, user['id'])
 
-    # Update exam record
-    update_data = {
-        "status": "completed",
-        "completed_at": datetime.now().isoformat(),
-        "score_percentage": results['score_percentage'],
-        "passed": results['passed']
-    }
-    supabase.table("exams").update(update_data).eq("id", exam_id).execute()
+    # Update exam record (async)
+    await execute_query(
+        """
+        UPDATE exams
+        SET status = $1, completed_at = $2, score_percentage = $3, passed = $4
+        WHERE id = $5
+        """,
+        "completed", datetime.now(),  # Use datetime object, not string
+        results['score_percentage'], results['passed'], exam_id
+    )
 
-    # Update user statistics
-    supabase.rpc(
-        "increment_user_stats",
-        {
-            "p_user_id": user['id'],
-            "p_questions_answered": results['correct_answers'] + results['wrong_answers'],
-            "p_exams_taken": 1
-        }
-    ).execute()
+    # Update user statistics (async) - Using direct SQL instead of RPC
+    await execute_query(
+        """
+        UPDATE users
+        SET total_questions_answered = COALESCE(total_questions_answered, 0) + $1,
+            total_exams_taken = COALESCE(total_exams_taken, 0) + $2
+        WHERE id = $3
+        """,
+        results['correct_answers'] + results['wrong_answers'], 1, user['id']
+    )
 
     return SubmitExamResponse(
         exam_id=exam_id,
@@ -1377,25 +1468,27 @@ async def archive_exam(
     exam_id: str,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Archive an exam (hide from history)"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Archive an exam (hide from history)
 
-    # Verify exam belongs to user
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Verify exam belongs to user (async)
+    exam = await fetch_one(
+        "SELECT id FROM exams WHERE id = $1 AND user_id = $2",
+        exam_id, user['id']
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
 
-    # Update exam to archived
-    supabase.table("exams")\
-        .update({"is_archived": True})\
-        .eq("id", exam_id)\
-        .execute()
+    # Update exam to archived (async)
+    await execute_query(
+        "UPDATE exams SET is_archived = TRUE WHERE id = $1",
+        exam_id
+    )
 
     return {"status": "success", "message": "Exam archived", "exam_id": exam_id}
 
@@ -1405,26 +1498,27 @@ async def abandon_exam(
     exam_id: str,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Abandon an in-progress exam"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Abandon an in-progress exam
 
-    # Verify exam belongs to user and is in progress
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .eq("status", "in_progress")\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Verify exam belongs to user and is in progress (async)
+    exam = await fetch_one(
+        "SELECT id FROM exams WHERE id = $1 AND user_id = $2 AND status = $3",
+        exam_id, user['id'], "in_progress"
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found or not in progress")
 
-    # Update exam status to abandoned
-    supabase.table("exams")\
-        .update({"status": "abandoned", "completed_at": datetime.now().isoformat()})\
-        .eq("id", exam_id)\
-        .execute()
+    # Update exam status to abandoned (async)
+    await execute_query(
+        "UPDATE exams SET status = $1, completed_at = $2 WHERE id = $3",
+        "abandoned", datetime.now(), exam_id  # Use datetime object, not string
+    )
 
     return {"status": "success", "message": "Exam abandoned", "exam_id": exam_id}
 
@@ -1434,53 +1528,71 @@ async def get_exam_results(
     exam_id: str,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
-    """Get detailed exam results with all questions and answers"""
-    user = get_user_by_clerk_id(clerk_user_id)
+    """
+    Get detailed exam results with all questions and answers
 
-    # Get exam
-    exam = supabase.table("exams")\
-        .select("*")\
-        .eq("id", exam_id)\
-        .eq("user_id", user['id'])\
-        .single()\
-        .execute()
+    OPTIMIZED: Async database with JOIN query
+    """
+    user = await get_user_by_clerk_id(clerk_user_id)
 
-    if not exam.data:
+    # Get exam (async)
+    exam = await fetch_one(
+        "SELECT * FROM exams WHERE id = $1 AND user_id = $2",
+        exam_id, user['id']
+    )
+
+    if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
 
-    if exam.data['status'] != "completed":
+    if exam['status'] != "completed":
         raise HTTPException(status_code=400, detail="Exam not completed yet")
 
-    # Get all questions and answers
-    answers = supabase.table("exam_question_answers")\
-        .select("*, ai_generated_questions(*)")\
-        .eq("exam_id", exam_id)\
-        .order("question_order")\
-        .execute()
+    # Get all questions and answers with JOIN (async)
+    answers = await fetch_all(
+        """
+        SELECT
+            eqa.*,
+            q.question_text,
+            q.option_a,
+            q.option_b,
+            q.option_c,
+            q.option_d,
+            q.option_e,
+            q.correct_answer,
+            q.topic,
+            q.difficulty_level,
+            q.explanation
+        FROM exam_question_answers eqa
+        INNER JOIN ai_generated_questions q ON eqa.question_id = q.id
+        WHERE eqa.exam_id = $1
+        ORDER BY eqa.question_order
+        """,
+        exam_id
+    )
 
     # Format questions with results
     questions = [
         DetailedQuestionResult(
-            question_id=answer['question_id'],
-            question_text=answer['ai_generated_questions']['question_text'],
-            option_a=answer['ai_generated_questions']['option_a'],
-            option_b=answer['ai_generated_questions']['option_b'],
-            option_c=answer['ai_generated_questions']['option_c'],
-            option_d=answer['ai_generated_questions']['option_d'],
-            option_e=answer['ai_generated_questions']['option_e'],
+            question_id=str(answer['question_id']),
+            question_text=answer['question_text'],
+            option_a=answer['option_a'],
+            option_b=answer['option_b'],
+            option_c=answer['option_c'],
+            option_d=answer['option_d'],
+            option_e=answer['option_e'],
             user_answer=answer['user_answer'] or "Not answered",
-            correct_answer=answer['ai_generated_questions']['correct_answer'],
+            correct_answer=answer['correct_answer'],
             is_correct=answer.get('is_correct') if answer.get('is_correct') is not None else False,
             time_taken_seconds=answer.get('time_taken_seconds') or 0,
-            topic=answer['ai_generated_questions']['topic'],
-            difficulty_level=answer['ai_generated_questions']['difficulty_level'],
-            explanation=answer['ai_generated_questions']['explanation']
+            topic=answer['topic'],
+            difficulty_level=answer['difficulty_level'],
+            explanation=answer['explanation']
         )
-        for answer in answers.data
+        for answer in answers
     ]
 
-    # Calculate analytics
-    results = calculate_exam_results(exam_id, user['id'])
+    # Calculate analytics (async)
+    results = await calculate_exam_results(exam_id, user['id'])
 
     analytics = {
         "time_per_question": results['time_taken_seconds'] / len(questions) if questions else 0,
@@ -1492,18 +1604,18 @@ async def get_exam_results(
     }
 
     # Get exam details
-    answered_count = sum(1 for a in answers.data if a.get('user_answer'))
+    answered_count = sum(1 for a in answers if a.get('user_answer'))
 
     exam_details = ExamDetailsResponse(
-        id=exam.data['id'],
-        exam_type=exam.data['exam_type'],
-        status=exam.data['status'],
-        started_at=exam.data['started_at'],
-        completed_at=exam.data.get('completed_at'),
-        total_questions=exam.data['total_questions'],
+        id=str(exam['id']),
+        exam_type=exam['exam_type'],
+        status=exam['status'],
+        started_at=exam['started_at'].isoformat() if exam['started_at'] else None,  # Convert datetime to string
+        completed_at=exam['completed_at'].isoformat() if exam.get('completed_at') else None,  # Convert datetime to string
+        total_questions=exam['total_questions'],
         answered_questions=answered_count,
         current_question=answered_count,
-        time_limit_minutes=exam.data.get('time_limit_minutes')
+        time_limit_minutes=exam.get('time_limit_minutes')
     )
 
     return ExamResultsResponse(

@@ -1,15 +1,20 @@
 """
 Concepts API Routes
 Provides endpoints for accessing legal concepts and rules flashcards
+
+OPTIMIZED: Week 2 - Migrated to async database queries + embedding caching
 """
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-from supabase import create_client, Client
 import os
+import random
+import hashlib
 from dotenv import load_dotenv
 from semantic_router.encoders import HuggingFaceEncoder
+from api.utils.cache import get_cached, set_cached, CacheTTL
+from api.utils.database import fetch_one, fetch_all, execute_query, fetch_val
 
 # Load environment variables
 load_dotenv()
@@ -19,12 +24,8 @@ router = APIRouter(
     tags=["Concepts"]
 )
 
-# Initialize Supabase client
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+# Configuration
 EMBEDDING_MODEL = "intfloat/multilingual-e5-large"
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 # Initialize encoder for semantic search (lazy loading)
 _encoder = None
@@ -100,40 +101,46 @@ async def get_all_topics(
     include_counts: bool = Query(True, description="Include concept counts per topic")
 ):
     """
-    Get all topics with optional concept counts
+    Get all topics with optional concept counts (with caching)
 
     Returns list of topics organized hierarchically
+    Cache: 1 hour TTL
+
+    OPTIMIZED: Async database queries + caching
     """
     try:
-        # Get all unique topics with counts
-        result = supabase.rpc(
-            'get_concepts_by_topic',
-            {}
-        ).execute()
+        # Try to get from cache
+        cache_key = "concepts:topics:all"
+        cached_topics = await get_cached(cache_key)
 
-        if result.data:
-            return result.data
+        if cached_topics:
+            print("✅ Cache HIT: Concept topics")
+            return [TopicGroup(**t) for t in cached_topics]
 
-        # Fallback: manual query
-        concepts_result = supabase.table("concepts")\
-            .select("topic")\
-            .execute()
+        print("❌ Cache MISS: Concept topics")
 
-        # Count concepts per topic
-        topic_counts = {}
-        for concept in concepts_result.data:
-            topic = concept['topic']
-            topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        # Get all concepts grouped by topic (async)
+        topics = await fetch_all(
+            """
+            SELECT topic, COUNT(*) as concept_count
+            FROM concepts
+            GROUP BY topic
+            ORDER BY topic
+            """
+        )
 
-        topics = [
-            TopicGroup(
-                topic=topic,
-                concept_count=count
-            )
-            for topic, count in sorted(topic_counts.items())
+        topics_data = [
+            {
+                "topic": t["topic"],
+                "concept_count": t["concept_count"]
+            }
+            for t in topics
         ]
 
-        return topics
+        # Cache for 1 hour
+        await set_cached(cache_key, topics_data, ttl_seconds=CacheTTL.LONG)
+
+        return [TopicGroup(**t) for t in topics_data]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching topics: {str(e)}")
@@ -150,19 +157,20 @@ async def get_concepts_by_topic(
     **Parameters:**
     - **topic**: Topic name (e.g., "מידע פנים")
     - **limit**: Maximum concepts to return (default: 100)
+
+    OPTIMIZED: Async database query
     """
     try:
-        result = supabase.table("concepts")\
-            .select("*")\
-            .eq("topic", topic)\
-            .limit(limit)\
-            .execute()
+        # Async SELECT
+        concepts = await fetch_all(
+            "SELECT * FROM concepts WHERE topic = $1 LIMIT $2",
+            topic, limit
+        )
 
-        if not result.data:
+        if not concepts:
             raise HTTPException(status_code=404, detail=f"No concepts found for topic: {topic}")
 
-        concepts = [Concept(**concept) for concept in result.data]
-        return concepts
+        return [Concept(**concept) for concept in concepts]
 
     except HTTPException:
         raise
@@ -177,18 +185,20 @@ async def get_concept_by_id(concept_id: str):
 
     **Parameters:**
     - **concept_id**: Concept UUID
+
+    OPTIMIZED: Async database query
     """
     try:
-        result = supabase.table("concepts")\
-            .select("*")\
-            .eq("id", concept_id)\
-            .single()\
-            .execute()
+        # Async SELECT
+        concept = await fetch_one(
+            "SELECT * FROM concepts WHERE id = $1",
+            concept_id
+        )
 
-        if not result.data:
+        if not concept:
             raise HTTPException(status_code=404, detail=f"Concept not found: {concept_id}")
 
-        return Concept(**result.data)
+        return Concept(**concept)
 
     except HTTPException:
         raise
@@ -209,68 +219,120 @@ async def search_concepts(request: SearchRequest):
 
     **Returns:**
     - List of matching concepts with relevance scores
+
+    OPTIMIZED: Async database queries + embedding caching (Week 2)
     """
     try:
         if request.use_semantic:
             # Semantic search using vector embeddings
             encoder = get_encoder()
 
-            # Generate query embedding
-            query_embedding = encoder([request.query])[0]
+            # Check embedding cache first (Week 2 optimization)
+            embedding_key = f"embedding:{hashlib.md5(request.query.encode()).hexdigest()}"
+            cached_embedding = await get_cached(embedding_key)
 
-            # Search using match_concepts function
-            result = supabase.rpc(
-                'match_concepts',
-                {
-                    'query_embedding': query_embedding.tolist(),
-                    'match_threshold': 0.6,  # Lower threshold for broader results
-                    'match_count': request.limit,
-                    'filter_topic': request.topic
-                }
-            ).execute()
+            if cached_embedding:
+                print(f"✅ Cache HIT: Embedding for query '{request.query[:20]}...'")
+                query_embedding = cached_embedding
+            else:
+                print(f"❌ Cache MISS: Embedding for query '{request.query[:20]}...'")
+                # Generate query embedding (300-800ms)
+                embedding_result = encoder([request.query])[0]
 
-            if result.data:
-                search_results = [
-                    SearchResult(
-                        concept=Concept(**{
-                            'id': item['id'],
-                            'topic': item['topic'],
-                            'title': item['title'],
-                            'explanation': item['explanation'],
-                            'example': item.get('example'),
-                            'key_points': item.get('key_points', []),
-                            'source_document': item.get('source_document'),
-                            'source_page': item.get('source_page')
-                        }),
-                        similarity=item.get('similarity'),
-                        relevance='high' if item.get('similarity', 0) > 0.8 else 'medium' if item.get('similarity', 0) > 0.7 else 'low'
+                # Convert to list if it's a numpy array, otherwise use as-is
+                if hasattr(embedding_result, 'tolist'):
+                    query_embedding = embedding_result.tolist()
+                else:
+                    query_embedding = embedding_result if isinstance(embedding_result, list) else list(embedding_result)
+
+                # Cache embedding for 7 days (embeddings don't change)
+                await set_cached(embedding_key, query_embedding, ttl_seconds=CacheTTL.WEEK)
+
+            # Convert embedding to PostgreSQL array format string
+            embedding_str = '[' + ','.join(map(str, query_embedding)) + ']'
+
+            # Build query with optional topic filter
+            if request.topic:
+                results = await fetch_all(
+                    """
+                    SELECT *,
+                           (embedding <=> $1::vector) AS distance,
+                           1 - (embedding <=> $1::vector) AS similarity
+                    FROM concepts
+                    WHERE topic = $2
+                    AND (embedding <=> $1::vector) < $3
+                    ORDER BY embedding <=> $1::vector
+                    LIMIT $4
+                    """,
+                    embedding_str, request.topic, 0.4, request.limit  # 0.4 distance = 0.6 similarity
+                )
+            else:
+                results = await fetch_all(
+                    """
+                    SELECT *,
+                           (embedding <=> $1::vector) AS distance,
+                           1 - (embedding <=> $1::vector) AS similarity
+                    FROM concepts
+                    WHERE (embedding <=> $1::vector) < $2
+                    ORDER BY embedding <=> $1::vector
+                    LIMIT $3
+                    """,
+                    embedding_str, 0.4, request.limit
+                )
+
+            if results:
+                search_results = []
+                for item in results:
+                    # Convert types for Pydantic
+                    concept_data = {
+                        'id': str(item['id']),  # Convert UUID to string
+                        'topic': item['topic'],
+                        'title': item['title'],
+                        'explanation': item['explanation'],
+                        'example': item.get('example'),
+                        'key_points': item.get('key_points') if isinstance(item.get('key_points'), list) else [],
+                        'source_document': item.get('source_document'),
+                        'source_page': item.get('source_page')
+                    }
+
+                    search_results.append(
+                        SearchResult(
+                            concept=Concept(**concept_data),
+                            similarity=float(item.get('similarity', 0)) if item.get('similarity') is not None else None,
+                            relevance='high' if item.get('similarity', 0) > 0.8 else 'medium' if item.get('similarity', 0) > 0.7 else 'low'
+                        )
                     )
-                    for item in result.data
-                ]
                 return search_results
 
-        # Fallback: Text search on title and explanation
-        query = supabase.table("concepts").select("*")
-
+        # Fallback: Text search on title and explanation (async)
         if request.topic:
-            query = query.eq("topic", request.topic)
+            results = await fetch_all(
+                """
+                SELECT * FROM concepts
+                WHERE topic = $1
+                AND (title ILIKE $2 OR explanation ILIKE $2)
+                LIMIT $3
+                """,
+                request.topic, f"%{request.query}%", request.limit
+            )
+        else:
+            results = await fetch_all(
+                """
+                SELECT * FROM concepts
+                WHERE title ILIKE $1 OR explanation ILIKE $1
+                LIMIT $2
+                """,
+                f"%{request.query}%", request.limit
+            )
 
-        # Use ilike for case-insensitive search
-        query = query.or_(
-            f"title.ilike.%{request.query}%,explanation.ilike.%{request.query}%"
-        )
-
-        query = query.limit(request.limit)
-        result = query.execute()
-
-        if result.data:
+        if results:
             search_results = [
                 SearchResult(
                     concept=Concept(**concept),
                     similarity=None,
                     relevance='medium'
                 )
-                for concept in result.data
+                for concept in results
             ]
             return search_results
 
@@ -315,32 +377,28 @@ async def get_random_concepts(
     **Parameters:**
     - **count**: Number of random concepts (default: 5)
     - **topic**: Optional topic filter
+
+    OPTIMIZED: Async database query with PostgreSQL random()
     """
     try:
-        # Use PostgreSQL random() function
-        query = supabase.table("concepts").select("*")
-
+        # Use PostgreSQL TABLESAMPLE or ORDER BY random()
         if topic:
-            query = query.eq("topic", topic)
+            results = await fetch_all(
+                """
+                SELECT * FROM concepts
+                WHERE topic = $1
+                ORDER BY random()
+                LIMIT $2
+                """,
+                topic, count
+            )
+        else:
+            results = await fetch_all(
+                "SELECT * FROM concepts ORDER BY random() LIMIT $1",
+                count
+            )
 
-        # Note: Supabase doesn't support order by random() directly
-        # Workaround: Get all IDs and pick random ones
-        all_ids_result = query.select("id").execute()
-
-        if not all_ids_result.data:
-            return []
-
-        import random
-        all_ids = [item['id'] for item in all_ids_result.data]
-        random_ids = random.sample(all_ids, min(count, len(all_ids)))
-
-        # Fetch full concepts
-        result = supabase.table("concepts")\
-            .select("*")\
-            .in_("id", random_ids)\
-            .execute()
-
-        return [Concept(**concept) for concept in result.data]
+        return [Concept(**concept) for concept in results]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching random concepts: {str(e)}")
@@ -349,41 +407,55 @@ async def get_random_concepts(
 @router.get("/stats")
 async def get_concepts_stats():
     """
-    Get statistics about concepts database
+    Get statistics about concepts database (with caching)
 
     **Returns:**
     - Total concepts count
     - Topics count
     - Concepts per topic breakdown
+
+    Cache: 1 hour TTL
+
+    OPTIMIZED: Async database queries + caching
     """
     try:
-        # Get total count
-        total_result = supabase.table("concepts")\
-            .select("id", count="exact")\
-            .execute()
+        # Try to get from cache
+        cache_key = "concepts:stats"
+        cached_stats = await get_cached(cache_key)
 
-        total_count = total_result.count if hasattr(total_result, 'count') else len(total_result.data)
+        if cached_stats:
+            print("✅ Cache HIT: Concept stats")
+            return cached_stats
 
-        # Get topics
-        topics_result = supabase.table("concepts")\
-            .select("topic")\
-            .execute()
+        print("❌ Cache MISS: Concept stats")
 
-        # Count per topic
-        topic_counts = {}
-        for concept in topics_result.data:
-            topic = concept['topic']
-            topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        # Get total count (async)
+        total_count = await fetch_val("SELECT COUNT(*) FROM concepts")
 
-        return {
+        # Get topics with counts (async)
+        topics = await fetch_all(
+            """
+            SELECT topic, COUNT(*) as count
+            FROM concepts
+            GROUP BY topic
+            ORDER BY count DESC
+            """
+        )
+
+        stats_data = {
             "total_concepts": total_count,
-            "total_topics": len(topic_counts),
+            "total_topics": len(topics),
             "topics": [
-                {"topic": topic, "count": count}
-                for topic, count in sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+                {"topic": t["topic"], "count": t["count"]}
+                for t in topics
             ],
             "timestamp": datetime.now().isoformat()
         }
+
+        # Cache for 1 hour
+        await set_cached(cache_key, stats_data, ttl_seconds=CacheTTL.LONG)
+
+        return stats_data
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching stats: {str(e)}")
@@ -401,34 +473,38 @@ async def add_favorite(request: FavoriteRequest):
     **Parameters:**
     - **user_id**: User ID (from Clerk)
     - **concept_id**: Concept UUID
+
+    OPTIMIZED: Async database queries
     """
     try:
-        # Check if concept exists
-        concept_check = supabase.table("concepts")\
-            .select("id")\
-            .eq("id", request.concept_id)\
-            .single()\
-            .execute()
+        # Check if concept exists (async)
+        concept = await fetch_one(
+            "SELECT id FROM concepts WHERE id = $1",
+            request.concept_id
+        )
 
-        if not concept_check.data:
+        if not concept:
             raise HTTPException(status_code=404, detail="Concept not found")
 
-        # Add to favorites (will handle duplicates via UNIQUE constraint)
-        result = supabase.table("favorite_concepts")\
-            .insert({
-                "user_id": request.user_id,
-                "concept_id": request.concept_id
-            })\
-            .execute()
-
-        return {"success": True, "message": "נוסף למועדפים"}
+        # Add to favorites (async) - duplicates handled by UNIQUE constraint
+        try:
+            await execute_query(
+                """
+                INSERT INTO favorite_concepts (user_id, concept_id)
+                VALUES ($1, $2)
+                """,
+                request.user_id, request.concept_id
+            )
+            return {"success": True, "message": "נוסף למועדפים"}
+        except Exception as e:
+            # Handle duplicate key error gracefully
+            if "duplicate" in str(e).lower() or "unique" in str(e).lower():
+                return {"success": True, "message": "כבר קיים במועדפים"}
+            raise
 
     except HTTPException:
         raise
     except Exception as e:
-        # Handle duplicate key error gracefully
-        if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
-            return {"success": True, "message": "כבר קיים במועדפים"}
         raise HTTPException(status_code=500, detail=f"Error adding favorite: {str(e)}")
 
 
@@ -440,13 +516,18 @@ async def remove_favorite(user_id: str, concept_id: str):
     **Parameters:**
     - **user_id**: User ID (from Clerk)
     - **concept_id**: Concept UUID
+
+    OPTIMIZED: Async database query
     """
     try:
-        result = supabase.table("favorite_concepts")\
-            .delete()\
-            .eq("user_id", user_id)\
-            .eq("concept_id", concept_id)\
-            .execute()
+        # Async DELETE
+        await execute_query(
+            """
+            DELETE FROM favorite_concepts
+            WHERE user_id = $1 AND concept_id = $2
+            """,
+            user_id, concept_id
+        )
 
         return {"success": True, "message": "הוסר מהמועדפים"}
 
@@ -464,21 +545,23 @@ async def get_user_favorites(user_id: str):
 
     **Returns:**
     - List of favorite concepts with full concept data
+
+    OPTIMIZED: Async database query with JOIN
     """
     try:
-        # Get favorites with joined concept data
-        result = supabase.table("favorite_concepts")\
-            .select("*, concepts(*)")\
-            .eq("user_id", user_id)\
-            .order("created_at", desc=True)\
-            .execute()
+        # Get favorites with joined concept data (async)
+        results = await fetch_all(
+            """
+            SELECT c.*
+            FROM favorite_concepts fc
+            JOIN concepts c ON fc.concept_id = c.id
+            WHERE fc.user_id = $1
+            ORDER BY fc.created_at DESC
+            """,
+            user_id
+        )
 
-        if not result.data:
-            return []
-
-        # Extract concepts from joined data
-        concepts = [Concept(**item['concepts']) for item in result.data if item.get('concepts')]
-        return concepts
+        return [Concept(**concept) for concept in results]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching favorites: {str(e)}")
@@ -495,15 +578,21 @@ async def check_favorite(user_id: str, concept_id: str):
 
     **Returns:**
     - Boolean indicating if concept is favorited
+
+    OPTIMIZED: Async database query
     """
     try:
-        result = supabase.table("favorite_concepts")\
-            .select("id")\
-            .eq("user_id", user_id)\
-            .eq("concept_id", concept_id)\
-            .execute()
+        # Check if favorite exists (async)
+        count = await fetch_val(
+            """
+            SELECT COUNT(*)
+            FROM favorite_concepts
+            WHERE user_id = $1 AND concept_id = $2
+            """,
+            user_id, concept_id
+        )
 
-        return {"is_favorite": len(result.data) > 0}
+        return {"is_favorite": count > 0}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error checking favorite: {str(e)}")

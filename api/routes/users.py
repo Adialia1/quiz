@@ -2,6 +2,8 @@
 User Management API Routes
 
 Handles user CRUD operations, Clerk webhook, and user statistics
+
+OPTIMIZED: Week 2 - Migrated to async database queries for non-blocking operations
 """
 from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
@@ -14,13 +16,10 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
-from supabase import create_client, Client
 from svix.webhooks import Webhook, WebhookVerificationError
 from api.auth import get_current_user_id
-
-# Initialize Supabase
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+from api.utils.cache import get_cached, set_cached, delete_pattern, CacheTTL
+from api.utils.database import fetch_one, fetch_all, execute_query, dict_to_set_clause
 
 # Router
 router = APIRouter(prefix="/api/users", tags=["Users"])
@@ -107,6 +106,8 @@ async def clerk_webhook(request: Request):
     - user.deleted: Delete user from database
 
     Webhook signature is verified using Svix
+
+    OPTIMIZED: Using async database queries
     """
     # Get headers and body
     headers = dict(request.headers)
@@ -130,56 +131,75 @@ async def clerk_webhook(request: Request):
     try:
         if event_type == "user.created":
             # Create new user
-            user_data = {
-                "clerk_user_id": data["id"],
-                "email": data["email_addresses"][0]["email_address"] if data.get("email_addresses") else None,
-                "first_name": data.get("first_name"),
-                "last_name": data.get("last_name"),
-                "phone": data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None,
-                "created_at": datetime.now().isoformat(),
-                "last_login_at": datetime.now().isoformat()
-            }
+            clerk_user_id = data["id"]
+            email = data["email_addresses"][0]["email_address"] if data.get("email_addresses") else None
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            phone = data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None
+            now = datetime.now()  # Use datetime object, not string
 
-            result = supabase.table("users").insert(user_data).execute()
+            # Async INSERT
+            result = await execute_query(
+                """
+                INSERT INTO users (clerk_user_id, email, first_name, last_name, phone, created_at, last_login_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING id
+                """,
+                clerk_user_id, email, first_name, last_name, phone, now, now
+            )
+
+            # Get the created user ID
+            user = await fetch_one("SELECT id FROM users WHERE clerk_user_id = $1", clerk_user_id)
 
             return {
                 "status": "success",
                 "event": "user.created",
-                "user_id": result.data[0]["id"] if result.data else None
+                "user_id": user["id"] if user else None
             }
 
         elif event_type == "user.updated":
             # Update existing user
-            update_data = {
-                "email": data["email_addresses"][0]["email_address"] if data.get("email_addresses") else None,
-                "first_name": data.get("first_name"),
-                "last_name": data.get("last_name"),
-                "phone": data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None,
-                "updated_at": datetime.now().isoformat()
-            }
+            clerk_user_id = data["id"]
+            email = data["email_addresses"][0]["email_address"] if data.get("email_addresses") else None
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            phone = data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None
+            now = datetime.now()  # Use datetime object, not string
 
-            result = supabase.table("users")\
-                .update(update_data)\
-                .eq("clerk_user_id", data["id"])\
-                .execute()
+            # Async UPDATE
+            await execute_query(
+                """
+                UPDATE users
+                SET email = $1, first_name = $2, last_name = $3, phone = $4, updated_at = $5
+                WHERE clerk_user_id = $6
+                """,
+                email, first_name, last_name, phone, now, clerk_user_id
+            )
+
+            # Invalidate cache
+            await delete_pattern(f"user:profile:{clerk_user_id}")
 
             return {
                 "status": "success",
-                "event": "user.updated",
-                "updated": len(result.data) if result.data else 0
+                "event": "user.updated"
             }
 
         elif event_type == "user.deleted":
             # Delete user (cascade will delete related data)
-            result = supabase.table("users")\
-                .delete()\
-                .eq("clerk_user_id", data["id"])\
-                .execute()
+            clerk_user_id = data["id"]
+
+            # Async DELETE
+            await execute_query(
+                "DELETE FROM users WHERE clerk_user_id = $1",
+                clerk_user_id
+            )
+
+            # Invalidate all user caches
+            await delete_pattern(f"user:*:{clerk_user_id}")
 
             return {
                 "status": "success",
-                "event": "user.deleted",
-                "deleted": len(result.data) if result.data else 0
+                "event": "user.deleted"
             }
 
         else:
@@ -203,27 +223,50 @@ async def get_current_user(
     clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
-    Get current user's profile
+    Get current user's profile (with caching)
 
     Requires: Authorization header with Clerk JWT token
+    Cache: 15 minutes TTL
+
+    OPTIMIZED: Async database query + caching
     """
     try:
-        result = supabase.table("users")\
-            .select("*")\
-            .eq("clerk_user_id", clerk_user_id)\
-            .single()\
-            .execute()
+        # Try to get from cache
+        cache_key = f"user:profile:{clerk_user_id}"
+        cached_user = await get_cached(cache_key)
 
-        if not result.data:
+        if cached_user:
+            print(f"✅ Cache HIT: User profile for {clerk_user_id[:10]}...")
+            return UserProfile(**cached_user)
+
+        print(f"❌ Cache MISS: User profile for {clerk_user_id[:10]}...")
+
+        # Cache miss - fetch from database (async)
+        user = await fetch_one(
+            "SELECT * FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
+
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Update last_login_at
-        supabase.table("users")\
-            .update({"last_login_at": datetime.now().isoformat()})\
-            .eq("clerk_user_id", clerk_user_id)\
-            .execute()
+        # Update last_login_at (async, fire-and-forget)
+        await execute_query(
+            "UPDATE users SET last_login_at = $1 WHERE clerk_user_id = $2",
+            datetime.now(), clerk_user_id  # Use datetime object, not string
+        )
 
-        return UserProfile(**result.data)
+        # Convert UUID and datetime objects to strings for Pydantic
+        user_data = dict(user)
+        user_data["id"] = str(user_data["id"])
+        user_data["created_at"] = user_data["created_at"].isoformat() if user_data["created_at"] else None
+        user_data["last_login_at"] = user_data["last_login_at"].isoformat() if user_data["last_login_at"] else None
+        user_data["subscription_expires_at"] = user_data["subscription_expires_at"].isoformat() if user_data["subscription_expires_at"] else None
+
+        # Cache for 15 minutes
+        await set_cached(cache_key, user_data, ttl_seconds=CacheTTL.MEDIUM)
+
+        return UserProfile(**user_data)
 
     except HTTPException:
         raise
@@ -246,6 +289,8 @@ async def update_current_user(
     - last_name
     - phone
     - preferred_difficulty
+
+    OPTIMIZED: Async database query
     """
     try:
         # Build update dict (only include non-None fields)
@@ -254,18 +299,33 @@ async def update_current_user(
         if not updates:
             raise HTTPException(status_code=400, detail="No fields to update")
 
-        updates["updated_at"] = datetime.now().isoformat()
+        updates["updated_at"] = datetime.now()  # Use datetime object, not string
 
-        # Update in database
-        result = supabase.table("users")\
-            .update(updates)\
-            .eq("clerk_user_id", clerk_user_id)\
-            .execute()
+        # Build SET clause dynamically
+        set_clause, values = dict_to_set_clause(updates)
 
-        if not result.data:
+        # Async UPDATE
+        await execute_query(
+            f"UPDATE users SET {set_clause} WHERE clerk_user_id = ${len(values) + 1}",
+            *values, clerk_user_id
+        )
+
+        # Fetch updated user
+        user = await fetch_one(
+            "SELECT * FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
+
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        return UserProfile(**result.data[0])
+        # Invalidate cache
+        cache_key = f"user:profile:{clerk_user_id}"
+        await delete_pattern(cache_key)
+        await delete_pattern(f"user:stats:{clerk_user_id}")
+        print(f"🗑️  Cache invalidated for user {clerk_user_id[:10]}...")
+
+        return UserProfile(**user)
 
     except HTTPException:
         raise
@@ -287,15 +347,18 @@ async def delete_current_user(
     - Question history
     - Mistakes
     - Chat sessions
+
+    OPTIMIZED: Async database query
     """
     try:
-        result = supabase.table("users")\
-            .delete()\
-            .eq("clerk_user_id", clerk_user_id)\
-            .execute()
+        # Async DELETE
+        await execute_query(
+            "DELETE FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
 
-        if not result.data:
-            raise HTTPException(status_code=404, detail="User not found")
+        # Invalidate all user caches
+        await delete_pattern(f"user:*:{clerk_user_id}")
 
         return {
             "status": "success",
@@ -318,9 +381,10 @@ async def get_user_stats(
     clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
-    Get current user's statistics
+    Get current user's statistics (with caching)
 
     Requires: Authorization header with Clerk JWT token
+    Cache: 5 minutes TTL
 
     Returns:
     - Total questions answered
@@ -329,41 +393,46 @@ async def get_user_stats(
     - Pass/fail counts
     - Weak/strong topics
     - Recent activity
+
+    OPTIMIZED: Async database queries + caching
     """
     try:
-        # Get user
-        user_result = supabase.table("users")\
-            .select("*")\
-            .eq("clerk_user_id", clerk_user_id)\
-            .single()\
-            .execute()
+        # Try to get from cache
+        cache_key = f"user:stats:{clerk_user_id}"
+        cached_stats = await get_cached(cache_key)
 
-        if not user_result.data:
+        if cached_stats:
+            print(f"✅ Cache HIT: User stats for {clerk_user_id[:10]}...")
+            return UserStats(**cached_stats)
+
+        print(f"❌ Cache MISS: User stats for {clerk_user_id[:10]}...")
+
+        # Get user (async)
+        user = await fetch_one(
+            "SELECT * FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
+
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        user = user_result.data
         user_id = user["id"]
 
-        # Get exam statistics
-        exams_result = supabase.table("exams")\
-            .select("*")\
-            .eq("user_id", user_id)\
-            .eq("status", "completed")\
-            .execute()
-
-        exams = exams_result.data or []
+        # Get exam statistics (async)
+        exams = await fetch_all(
+            "SELECT * FROM exams WHERE user_id = $1 AND status = $2",
+            user_id, "completed"
+        )
 
         # Calculate pass/fail
         exams_passed = sum(1 for exam in exams if exam.get("passed", False))
         exams_failed = len(exams) - exams_passed
 
-        # Get topic performance
-        topic_perf_result = supabase.table("user_topic_performance")\
-            .select("*")\
-            .eq("user_id", user_id)\
-            .execute()
-
-        topics = topic_perf_result.data or []
+        # Get topic performance (async)
+        topics = await fetch_all(
+            "SELECT * FROM user_topic_performance WHERE user_id = $1",
+            user_id
+        )
 
         weak_topics = [
             {"topic": t["topic"], "accuracy": t["accuracy_percentage"]}
@@ -400,17 +469,22 @@ async def get_user_stats(
             else:
                 break
 
-        return UserStats(
-            total_questions_answered=user.get("total_questions_answered", 0),
-            total_exams_taken=user.get("total_exams_taken", 0),
-            average_score=user.get("average_score"),
-            exams_passed=exams_passed,
-            exams_failed=exams_failed,
-            current_streak=current_streak,
-            weak_topics=weak_topics,
-            strong_topics=strong_topics,
-            recent_activity=recent_activity
-        )
+        stats_data = {
+            "total_questions_answered": user.get("total_questions_answered", 0),
+            "total_exams_taken": user.get("total_exams_taken", 0),
+            "average_score": user.get("average_score"),
+            "exams_passed": exams_passed,
+            "exams_failed": exams_failed,
+            "current_streak": current_streak,
+            "weak_topics": weak_topics,
+            "strong_topics": strong_topics,
+            "recent_activity": recent_activity
+        }
+
+        # Cache for 5 minutes
+        await set_cached(cache_key, stats_data, ttl_seconds=CacheTTL.SHORT)
+
+        return UserStats(**stats_data)
 
     except HTTPException:
         raise
@@ -438,6 +512,8 @@ async def complete_onboarding(
     - Expo push token (for server-side notifications)
     - Notification preferences
     - Onboarding completion status
+
+    OPTIMIZED: Async database queries
     """
     try:
         # Validate study hours
@@ -451,82 +527,101 @@ async def complete_onboarding(
             raise HTTPException(status_code=400, detail="Invalid exam date format. Use ISO format (YYYY-MM-DD)")
 
         # Prepare update data
-        update_data = {
-            "onboarding_completed": True,
-            "exam_date": exam_date.date().isoformat(),
-            "study_hours": json.dumps(onboarding_data.study_hours),
-            "notification_preferences": json.dumps(onboarding_data.notification_preferences),
-            "updated_at": datetime.now().isoformat()
-        }
+        now = datetime.now()  # Use datetime object, not string
+        exam_date_obj = exam_date.date()  # Use date object, not string
+        study_hours_json = json.dumps(onboarding_data.study_hours)
+        preferences_json = json.dumps(onboarding_data.notification_preferences)
 
-        # Add push token if provided
-        if onboarding_data.expo_push_token:
-            update_data["expo_push_token"] = onboarding_data.expo_push_token
-
-        # Update user in database
         print(f"[ONBOARDING] Updating user with clerk_user_id: {clerk_user_id}")
-        print(f"[ONBOARDING] Update data: {update_data}")
 
-        result = supabase.table("users")\
-            .update(update_data)\
-            .eq("clerk_user_id", clerk_user_id)\
-            .execute()
+        # Check if user exists (async)
+        user = await fetch_one(
+            "SELECT id, clerk_user_id FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
 
-        print(f"[ONBOARDING] Update result: {result}")
+        if not user:
+            # User doesn't exist - create them
+            print(f"[ONBOARDING] User not found, creating new user...")
 
-        if not result.data:
-            # Check if user exists at all
-            user_check = supabase.table("users")\
-                .select("id, clerk_user_id")\
-                .eq("clerk_user_id", clerk_user_id)\
-                .execute()
-
-            print(f"[ONBOARDING] User check result: {user_check}")
-
-            if not user_check.data:
-                # User doesn't exist - create them
-                print(f"[ONBOARDING] User not found, creating new user...")
-
-                # For now, use a placeholder email - ideally should fetch from Clerk API
-                # The email should have been set via webhook, but if webhook failed,
-                # we'll use the clerk_user_id as a placeholder
-                create_data = {
-                    "clerk_user_id": clerk_user_id,
-                    "email": f"{clerk_user_id}@placeholder.local",  # Placeholder until proper email is available
-                    "created_at": datetime.now().isoformat(),
-                    "last_login_at": datetime.now().isoformat(),
-                    **update_data
-                }
-
-                create_result = supabase.table("users").insert(create_data).execute()
-
-                if not create_result.data:
-                    raise HTTPException(
-                        status_code=500,
-                        detail="Failed to create user in database"
+            # Build insert query
+            if onboarding_data.expo_push_token:
+                await execute_query(
+                    """
+                    INSERT INTO users (
+                        clerk_user_id, email, created_at, last_login_at,
+                        onboarding_completed, exam_date, study_hours,
+                        notification_preferences, expo_push_token
                     )
-
-                print(f"[ONBOARDING] User created successfully: {create_result.data[0]['id']}")
-
-                return {
-                    "status": "success",
-                    "message": "Onboarding completed successfully",
-                    "user_id": create_result.data[0]["id"],
-                    "exam_date": exam_date.date().isoformat(),
-                    "study_hours": onboarding_data.study_hours,
-                    "push_token_saved": bool(onboarding_data.expo_push_token)
-                }
-            else:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Failed to update user. The database columns might not exist. Please run the migration: migrations/add_onboarding_fields.sql"
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    """,
+                    clerk_user_id, f"{clerk_user_id}@placeholder.local", now, now,
+                    True, exam_date_obj, study_hours_json, preferences_json,
+                    onboarding_data.expo_push_token
                 )
+            else:
+                await execute_query(
+                    """
+                    INSERT INTO users (
+                        clerk_user_id, email, created_at, last_login_at,
+                        onboarding_completed, exam_date, study_hours,
+                        notification_preferences
+                    )
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    """,
+                    clerk_user_id, f"{clerk_user_id}@placeholder.local", now, now,
+                    True, exam_date_obj, study_hours_json, preferences_json
+                )
+
+            # Fetch created user
+            user = await fetch_one(
+                "SELECT * FROM users WHERE clerk_user_id = $1",
+                clerk_user_id
+            )
+
+            print(f"[ONBOARDING] User created successfully: {user['id']}")
+
+            return {
+                "status": "success",
+                "message": "Onboarding completed successfully",
+                "user_id": user["id"],
+                "exam_date": exam_date_obj.isoformat(),  # Convert back to string for JSON response
+                "study_hours": onboarding_data.study_hours,
+                "push_token_saved": bool(onboarding_data.expo_push_token)
+            }
+
+        # User exists - update
+        if onboarding_data.expo_push_token:
+            await execute_query(
+                """
+                UPDATE users
+                SET onboarding_completed = $1, exam_date = $2, study_hours = $3,
+                    notification_preferences = $4, expo_push_token = $5, updated_at = $6
+                WHERE clerk_user_id = $7
+                """,
+                True, exam_date_obj, study_hours_json, preferences_json,
+                onboarding_data.expo_push_token, now, clerk_user_id
+            )
+        else:
+            await execute_query(
+                """
+                UPDATE users
+                SET onboarding_completed = $1, exam_date = $2, study_hours = $3,
+                    notification_preferences = $4, updated_at = $5
+                WHERE clerk_user_id = $6
+                """,
+                True, exam_date_obj, study_hours_json, preferences_json,
+                now, clerk_user_id
+            )
+
+        # Invalidate cache
+        await delete_pattern(f"user:profile:{clerk_user_id}")
 
         return {
             "status": "success",
             "message": "Onboarding completed successfully",
-            "user_id": result.data[0]["id"],
-            "exam_date": exam_date.date().isoformat(),
+            "user_id": user["id"],
+            "exam_date": exam_date_obj.isoformat(),  # Convert back to string for JSON response
             "study_hours": onboarding_data.study_hours,
             "push_token_saved": bool(onboarding_data.expo_push_token)
         }

@@ -59,7 +59,8 @@ export const HomeScreen: React.FC = () => {
         // Set greeting with fetched name
         setGreeting(getTimeBasedGreeting(userData.first_name));
       } catch (error) {
-        console.error('Error loading user data:', error);
+        // Log silently without triggering error screen
+        console.log('Unable to load user data, using default greeting');
         // Set greeting without name if error
         setGreeting(getTimeBasedGreeting());
       }
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
   greetingContainer: {
     marginTop: 16,
     width: '100%',
-    alignItems: 'flex-end', // Align to right side
+    alignItems: 'flex-start', // In RTL, flex-start is the right side
   },
   greetingText: {
     fontSize: 20,
