@@ -1,8 +1,8 @@
 # Multi-stage build for optimized FastAPI Docker image
 FROM python:3.12-slim as builder
 
-# Set working directory
-WORKDIR /app
+# Set working directory for API (not /app which is React Native!)
+WORKDIR /backend
 
 # Install system dependencies required for compilation
 RUN apt-get update && apt-get install -y \
@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Final stage - smaller image
 FROM python:3.12-slim
 
-# Set working directory
-WORKDIR /app
+# Set working directory for API (not /app which is React Native!)
+WORKDIR /backend
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
@@ -40,10 +40,13 @@ COPY . .
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /backend
 
 # Switch to non-root user
 USER appuser
+
+# Set Python path to ensure modules are found
+ENV PYTHONPATH=/backend
 
 # Expose port (Railway will set PORT env variable)
 EXPOSE 8000
@@ -52,4 +55,5 @@ EXPOSE 8000
 
 # Start application with uvicorn
 # Railway will provide PORT env variable
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
+# Use python -m to ensure proper module resolution
+CMD python -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
