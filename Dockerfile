@@ -55,5 +55,5 @@ EXPOSE 8000
 
 # Start application with uvicorn
 # Railway will provide PORT env variable
-# Use python -m to ensure proper module resolution
-CMD python -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
+# Shell form to allow environment variable expansion
+CMD python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
