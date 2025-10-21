@@ -38,13 +38,6 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY . .
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /backend
-
-# Switch to non-root user
-USER appuser
-
 # Set Python path to ensure modules are found
 ENV PYTHONPATH=/backend
 
@@ -54,6 +47,5 @@ EXPOSE 8000
 # Note: Railway handles healthchecks via railway.toml, no need for Dockerfile HEALTHCHECK
 
 # Start application with uvicorn
-# Railway will provide PORT env variable
-# Shell form to allow environment variable expansion
+# Using shell form to allow environment variable expansion
 CMD python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
