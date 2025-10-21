@@ -52,6 +52,7 @@ export const AIMentorChatScreen: React.FC = () => {
   const [showSources, setShowSources] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingText, setThinkingText] = useState('מחפש מקורות...');
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load conversation on mount
   useEffect(() => {
@@ -64,6 +65,10 @@ export const AIMentorChatScreen: React.FC = () => {
 
     // Cleanup on unmount
     return () => {
+      // Clear polling interval
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
       // Don't clear if navigating to history
       // clearCurrentChat();
     };
@@ -103,6 +108,63 @@ export const AIMentorChatScreen: React.FC = () => {
     }
   };
 
+  /**
+   * Poll for message updates when AI is processing
+   * Checks if the assistant's message has been updated from placeholder
+   */
+  const startPollingForResponse = (convId: string, messageId: string) => {
+    console.log('Starting polling for message:', messageId);
+
+    let pollAttempts = 0;
+    const maxAttempts = 60; // 60 attempts * 2 seconds = 2 minutes max
+
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    pollingIntervalRef.current = setInterval(async () => {
+      pollAttempts++;
+      console.log(`Polling attempt ${pollAttempts} for message ${messageId}`);
+
+      try {
+        // Fetch latest messages
+        const msgs = await aiChatApi.getConversationMessages(convId, getToken);
+
+        // Find the message we're waiting for
+        const updatedMessage = msgs.find((m) => m.id === messageId);
+
+        if (updatedMessage && updatedMessage.content && updatedMessage.content.trim() !== '') {
+          // Message has been updated with actual response
+          console.log('Message updated with response:', updatedMessage.content.substring(0, 50));
+          setMessages(msgs);
+          setIsThinking(false);
+          setSendingMessage(false);
+
+          // Stop polling
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        } else if (pollAttempts >= maxAttempts) {
+          // Timeout - stop polling
+          console.warn('Polling timeout reached');
+          setIsThinking(false);
+          setSendingMessage(false);
+          Alert.alert('התראה', 'התשובה לוקחת זמן רב. אנא רענן את השיחה מאוחר יותר.');
+
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+      } catch (error: any) {
+        console.error('Polling error:', error);
+        // Don't stop polling on error, might be temporary network issue
+      }
+    }, 2000); // Poll every 2 seconds
+  };
+
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isSendingMessage) return;
 
@@ -138,7 +200,7 @@ export const AIMentorChatScreen: React.FC = () => {
       };
       addMessage(tempUserMessage);
 
-      // Send message to API
+      // Send message to API (returns immediately with placeholder)
       const response = await aiChatApi.sendMessage(
         {
           message: messageText,
@@ -148,7 +210,7 @@ export const AIMentorChatScreen: React.FC = () => {
         getToken
       );
 
-      console.log('AI Response:', response);
+      console.log('API Response (placeholder):', response);
 
       // Update conversation if new
       if (!currentConversation && response.conversation_id) {
@@ -161,13 +223,15 @@ export const AIMentorChatScreen: React.FC = () => {
         });
       }
 
-      // Add assistant message
-      console.log('Adding assistant message:', response.message);
-      addMessage(response.message);
+      // Don't add placeholder to UI - we show thinking animation instead
+      // The actual message will be added when polling detects the response
+      console.log('Placeholder message created, ID:', response.message.id);
+
+      // Start polling for the actual AI response
+      startPollingForResponse(response.conversation_id, response.message.id);
     } catch (error: any) {
       console.error('Error sending message:', error);
       Alert.alert('שגיאה', error.message || 'לא הצלחנו לשלוח את ההודעה. נסה שוב.');
-    } finally {
       setSendingMessage(false);
       setIsThinking(false);
       setThinkingText('מחפש מקורות...'); // Reset to initial state

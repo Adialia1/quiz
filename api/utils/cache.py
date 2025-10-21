@@ -12,11 +12,14 @@ import os
 from datetime import timedelta
 
 # Redis Configuration
+REDIS_ENABLED = os.getenv("REDIS_ENABLED", "true").lower() == "true"
+REDIS_URL = os.getenv("REDIS_URL", None)
+
+# Fallback to individual config if REDIS_URL not provided
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
-REDIS_ENABLED = os.getenv("REDIS_ENABLED", "true").lower() == "true"
 
 # Redis client instance
 _redis_client: Optional[redis.Redis] = None
@@ -25,6 +28,10 @@ _redis_client: Optional[redis.Redis] = None
 async def get_redis() -> Optional[redis.Redis]:
     """
     Get Redis client instance (singleton)
+
+    Supports two configuration methods:
+    1. REDIS_URL - Full connection string (e.g., redis://user:pass@host:port/db)
+    2. Individual vars - REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD
 
     Returns None if Redis is disabled or unavailable
     """
@@ -35,19 +42,33 @@ async def get_redis() -> Optional[redis.Redis]:
 
     if _redis_client is None:
         try:
-            _redis_client = redis.Redis(
-                host=REDIS_HOST,
-                port=REDIS_PORT,
-                db=REDIS_DB,
-                password=REDIS_PASSWORD,
-                decode_responses=True,
-                socket_connect_timeout=2,
-                socket_keepalive=True,
-                health_check_interval=30
-            )
+            # Method 1: Use REDIS_URL if provided (recommended)
+            if REDIS_URL:
+                _redis_client = redis.from_url(
+                    REDIS_URL,
+                    decode_responses=True,
+                    socket_connect_timeout=5,
+                    socket_keepalive=True,
+                    health_check_interval=30
+                )
+                print(f"✅ Redis connecting via URL: {REDIS_URL.split('@')[1] if '@' in REDIS_URL else REDIS_URL}")
+            else:
+                # Method 2: Use individual configuration
+                _redis_client = redis.Redis(
+                    host=REDIS_HOST,
+                    port=REDIS_PORT,
+                    db=REDIS_DB,
+                    password=REDIS_PASSWORD,
+                    decode_responses=True,
+                    socket_connect_timeout=5,
+                    socket_keepalive=True,
+                    health_check_interval=30
+                )
+                print(f"✅ Redis connecting via host: {REDIS_HOST}:{REDIS_PORT}")
+
             # Test connection
             await _redis_client.ping()
-            print(f"✅ Redis connected: {REDIS_HOST}:{REDIS_PORT}")
+            print(f"✅ Redis connected successfully!")
         except Exception as e:
             print(f"⚠️  Redis connection failed: {e}")
             print(f"⚠️  Continuing without cache...")

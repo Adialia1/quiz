@@ -3,20 +3,23 @@
 Chat API Routes
 Handles AI Mentor chat conversations and messages
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 import sys
 from pathlib import Path
 import uuid
+import asyncio
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from api.auth import get_current_user_id
 from agent.agents.legal_expert import LegalExpertAgent
+from api.utils.cache import get_cached, set_cached, delete_pattern, CacheTTL
 import os
 from supabase import create_client, Client
+import json
 
 # Initialize Supabase client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -36,6 +39,20 @@ def get_legal_expert():
     if legal_expert is None:
         legal_expert = LegalExpertAgent(top_k=10, use_thinking_model=True)
     return legal_expert
+
+
+async def invalidate_chat_cache(user_id: str, conversation_id: str = None):
+    """Invalidate chat-related cache for a user"""
+    try:
+        # Invalidate user's conversation list
+        await delete_pattern(f"chat:conversations:{user_id}")
+
+        # If conversation_id provided, invalidate that conversation's messages
+        if conversation_id:
+            await delete_pattern(f"chat:messages:{conversation_id}")
+    except Exception as e:
+        print(f"⚠️  Cache invalidation error: {e}")
+        # Don't fail the request if cache invalidation fails
 
 
 # ============================================================================
@@ -104,10 +121,10 @@ def create_conversation(user_id: str, title: str) -> str:
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to create conversation")
 
-    return result.data[0]["id"]
+    return str(result.data[0]["id"])
 
 
-def add_message_to_conversation(
+async def add_message_to_conversation(
     user_id: str,
     conversation_id: str,
     role: str,
@@ -139,9 +156,12 @@ def add_message_to_conversation(
         "updated_at": msg_data["created_at"]
     }).eq("id", conversation_id).execute()
 
+    # Invalidate cache
+    await invalidate_chat_cache(user_id, conversation_id)
+
     return ChatMessage(
-        id=msg_data["id"],
-        conversation_id=msg_data["conversation_id"],
+        id=str(msg_data["id"]),
+        conversation_id=str(msg_data["conversation_id"]),
         role=msg_data["role"],
         content=msg_data["content"],
         timestamp=msg_data["created_at"],
@@ -163,6 +183,64 @@ def get_conversation_messages_from_db(conversation_id: str, user_id: str, limit:
     return messages_result.data if messages_result.data else []
 
 
+async def process_ai_response_background(
+    message_id: str,
+    conversation_id: str,
+    user_id: str,
+    query: str,
+    include_sources: bool
+):
+    """
+    Background task to process AI response
+    This runs asynchronously and updates the message when complete
+    """
+    try:
+        print(f"🤖 Starting AI processing for message {message_id}")
+
+        # Get AI response
+        expert = get_legal_expert()
+        response = expert.process_with_rag(query=query, k=10)
+
+        answer = response.get('answer', 'מצטער, לא הצלחתי לייצר תשובה. נסה שוב.')
+
+        # Extract sources if requested
+        sources = None
+        if include_sources and response.get('sources'):
+            sources = [
+                f"{src.get('document', 'מסמך')} - עמוד {src.get('page', '?')}"
+                for src in response['sources'][:5]
+            ]
+
+        # Update the message with the actual response
+        supabase.table("chat_messages").update({
+            "content": answer,
+            "sources": sources,
+        }).eq("id", message_id).execute()
+
+        # Update conversation's updated_at
+        supabase.table("chat_conversations").update({
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", conversation_id).execute()
+
+        # Invalidate cache after updating message
+        await invalidate_chat_cache(user_id, conversation_id)
+
+        print(f"✅ AI processing complete for message {message_id}")
+
+    except Exception as e:
+        print(f"❌ Error in AI processing for message {message_id}: {str(e)}")
+        # Update message with error
+        supabase.table("chat_messages").update({
+            "content": f"שגיאה בעיבוד התשובה: {str(e)}"
+        }).eq("id", message_id).execute()
+
+        # Invalidate cache even on error
+        try:
+            await invalidate_chat_cache(user_id, conversation_id)
+        except Exception as cache_err:
+            print(f"⚠️  Failed to invalidate cache after error: {cache_err}")
+
+
 # ============================================================================
 # API ENDPOINTS
 # ============================================================================
@@ -170,17 +248,19 @@ def get_conversation_messages_from_db(conversation_id: str, user_id: str, limit:
 @router.post("/send", response_model=SendMessageResponse)
 async def send_message(
     request: SendMessageRequest,
+    background_tasks: BackgroundTasks,
     clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
     Send a message to AI Mentor
 
-    Creates a new conversation if conversation_id is not provided
+    Creates a new conversation if conversation_id is not provided.
+    Returns immediately with a placeholder response while AI processes in background.
     """
     try:
         from api.routes.exams import get_user_by_clerk_id
-        user = get_user_by_clerk_id(clerk_user_id)
-        user_id = user["id"]
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
 
         # Create new conversation if needed
         if not request.conversation_id:
@@ -208,17 +288,24 @@ async def send_message(
             context = f"הקשר השיחה הקודם:\n{context}\n\n"
 
         # Add user message
-        user_message = add_message_to_conversation(
+        user_message = await add_message_to_conversation(
             user_id,
             conversation_id,
             "user",
             request.message
         )
 
-        # Get AI response with context and mobile-friendly instructions
-        expert = get_legal_expert()
+        # Create placeholder assistant message immediately (empty, will be updated by background task)
+        placeholder_content = ""
+        assistant_message = await add_message_to_conversation(
+            user_id,
+            conversation_id,
+            "assistant",
+            placeholder_content,
+            None
+        )
 
-        # Add mobile-friendly instructions
+        # Prepare query with context and mobile-friendly instructions
         mobile_instruction = """
         הנחיות חשובות:
         - כתוב תשובה קצרה וממוקדת (2-4 פסקאות מקסימום)
@@ -230,30 +317,18 @@ async def send_message(
         """
 
         query_with_context = f"{mobile_instruction}{context}שאלה נוכחית: {request.message}" if context else f"{mobile_instruction}שאלה: {request.message}"
-        response = expert.process_with_rag(
+
+        # Queue AI processing as background task
+        background_tasks.add_task(
+            process_ai_response_background,
+            message_id=assistant_message.id,
+            conversation_id=conversation_id,
+            user_id=user_id,
             query=query_with_context,
-            k=10
+            include_sources=request.include_sources
         )
 
-        answer = response.get('answer', 'מצטער, לא הצלחתי לייצר תשובה. נסה שוב.')
-
-        # Extract sources if requested
-        sources = None
-        if request.include_sources and response.get('sources'):
-            sources = [
-                f"{src.get('document', 'מסמך')} - עמוד {src.get('page', '?')}"
-                for src in response['sources'][:5]
-            ]
-
-        # Add assistant message
-        assistant_message = add_message_to_conversation(
-            user_id,
-            conversation_id,
-            "assistant",
-            answer,
-            sources
-        )
-
+        # Return immediately with placeholder
         return SendMessageResponse(
             message=assistant_message,
             conversation_id=conversation_id,
@@ -270,12 +345,21 @@ async def send_message(
 @router.get("/conversations", response_model=List[ChatConversation])
 async def get_conversations(clerk_user_id: str = Depends(get_current_user_id)):
     """
-    Get all conversations for the current user
+    Get all conversations for the current user (with Redis cache)
     """
     try:
         from api.routes.exams import get_user_by_clerk_id
-        user = get_user_by_clerk_id(clerk_user_id)
-        user_id = user["id"]
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
+
+        # Try cache first
+        cache_key = f"chat:conversations:{user_id}"
+        cached = await get_cached(cache_key)
+        if cached:
+            print(f"✅ Cache HIT: Conversations for user {user_id[:8]}...")
+            return [ChatConversation(**conv) for conv in json.loads(cached)]
+
+        print(f"❌ Cache MISS: Conversations for user {user_id[:8]}...")
 
         # Get all conversations for user
         conv_result = supabase.table("chat_conversations").select("*").eq("user_id", user_id).eq("is_deleted", False).order("updated_at", desc=True).execute()
@@ -297,7 +381,7 @@ async def get_conversations(clerk_user_id: str = Depends(get_current_user_id)):
 
             conversations.append(
                 ChatConversation(
-                    id=conv_data["id"],
+                    id=str(conv_data["id"]),
                     title=conv_data["title"],
                     created_at=conv_data["created_at"],
                     updated_at=conv_data["updated_at"],
@@ -305,6 +389,9 @@ async def get_conversations(clerk_user_id: str = Depends(get_current_user_id)):
                     last_message=last_message
                 )
             )
+
+        # Cache for 5 minutes
+        await set_cached(cache_key, json.dumps([conv.dict() for conv in conversations]), ttl_seconds=CacheTTL.SHORT)
 
         return conversations
 
@@ -319,12 +406,21 @@ async def get_conversation_messages(
     clerk_user_id: str = Depends(get_current_user_id)
 ):
     """
-    Get all messages for a specific conversation
+    Get all messages for a specific conversation (with Redis cache)
     """
     try:
         from api.routes.exams import get_user_by_clerk_id
-        user = get_user_by_clerk_id(clerk_user_id)
-        user_id = user["id"]
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
+
+        # Try cache first
+        cache_key = f"chat:messages:{conversation_id}"
+        cached = await get_cached(cache_key)
+        if cached:
+            print(f"✅ Cache HIT: Messages for conversation {conversation_id[:8]}...")
+            return [ChatMessage(**msg) for msg in json.loads(cached)]
+
+        print(f"❌ Cache MISS: Messages for conversation {conversation_id[:8]}...")
 
         # Verify conversation exists and belongs to user
         conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
@@ -339,14 +435,17 @@ async def get_conversation_messages(
         for msg_data in messages_result.data:
             messages.append(
                 ChatMessage(
-                    id=msg_data["id"],
-                    conversation_id=msg_data["conversation_id"],
+                    id=str(msg_data["id"]),
+                    conversation_id=str(msg_data["conversation_id"]),
                     role=msg_data["role"],
                     content=msg_data["content"],
                     timestamp=msg_data["created_at"],
                     sources=msg_data.get("sources"),
                 )
             )
+
+        # Cache for 1 minute (short TTL since messages update frequently)
+        await set_cached(cache_key, json.dumps([msg.dict() for msg in messages]), ttl_seconds=CacheTTL.VERY_SHORT)
 
         return messages
 
@@ -367,8 +466,8 @@ async def delete_conversation(
     """
     try:
         from api.routes.exams import get_user_by_clerk_id
-        user = get_user_by_clerk_id(clerk_user_id)
-        user_id = user["id"]
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
 
         # Verify conversation exists and belongs to user
         conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
@@ -381,6 +480,9 @@ async def delete_conversation(
             "is_deleted": True,
             "updated_at": datetime.now().isoformat()
         }).eq("id", conversation_id).execute()
+
+        # Invalidate cache
+        await invalidate_chat_cache(user_id, conversation_id)
 
         return {"message": "שיחה נמחקה בהצלחה"}
 
@@ -402,8 +504,8 @@ async def rename_conversation(
     """
     try:
         from api.routes.exams import get_user_by_clerk_id
-        user = get_user_by_clerk_id(clerk_user_id)
-        user_id = user["id"]
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
 
         # Verify conversation exists and belongs to user
         conv_result = supabase.table("chat_conversations").select("id").eq("id", conversation_id).eq("user_id", user_id).eq("is_deleted", False).execute()
@@ -416,6 +518,9 @@ async def rename_conversation(
             "title": request.title,
             "updated_at": datetime.now().isoformat()
         }).eq("id", conversation_id).execute()
+
+        # Invalidate cache
+        await invalidate_chat_cache(user_id, conversation_id)
 
         return {"message": "שיחה שונתה בהצלחה", "title": request.title}
 

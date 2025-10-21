@@ -85,11 +85,6 @@ export const ChatHistoryScreen: React.FC = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  // Load conversations on mount
-  useEffect(() => {
-    loadConversations();
-  }, []);
-
   const loadConversations = async () => {
     try {
       setLoadingConversations(true);
@@ -103,6 +98,15 @@ export const ChatHistoryScreen: React.FC = () => {
       setRefreshing(false);
     }
   };
+
+  // Reload conversations when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadConversations();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleRefresh = () => {
     setRefreshing(true);
