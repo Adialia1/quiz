@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+!README.md
+
+# Logs
+*.log
+logs/
+api_output.log
+api_startup.log
+
+# Test files
+tests/
+pytest_cache/
+.pytest_cache/
+*.pyc
+
+# Node modules (for app folder)
+app/node_modules/
+app/.expo/
+app/.expo-shared/
+app/dist/
+app/build/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.yoyo/
+.gemini-clipboard/
+
+# Database migrations (if local)
+migrations/
+alembic/
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Deployment configs (will be set via Railway env vars)
+.claude/
+exams_migration_temp.py
+start_api.sh

@@ -1,0 +1,44 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches:
+      - master  # Deploy on push to master branch
+      - main    # Also support main branch
+    paths:
+      - 'api/**'
+      - 'agent/**'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - '.github/workflows/railway-deploy.yml'
+
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_NAME }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "✅ Deployment to Railway successful!"
+          echo "Your API is now live at your Railway domain"
+
+      - name: Deployment Failed Notification
+        if: failure()
+        run: |
+          echo "❌ Deployment to Railway failed!"
+          echo "Check the logs above for error details"
