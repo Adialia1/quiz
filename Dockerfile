@@ -48,10 +48,8 @@ USER appuser
 # Expose port (Railway will set PORT env variable)
 EXPOSE 8000
 
-# Health check - use PORT env variable from Railway
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+# Note: Railway handles healthchecks via railway.toml, no need for Dockerfile HEALTHCHECK
 
 # Start application with uvicorn
 # Railway will provide PORT env variable
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2
+CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300

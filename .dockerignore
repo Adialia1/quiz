@@ -52,6 +52,9 @@ app/.expo-shared/
 app/dist/
 app/build/
 
+# Exclude entire React Native app from backend Docker build
+app/
+
 # Temporary files
 *.tmp
 *.temp

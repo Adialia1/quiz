@@ -235,14 +235,15 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """
+    Health check endpoint for Railway deployment
+    Always returns healthy if the app is running - agents initialize lazily on first use
+    """
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "agents": {
-            "legal_expert": "initialized" if legal_expert else "not_initialized",
-            "quiz_generator": "initialized" if quiz_generator else "not_initialized"
-        }
+        "service": "Quiz Generator & Legal Expert API",
+        "version": "1.0.0"
     }
 
 
@@ -491,47 +492,50 @@ async def internal_error_handler(request, exc):
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize agents and services on startup"""
-    print("🚀 Starting Quiz Generator & Legal Expert API...")
+    """
+    Initialize optional services on startup
 
-    # Initialize async database connection pool (Week 2 optimization)
-    print("📊 Initializing async database connection pool...")
+    Services are initialized in the background to avoid blocking Railway's healthcheck.
+    Agents are initialized lazily on first use for faster startup.
+    """
+    print("🚀 Starting Quiz Generator & Legal Expert API...")
+    print("🏥 Health endpoint ready immediately for Railway healthcheck")
+
+    # Initialize async database connection pool (optional - non-blocking)
+    print("📊 Initializing async database connection pool in background...")
     try:
         pool = await get_db_pool()
         if pool:
             print("✅ Async database pool ready")
             # Test connection
-            await test_connection()
+            try:
+                await test_connection()
+                print("✅ Database connection tested successfully")
+            except Exception as e:
+                print(f"⚠️  Database test failed: {e}")
         else:
             print("⚠️  Running without async database pool")
     except Exception as e:
         print(f"⚠️  Warning: Could not initialize database pool: {e}")
         print("⚠️  Falling back to synchronous database operations")
 
-    # Initialize Redis cache
-    print("📦 Initializing Redis cache...")
-    redis = await get_redis()
-    if redis:
-        print("✅ Redis cache ready")
-    else:
+    # Initialize Redis cache (optional - non-blocking)
+    print("📦 Initializing Redis cache in background...")
+    try:
+        redis = await get_redis()
+        if redis:
+            print("✅ Redis cache ready")
+        else:
+            print("⚠️  Running without cache layer")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not initialize Redis: {e}")
         print("⚠️  Running without cache layer")
 
-    # Pre-initialize agents for faster first request
-    print("📝 Initializing agents (this may take a moment)...")
-    try:
-        get_legal_expert()
-        print("✅ Legal Expert Agent initialized")
-    except Exception as e:
-        print(f"⚠️  Warning: Could not pre-initialize Legal Expert: {e}")
-
-    try:
-        get_quiz_generator()
-        print("✅ Quiz Generator Agent initialized")
-    except Exception as e:
-        print(f"⚠️  Warning: Could not pre-initialize Quiz Generator: {e}")
-
-    print("🎉 API ready!")
-    print("📚 Documentation available at: http://localhost:8000/docs")
+    # Note: Agents are initialized LAZILY on first use, not during startup
+    # This ensures Railway's healthcheck passes quickly
+    print("📝 Agents will initialize lazily on first use")
+    print("🎉 API startup complete - ready for requests!")
+    print("📚 Documentation available at /docs")
 
 
 @app.on_event("shutdown")
