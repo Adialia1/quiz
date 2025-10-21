@@ -406,23 +406,29 @@ export const ProgressScreen: React.FC = () => {
             <View style={styles.masteryCard}>
               {mastery.mastered > 0 && (
                 <View style={styles.masteryItem}>
+                  <View style={styles.masteryTextContainer}>
+                    <Text style={styles.masteryLabel}>שאלות שהשתלטתי עליהן</Text>
+                    <Text style={styles.masteryValue}>{mastery.mastered}</Text>
+                  </View>
                   <Text style={styles.masteryIcon}>🏆</Text>
-                  <Text style={styles.masteryValue}>{mastery.mastered}</Text>
-                  <Text style={styles.masteryLabel}>שאלות שהשתלטתי עליהן</Text>
                 </View>
               )}
               {mastery.practicing > 0 && (
                 <View style={styles.masteryItem}>
+                  <View style={styles.masteryTextContainer}>
+                    <Text style={styles.masteryLabel}>שאלות בתרגול</Text>
+                    <Text style={styles.masteryValue}>{mastery.practicing}</Text>
+                  </View>
                   <Text style={styles.masteryIcon}>📝</Text>
-                  <Text style={styles.masteryValue}>{mastery.practicing}</Text>
-                  <Text style={styles.masteryLabel}>שאלות בתרגול</Text>
                 </View>
               )}
               {mastery.learning > 0 && (
                 <View style={styles.masteryItem}>
+                  <View style={styles.masteryTextContainer}>
+                    <Text style={styles.masteryLabel}>שאלות ללמידה</Text>
+                    <Text style={styles.masteryValue}>{mastery.learning}</Text>
+                  </View>
                   <Text style={styles.masteryIcon}>📖</Text>
-                  <Text style={styles.masteryValue}>{mastery.learning}</Text>
-                  <Text style={styles.masteryLabel}>שאלות ללמידה</Text>
                 </View>
               )}
             </View>
@@ -462,7 +468,7 @@ export const ProgressScreen: React.FC = () => {
                       <Text style={styles.topMistakeTopic} numberOfLines={1}>
                         {topic.topic}
                       </Text>
-                      <Text style={styles.topMistakeRank}>{index + 1}.</Text>
+                      <Text style={styles.topMistakeRank}>.{index + 1}</Text>
                     </View>
                   ))}
                 </View>
@@ -618,19 +624,19 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondaryLight,
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   statValue: {
     fontSize: 32,
     fontWeight: 'bold',
     color: Colors.primary,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: 'right',
   },
   statLabel: {
     fontSize: 14,
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   streakCard: {
@@ -663,8 +669,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textPrimary,
     marginBottom: 12,
-    textAlign: 'right',
+    textAlign: 'center',
     writingDirection: 'rtl',
+    width: '100%',
   },
   examCard: {
     backgroundColor: '#FFFFFF',
@@ -818,7 +825,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   masteryItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
@@ -828,19 +835,24 @@ const styles = StyleSheet.create({
   masteryIcon: {
     fontSize: 24,
   },
-  masteryLabel: {
+  masteryTextContainer: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 4,
     flex: 1,
+  },
+  masteryLabel: {
     fontSize: 16,
     color: Colors.textPrimary,
     textAlign: 'right',
     writingDirection: 'rtl',
+    flex: 1,
   },
   masteryValue: {
     fontSize: 20,
     fontWeight: 'bold',
     color: Colors.primary,
     textAlign: 'right',
-    marginHorizontal: 12,
   },
   mistakesCard: {
     backgroundColor: '#FFFFFF',
@@ -863,13 +875,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'right',
   },
   mistakeStatLabel: {
     fontSize: 12,
     color: Colors.textSecondary,
     marginTop: 4,
-    textAlign: 'center',
+    textAlign: 'right',
     writingDirection: 'rtl',
   },
   topMistakes: {
