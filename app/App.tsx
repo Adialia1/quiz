@@ -251,14 +251,11 @@ function AppContent() {
       } catch (error) {
         console.error('[STATUS CHECK] ❌ Error:', error);
 
-        // Network error or other exception - also log out for safety
-        console.log('[STATUS CHECK] 🔄 Error loading user - logging out for safety...');
-        await logout(); // Clear local storage
-        await signOut(); // Clear Clerk session
+        // Network error or other exception - DON'T log out, just skip this check
+        // The user might be offline or the API might be temporarily down
+        console.log('[STATUS CHECK] ⚠️  Network error - will retry on next mount');
 
-        // Reset state to show auth screen
-        setShowOnboarding(false);
-        setShowSubscriptionPaywall(false);
+        // Keep current auth state - don't force logout on network errors
       } finally {
         setIsCheckingStatus(false);
       }

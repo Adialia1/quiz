@@ -54,17 +54,32 @@ export const FlashcardStudyScreen: React.FC = () => {
     try {
       if (mode === 'single' && conceptId) {
         // Load single concept
+        console.log('Loading single concept:', conceptId);
         const response = await fetch(`${API_URL}/api/concepts/${conceptId}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+
         const data = await response.json();
+        console.log('Loaded concept:', data);
         setConcepts([data]);
       } else {
         // Load all concepts for topic
+        console.log('Loading concepts for topic:', topic);
         const response = await fetch(`${API_URL}/api/concepts/topics/${encodeURIComponent(topic)}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+
         const data = await response.json();
+        console.log('Loaded concepts:', data.length, 'items');
         setConcepts(data);
       }
     } catch (error) {
       console.error('Error loading concepts:', error);
+      setConcepts([]);
     } finally {
       setLoading(false);
     }
@@ -108,7 +123,7 @@ export const FlashcardStudyScreen: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: userId,
+            clerk_user_id: userId,
             concept_id: currentConcept.id,
           }),
         });
@@ -359,7 +374,7 @@ export const FlashcardStudyScreen: React.FC = () => {
             ]}
             disabled={currentIndex === 0}
           >
-            <Text style={styles.navButtonText}>←</Text>
+            <Text style={styles.navButtonText}>→</Text>
             <Text style={styles.navButtonLabel}>הקודם</Text>
           </Pressable>
 
@@ -371,7 +386,7 @@ export const FlashcardStudyScreen: React.FC = () => {
             ]}
             disabled={currentIndex === concepts.length - 1}
           >
-            <Text style={styles.navButtonText}>→</Text>
+            <Text style={styles.navButtonText}>←</Text>
             <Text style={styles.navButtonLabel}>הבא</Text>
           </Pressable>
         </View>

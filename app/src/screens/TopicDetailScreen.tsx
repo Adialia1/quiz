@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, TextInput, ActivityIndicator, FlatList } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { FlashList } from '@shopify/flash-list';
+// Temporarily using FlatList instead of FlashList to debug AutoLayoutView error
+// import { FlashList } from '@shopify/flash-list';
 import { Colors } from '../config/colors';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
@@ -49,11 +50,20 @@ export const TopicDetailScreen: React.FC = () => {
   const loadConcepts = async () => {
     try {
       const response = await fetch(`${API_URL}/api/concepts/topics/${encodeURIComponent(topic)}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
       const data = await response.json();
+      console.log('Loaded concepts:', data.length, 'items');
       setConcepts(data);
       setFilteredConcepts(data);
     } catch (error) {
       console.error('Error loading concepts:', error);
+      // Show error to user
+      setConcepts([]);
+      setFilteredConcepts([]);
     } finally {
       setLoading(false);
     }
@@ -149,10 +159,9 @@ export const TopicDetailScreen: React.FC = () => {
             <Text style={styles.emptyText}>לא נמצאו תוצאות</Text>
           </View>
         ) : (
-          <FlashList
+          <FlatList
             data={filteredConcepts}
             renderItem={renderConceptItem}
-            estimatedItemSize={80}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={styles.separator} />}

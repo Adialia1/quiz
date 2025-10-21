@@ -79,7 +79,7 @@ class SearchRequest(BaseModel):
 
 class FavoriteRequest(BaseModel):
     """Favorite request"""
-    user_id: str
+    clerk_user_id: str  # Clerk user ID (e.g., "user_...")
     concept_id: str
 
 
@@ -152,15 +152,27 @@ async def get_concepts_by_topic(
     limit: int = Query(100, ge=1, le=500, description="Max concepts to return")
 ):
     """
-    Get all concepts for a specific topic
+    Get all concepts for a specific topic (with caching)
 
     **Parameters:**
     - **topic**: Topic name (e.g., "מידע פנים")
     - **limit**: Maximum concepts to return (default: 100)
 
-    OPTIMIZED: Async database query
+    Cache: 1 hour TTL
+
+    OPTIMIZED: Async database query + Redis caching
     """
     try:
+        # Try to get from cache
+        cache_key = f"concepts:topic:{topic}:{limit}"
+        cached_concepts = await get_cached(cache_key)
+
+        if cached_concepts:
+            print(f"✅ Cache HIT: Concepts for topic '{topic}'")
+            return [Concept(**c) for c in cached_concepts]
+
+        print(f"❌ Cache MISS: Concepts for topic '{topic}'")
+
         # Async SELECT
         concepts = await fetch_all(
             "SELECT * FROM concepts WHERE topic = $1 LIMIT $2",
@@ -170,11 +182,42 @@ async def get_concepts_by_topic(
         if not concepts:
             raise HTTPException(status_code=404, detail=f"No concepts found for topic: {topic}")
 
-        return [Concept(**concept) for concept in concepts]
+        # Convert to list of Concept objects with proper type conversion
+        concept_objects = []
+        for concept in concepts:
+            # Convert types for Pydantic
+            concept_data = {
+                'id': str(concept['id']),  # Convert UUID to string
+                'topic': concept['topic'],
+                'title': concept['title'],
+                'explanation': concept['explanation'],
+                'example': concept.get('example'),
+                'key_points': concept.get('key_points') if isinstance(concept.get('key_points'), list) else [],
+                'source_document': concept.get('source_document'),
+                'source_page': concept.get('source_page'),
+                'created_at': concept.get('created_at').isoformat() if concept.get('created_at') else None
+            }
+            concept_objects.append(Concept(**concept_data))
+
+        # Convert to dict for caching
+        concepts_data = []
+        for c in concept_objects:
+            try:
+                # Try Pydantic v2 first
+                concepts_data.append(c.model_dump())
+            except AttributeError:
+                # Fallback to Pydantic v1
+                concepts_data.append(c.dict())
+
+        # Cache for 1 hour
+        await set_cached(cache_key, concepts_data, ttl_seconds=CacheTTL.LONG)
+
+        return concept_objects
 
     except HTTPException:
         raise
     except Exception as e:
+        print(f"❌ Error fetching concepts for topic '{topic}': {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching concepts: {str(e)}")
 
 
@@ -198,7 +241,20 @@ async def get_concept_by_id(concept_id: str):
         if not concept:
             raise HTTPException(status_code=404, detail=f"Concept not found: {concept_id}")
 
-        return Concept(**concept)
+        # Convert types for Pydantic
+        concept_data = {
+            'id': str(concept['id']),  # Convert UUID to string
+            'topic': concept['topic'],
+            'title': concept['title'],
+            'explanation': concept['explanation'],
+            'example': concept.get('example'),
+            'key_points': concept.get('key_points') if isinstance(concept.get('key_points'), list) else [],
+            'source_document': concept.get('source_document'),
+            'source_page': concept.get('source_page'),
+            'created_at': concept.get('created_at').isoformat() if concept.get('created_at') else None
+        }
+
+        return Concept(**concept_data)
 
     except HTTPException:
         raise
@@ -471,12 +527,17 @@ async def add_favorite(request: FavoriteRequest):
     Add a concept to user's favorites
 
     **Parameters:**
-    - **user_id**: User ID (from Clerk)
+    - **clerk_user_id**: User ID (from Clerk)
     - **concept_id**: Concept UUID
 
     OPTIMIZED: Async database queries
     """
     try:
+        # Convert Clerk user ID to internal database user ID
+        from api.routes.exams import get_user_by_clerk_id
+        user = await get_user_by_clerk_id(request.clerk_user_id)
+        user_id = str(user["id"])
+
         # Check if concept exists (async)
         concept = await fetch_one(
             "SELECT id FROM concepts WHERE id = $1",
@@ -493,7 +554,7 @@ async def add_favorite(request: FavoriteRequest):
                 INSERT INTO favorite_concepts (user_id, concept_id)
                 VALUES ($1, $2)
                 """,
-                request.user_id, request.concept_id
+                user_id, request.concept_id
             )
             return {"success": True, "message": "נוסף למועדפים"}
         except Exception as e:
@@ -508,18 +569,23 @@ async def add_favorite(request: FavoriteRequest):
         raise HTTPException(status_code=500, detail=f"Error adding favorite: {str(e)}")
 
 
-@router.delete("/favorites/{user_id}/{concept_id}")
-async def remove_favorite(user_id: str, concept_id: str):
+@router.delete("/favorites/{clerk_user_id}/{concept_id}")
+async def remove_favorite(clerk_user_id: str, concept_id: str):
     """
     Remove a concept from user's favorites
 
     **Parameters:**
-    - **user_id**: User ID (from Clerk)
+    - **clerk_user_id**: User ID (from Clerk)
     - **concept_id**: Concept UUID
 
     OPTIMIZED: Async database query
     """
     try:
+        # Convert Clerk user ID to internal database user ID
+        from api.routes.exams import get_user_by_clerk_id
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
+
         # Async DELETE
         await execute_query(
             """
@@ -535,13 +601,13 @@ async def remove_favorite(user_id: str, concept_id: str):
         raise HTTPException(status_code=500, detail=f"Error removing favorite: {str(e)}")
 
 
-@router.get("/favorites/{user_id}", response_model=List[Concept])
-async def get_user_favorites(user_id: str):
+@router.get("/favorites/{clerk_user_id}", response_model=List[Concept])
+async def get_user_favorites(clerk_user_id: str):
     """
     Get all favorite concepts for a user
 
     **Parameters:**
-    - **user_id**: User ID (from Clerk)
+    - **clerk_user_id**: User ID from Clerk (e.g., "user_...")
 
     **Returns:**
     - List of favorite concepts with full concept data
@@ -549,6 +615,11 @@ async def get_user_favorites(user_id: str):
     OPTIMIZED: Async database query with JOIN
     """
     try:
+        # Convert Clerk user ID to internal database user ID
+        from api.routes.exams import get_user_by_clerk_id
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
+
         # Get favorites with joined concept data (async)
         results = await fetch_all(
             """
@@ -561,19 +632,35 @@ async def get_user_favorites(user_id: str):
             user_id
         )
 
-        return [Concept(**concept) for concept in results]
+        # Convert types for Pydantic
+        concept_objects = []
+        for concept in results:
+            concept_data = {
+                'id': str(concept['id']),  # Convert UUID to string
+                'topic': concept['topic'],
+                'title': concept['title'],
+                'explanation': concept['explanation'],
+                'example': concept.get('example'),
+                'key_points': concept.get('key_points') if isinstance(concept.get('key_points'), list) else [],
+                'source_document': concept.get('source_document'),
+                'source_page': concept.get('source_page'),
+                'created_at': concept.get('created_at').isoformat() if concept.get('created_at') else None
+            }
+            concept_objects.append(Concept(**concept_data))
+
+        return concept_objects
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching favorites: {str(e)}")
 
 
-@router.get("/favorites/{user_id}/check/{concept_id}")
-async def check_favorite(user_id: str, concept_id: str):
+@router.get("/favorites/{clerk_user_id}/check/{concept_id}")
+async def check_favorite(clerk_user_id: str, concept_id: str):
     """
     Check if a concept is in user's favorites
 
     **Parameters:**
-    - **user_id**: User ID (from Clerk)
+    - **clerk_user_id**: User ID from Clerk (e.g., "user_...")
     - **concept_id**: Concept UUID
 
     **Returns:**
@@ -582,6 +669,11 @@ async def check_favorite(user_id: str, concept_id: str):
     OPTIMIZED: Async database query
     """
     try:
+        # Convert Clerk user ID to internal database user ID
+        from api.routes.exams import get_user_by_clerk_id
+        user = await get_user_by_clerk_id(clerk_user_id)
+        user_id = str(user["id"])
+
         # Check if favorite exists (async)
         count = await fetch_val(
             """

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ActivityIndicator, Alert, FlatList } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
-import { FlashList } from '@shopify/flash-list';
+// Temporarily using FlatList instead of FlashList to debug AutoLayoutView error
+// import { FlashList } from '@shopify/flash-list';
 import { Colors } from '../config/colors';
 import { practiceApi } from '../utils/practiceApi';
 import { usePracticeStore } from '../stores/practiceStore';
@@ -214,10 +215,9 @@ export const StarredConceptsScreen: React.FC = () => {
 
           {/* Favorites List */}
           <View style={styles.listContainer}>
-            <FlashList
+            <FlatList
               data={concepts}
               renderItem={renderConceptItem}
-              estimatedItemSize={100}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
