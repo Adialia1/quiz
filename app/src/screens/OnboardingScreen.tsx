@@ -182,7 +182,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const renderWelcome = () => (
     <View style={styles.pageContainer}>
       <Image
-        source={require('../../assets/logo.png')}
+        source={require('../../assets/icon.png')}
         style={styles.logoLarge}
         contentFit="contain"
       />

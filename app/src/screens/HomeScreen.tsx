@@ -157,7 +157,7 @@ export const HomeScreen: React.FC = () => {
           <View style={styles.headerContent}>
             {/* Logo - Right Side */}
             <Image
-              source={require('../../assets/logo.png')}
+              source={require('../../assets/icon.png')}
               style={styles.logo}
               contentFit="contain"
             />
