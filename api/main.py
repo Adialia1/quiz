@@ -21,20 +21,33 @@ from fastapi import Request
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from agent.agents.legal_expert import LegalExpertAgent
-from agent.agents.quiz_generator import QuizGeneratorAgent
-from agent.scripts.quiz_to_pdf import create_quiz_pdf_html
-from api.routes.users import router as users_router
-from api.routes.exams import router as exams_router
-from api.routes.chat import router as chat_router
-from api.routes.concepts import router as concepts_router
-from api.routes.notifications import router as notifications_router
-from api.routes.subscriptions import router as subscriptions_router
-from api.routes.progress import router as progress_router
-from api.routes.documents import router as documents_router
-from api.routes.admin import router as admin_router
-from api.utils.cache import get_redis, close_redis
-from api.utils.database import get_db_pool, close_db_pool, test_connection
+# Import routers (these should be safe to import)
+try:
+    from api.routes.users import router as users_router
+    from api.routes.exams import router as exams_router
+    from api.routes.chat import router as chat_router
+    from api.routes.concepts import router as concepts_router
+    from api.routes.notifications import router as notifications_router
+    from api.routes.subscriptions import router as subscriptions_router
+    from api.routes.progress import router as progress_router
+    from api.routes.documents import router as documents_router
+    from api.routes.admin import router as admin_router
+    from api.utils.cache import get_redis, close_redis
+    from api.utils.database import get_db_pool, close_db_pool, test_connection
+    ROUTES_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️  Warning: Could not import routes: {e}")
+    print("⚠️  Running in minimal mode - only health endpoint available")
+    ROUTES_AVAILABLE = False
+    # Create dummy functions
+    get_redis = lambda: None
+    close_redis = lambda: None
+    get_db_pool = lambda: None
+    close_db_pool = lambda: None
+    test_connection = lambda: None
+
+# Agent imports are lazy-loaded only when needed (not at module level)
+# This prevents import errors from crashing the entire app
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -94,18 +107,28 @@ async def performance_monitoring_middleware(request: Request, call_next):
 # Mount static files directory
 STATIC_DIR = Path(__file__).parent / "static"
 STATIC_DIR.mkdir(exist_ok=True)
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+try:
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+except Exception as e:
+    print(f"⚠️  Warning: Could not mount static files: {e}")
 
-# Include routers
-app.include_router(users_router)
-app.include_router(exams_router)
-app.include_router(chat_router)
-app.include_router(concepts_router)
-app.include_router(notifications_router)
-app.include_router(subscriptions_router)
-app.include_router(progress_router)
-app.include_router(documents_router)
-app.include_router(admin_router)
+# Include routers (only if available)
+if ROUTES_AVAILABLE:
+    try:
+        app.include_router(users_router)
+        app.include_router(exams_router)
+        app.include_router(chat_router)
+        app.include_router(concepts_router)
+        app.include_router(notifications_router)
+        app.include_router(subscriptions_router)
+        app.include_router(progress_router)
+        app.include_router(documents_router)
+        app.include_router(admin_router)
+        print("✅ All routers loaded successfully")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not include some routers: {e}")
+else:
+    print("⚠️  Running without routers - minimal health check mode")
 
 # Initialize agents (singleton pattern)
 legal_expert = None
@@ -113,18 +136,30 @@ quiz_generator = None
 
 
 def get_legal_expert():
-    """Get or initialize Legal Expert Agent"""
+    """Get or initialize Legal Expert Agent (lazy-loaded)"""
     global legal_expert
     if legal_expert is None:
-        legal_expert = LegalExpertAgent()
+        try:
+            from agent.agents.legal_expert import LegalExpertAgent
+            legal_expert = LegalExpertAgent()
+            print("✅ Legal Expert Agent initialized")
+        except Exception as e:
+            print(f"❌ Failed to initialize Legal Expert Agent: {e}")
+            raise HTTPException(status_code=500, detail=f"Legal Expert Agent unavailable: {str(e)}")
     return legal_expert
 
 
 def get_quiz_generator():
-    """Get or initialize Quiz Generator Agent"""
+    """Get or initialize Quiz Generator Agent (lazy-loaded)"""
     global quiz_generator
     if quiz_generator is None:
-        quiz_generator = QuizGeneratorAgent()
+        try:
+            from agent.agents.quiz_generator import QuizGeneratorAgent
+            quiz_generator = QuizGeneratorAgent()
+            print("✅ Quiz Generator Agent initialized")
+        except Exception as e:
+            print(f"❌ Failed to initialize Quiz Generator Agent: {e}")
+            raise HTTPException(status_code=500, detail=f"Quiz Generator Agent unavailable: {str(e)}")
     return quiz_generator
 
 
@@ -372,9 +407,14 @@ async def generate_full_quiz(request: GenerateFullQuizRequest):
                 json.dump(quizzes[0], tmp_json, ensure_ascii=False, indent=2)
                 json_path = tmp_json.name
 
-            # Create PDF
-            pdf_path = json_path.replace('.json', '.pdf')
-            create_quiz_pdf_html(json_path, pdf_path)
+            # Create PDF (lazy-load PDF creation module)
+            try:
+                from agent.scripts.quiz_to_pdf import create_quiz_pdf_html
+                pdf_path = json_path.replace('.json', '.pdf')
+                create_quiz_pdf_html(json_path, pdf_path)
+            except Exception as e:
+                os.remove(json_path)
+                raise HTTPException(status_code=500, detail=f"PDF generation unavailable: {str(e)}")
 
             # Clean up JSON file
             os.remove(json_path)
@@ -502,34 +542,37 @@ async def startup_event():
     print("🏥 Health endpoint ready immediately for Railway healthcheck")
 
     # Initialize async database connection pool (optional - non-blocking)
-    print("📊 Initializing async database connection pool in background...")
-    try:
-        pool = await get_db_pool()
-        if pool:
-            print("✅ Async database pool ready")
-            # Test connection
-            try:
-                await test_connection()
-                print("✅ Database connection tested successfully")
-            except Exception as e:
-                print(f"⚠️  Database test failed: {e}")
-        else:
-            print("⚠️  Running without async database pool")
-    except Exception as e:
-        print(f"⚠️  Warning: Could not initialize database pool: {e}")
-        print("⚠️  Falling back to synchronous database operations")
+    if ROUTES_AVAILABLE:
+        print("📊 Initializing async database connection pool in background...")
+        try:
+            pool = await get_db_pool()
+            if pool:
+                print("✅ Async database pool ready")
+                # Test connection
+                try:
+                    await test_connection()
+                    print("✅ Database connection tested successfully")
+                except Exception as e:
+                    print(f"⚠️  Database test failed: {e}")
+            else:
+                print("⚠️  Running without async database pool")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not initialize database pool: {e}")
+            print("⚠️  Falling back to synchronous database operations")
 
-    # Initialize Redis cache (optional - non-blocking)
-    print("📦 Initializing Redis cache in background...")
-    try:
-        redis = await get_redis()
-        if redis:
-            print("✅ Redis cache ready")
-        else:
+        # Initialize Redis cache (optional - non-blocking)
+        print("📦 Initializing Redis cache in background...")
+        try:
+            redis = await get_redis()
+            if redis:
+                print("✅ Redis cache ready")
+            else:
+                print("⚠️  Running without cache layer")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not initialize Redis: {e}")
             print("⚠️  Running without cache layer")
-    except Exception as e:
-        print(f"⚠️  Warning: Could not initialize Redis: {e}")
-        print("⚠️  Running without cache layer")
+    else:
+        print("⚠️  Skipping database/cache initialization in minimal mode")
 
     # Note: Agents are initialized LAZILY on first use, not during startup
     # This ensures Railway's healthcheck passes quickly
@@ -543,12 +586,22 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     print("👋 Shutting down API...")
 
-    # Close async database pool
-    await close_db_pool()
+    # Close async database pool (if available)
+    if ROUTES_AVAILABLE:
+        try:
+            await close_db_pool()
+            print("✅ Database pool closed")
+        except Exception as e:
+            print(f"⚠️  Could not close database pool: {e}")
 
-    # Close Redis connection
-    await close_redis()
-    print("✅ All connections closed")
+        # Close Redis connection (if available)
+        try:
+            await close_redis()
+            print("✅ Redis connection closed")
+        except Exception as e:
+            print(f"⚠️  Could not close Redis: {e}")
+
+    print("✅ Shutdown complete")
 
 
 if __name__ == "__main__":
