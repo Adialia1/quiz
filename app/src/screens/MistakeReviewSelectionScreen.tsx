@@ -70,8 +70,16 @@ export const MistakeReviewSelectionScreen: React.FC = () => {
     try {
       setCreatingSession(true);
 
-      // Determine question count
-      const questionCount = topicName ? 10 : 25; // 10 for specific topic, 25 for all
+      // Determine question count based on available mistakes
+      let questionCount: number;
+      if (topicName) {
+        // For specific topic: use min of 10 or topic's mistake count
+        const topic = topics.find(t => t.name === topicName);
+        questionCount = Math.min(10, topic?.mistake_count || 10);
+      } else {
+        // For all topics: use min of 25 or total unresolved mistakes
+        questionCount = Math.min(25, analytics?.unresolved || 25);
+      }
 
       // Create review session via mistakeApi
       const session = await mistakeApi.createMistakeReviewSession(topicName, questionCount, getToken);

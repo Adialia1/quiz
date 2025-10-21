@@ -552,7 +552,7 @@ async def get_mistake_topics(
                 accuracy_percentage=round(accuracy, 1),
                 priority=priority,
                 priority_emoji=emoji,
-                last_mistake_date=data['last_date']
+                last_mistake_date=data['last_date'].isoformat() if data['last_date'] else datetime.now().isoformat()
             ))
 
         # Sort by priority score (descending)
@@ -629,7 +629,7 @@ async def get_mistake_analytics(
 
         # Get progress this week (async)
         from datetime import datetime, timedelta
-        week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+        week_ago = datetime.now() - timedelta(days=7)  # Keep as datetime object, not string
 
         recent_resolved = await fetch_val(
             """
