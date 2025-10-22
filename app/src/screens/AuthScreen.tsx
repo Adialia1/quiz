@@ -9,10 +9,12 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useSignIn, useSignUp } from '@clerk/clerk-expo';
+import { useSignIn, useSignUp, useOAuth } from '@clerk/clerk-expo';
 import { useAuthStore } from '../stores/authStore';
 import { Colors } from '../config/colors';
+import * as WebBrowser from 'expo-web-browser';
 
 interface AuthScreenProps {
   onAuthSuccess: () => void;
@@ -56,6 +58,9 @@ const translateClerkError = (errorMessage: string): string => {
   return 'שגיאה בתהליך. אנא נסה שוב';
 };
 
+// Complete OAuth sign-in/up flow
+WebBrowser.maybeCompleteAuthSession();
+
 /**
  * מסך התחברות והרשמה
  * Authentication Screen (Login & Register)
@@ -67,6 +72,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [error, setError] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
@@ -74,6 +80,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
   const { signIn, setActive: setActiveSignIn } = useSignIn();
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const { login } = useAuthStore();
+
+  // OAuth hooks for social login
+  const googleOAuth = useOAuth({ strategy: 'oauth_google' });
+  const appleOAuth = useOAuth({ strategy: 'oauth_apple' });
 
   // התחברות - Login
   const handleLogin = async () => {
@@ -227,6 +237,51 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
     setError('');
     setPendingVerification(false);
     setVerificationCode('');
+  };
+
+  // Social Login Handlers
+  const handleSocialLogin = async (strategy: 'google' | 'apple') => {
+    try {
+      setSocialLoading(strategy);
+      setError('');
+
+      const oAuthFlow = strategy === 'google' ? googleOAuth : appleOAuth;
+
+      // Start OAuth flow
+      const { createdSessionId, setActive } = await oAuthFlow.startOAuthFlow();
+
+      if (createdSessionId) {
+        // OAuth successful
+        await setActive?.({ session: createdSessionId });
+
+        // Get user info and save to store
+        await login({
+          id: createdSessionId,
+          email: '',  // Will be filled by Clerk
+          firstName: '',
+          lastName: '',
+        });
+
+        console.log(`✅ ${strategy} sign-in successful`);
+        onAuthSuccess();
+      }
+    } catch (err: any) {
+      console.error(`❌ ${strategy} sign-in error:`, err);
+
+      // Handle specific OAuth errors
+      if (err.message?.includes('cancelled')) {
+        // User cancelled - don't show error
+        return;
+      }
+
+      setError(
+        strategy === 'google'
+          ? 'שגיאה בהתחברות עם Google'
+          : 'שגיאה בהתחברות עם Apple'
+      );
+    } finally {
+      setSocialLoading(null);
+    }
   };
 
   return (
@@ -389,6 +444,63 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
             )}
           </Pressable>
 
+          {/* Social Login Section */}
+          <View style={styles.socialSection}>
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>או</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign In */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.socialButton,
+                pressed && styles.socialButtonPressed,
+                socialLoading === 'google' && styles.buttonDisabled,
+              ]}
+              onPress={() => handleSocialLogin('google')}
+              disabled={socialLoading !== null}
+            >
+              {socialLoading === 'google' ? (
+                <ActivityIndicator color="#4285F4" />
+              ) : (
+                <>
+                  <Text style={styles.googleIcon}>G</Text>
+                  <Text style={styles.socialButtonText}>
+                    {isLogin ? 'התחבר עם Google' : 'הירשם עם Google'}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            {/* Apple Sign In - Only on iOS */}
+            {Platform.OS === 'ios' && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.socialButton,
+                  styles.appleButton,
+                  pressed && styles.socialButtonPressed,
+                  socialLoading === 'apple' && styles.buttonDisabled,
+                ]}
+                onPress={() => handleSocialLogin('apple')}
+                disabled={socialLoading !== null}
+              >
+                {socialLoading === 'apple' ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Text style={styles.appleIcon}></Text>
+                    <Text style={styles.appleButtonText}>
+                      {isLogin ? 'התחבר עם Apple' : 'הירשם עם Apple'}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            )}
+          </View>
+
           {/* מעבר בין מצבים */}
           <View style={styles.toggleContainer}>
             <Pressable onPress={toggleMode}>
@@ -517,5 +629,63 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.gray[600],
     textDecorationLine: 'underline',
+  },
+  socialSection: {
+    width: '100%',
+    marginTop: 20,
+    gap: 12,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: '#757575',
+    fontSize: 14,
+  },
+  socialButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    width: '100%',
+    gap: 8,
+  },
+  socialButtonPressed: {
+    backgroundColor: '#F5F5F5',
+  },
+  appleButton: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  socialButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#424242',
+  },
+  appleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+  },
+  appleIcon: {
+    fontSize: 20,
+    color: '#FFFFFF',
   },
 });
