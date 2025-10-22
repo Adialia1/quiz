@@ -103,7 +103,7 @@ export const PLAN_DETAILS = {
     title: 'חודשי',
     titleEnglish: 'Monthly',
     price: 39,
-    priceDisplay: '₪39',  // Changed to Shekels
+    priceDisplay: '$39',
     period: 'לחודש',
     periodEnglish: 'per month',
     trialDays: 3,
@@ -117,11 +117,11 @@ export const PLAN_DETAILS = {
     title: '3 חודשים',
     titleEnglish: '3 Months',
     price: 99,
-    priceDisplay: '₪99',  // Changed to Shekels
+    priceDisplay: '$99',
     period: 'ל-3 חודשים',
     periodEnglish: 'per 3 months',
     pricePerMonth: 33,
-    pricePerMonthDisplay: '₪33',  // Changed to Shekels
+    pricePerMonthDisplay: '$33',
     trialDays: 0,
     trialText: null,
     savings: 18,
