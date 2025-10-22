@@ -269,7 +269,7 @@ function AppContent() {
     return (
       <View style={styles.loadingContainer}>
         <Image
-          source={require('./assets/logo.png')}
+          source={require('./assets/icon.png.jpeg')}
           style={styles.loadingLogo}
           contentFit="contain"
           transition={200}

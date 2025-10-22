@@ -108,7 +108,7 @@ export const ChangePasswordScreen: React.FC = () => {
             <VStack space="md" alignItems="center">
               <Box style={styles.logoWrapper}>
                 <Image
-                  source={require('../../assets/logo2.png')}
+                  source={require('../../assets/icon.png.jpeg')}
                   style={styles.logo}
                   contentFit="contain"
                 />
