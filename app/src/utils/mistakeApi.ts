@@ -3,7 +3,9 @@
  * API calls for reviewing and resolving mistakes
  */
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import Constants from 'expo-constants';
+
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://quiz-production-d042.up.railway.app';
 
 /**
  * Get auth token - must be called from React component
