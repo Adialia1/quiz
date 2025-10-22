@@ -4,7 +4,7 @@
 import Constants from 'expo-constants';
 
 // Get API URL from environment variable
-export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://accepted-awfully-bug.ngrok-free.app';
+export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://quiz-production-d042.up.railway.app';
 
 // API endpoints
 export const API_ENDPOINTS = {

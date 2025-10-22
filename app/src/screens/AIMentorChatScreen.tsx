@@ -18,6 +18,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
 import { Colors } from '../config/colors';
 import { aiChatApi } from '../utils/aiChatApi';
+import { useTokenRefresh } from '../hooks/useTokenRefresh';
 import { useChatStore } from '../stores/chatStore';
 import { ChatMessage } from '../components/chat/ChatMessage';
 import { ChatInput } from '../components/chat/ChatInput';
@@ -34,6 +35,7 @@ export const AIMentorChatScreen: React.FC = () => {
   const route = useRoute();
   const { conversationId } = (route.params as RouteParams) || {};
   const { getToken } = useAuth();
+  const { refreshTokenManually } = useTokenRefresh();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const {
@@ -160,7 +162,21 @@ export const AIMentorChatScreen: React.FC = () => {
         }
       } catch (error: any) {
         console.error('Polling error:', error);
-        // Don't stop polling on error, might be temporary network issue
+
+        // Check if it's a token expiration error
+        if (error.message && error.message.includes('expired')) {
+          console.log('Token expired, stopping polling. User needs to refresh.');
+          setIsThinking(false);
+          setSendingMessage(false);
+          Alert.alert('פג תוקף החיבור', 'אנא צא ונכנס שוב לאפליקציה');
+
+          // Stop polling on auth errors
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+        // For other errors, continue polling (might be temporary network issue)
       }
     }, 2000); // Poll every 2 seconds
   };
@@ -231,7 +247,18 @@ export const AIMentorChatScreen: React.FC = () => {
       startPollingForResponse(response.conversation_id, response.message.id);
     } catch (error: any) {
       console.error('Error sending message:', error);
-      Alert.alert('שגיאה', error.message || 'לא הצלחנו לשלוח את ההודעה. נסה שוב.');
+
+      // Check for token expiration
+      if (error.message && (error.message.includes('expired') || error.message.includes('Invalid token'))) {
+        Alert.alert(
+          'פג תוקף החיבור',
+          'אנא צא מהאפליקציה ונכנס שוב כדי לרענן את החיבור.',
+          [{ text: 'אישור' }]
+        );
+      } else {
+        Alert.alert('שגיאה', error.message || 'לא הצלחנו לשלוח את ההודעה. נסה שוב.');
+      }
+
       setSendingMessage(false);
       setIsThinking(false);
       setThinkingText('מחפש מקורות...'); // Reset to initial state

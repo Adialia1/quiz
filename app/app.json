@@ -43,7 +43,7 @@
       "eas": {
         "projectId": "c4d773b3-b1ec-40d7-9c5c-6d8af489b238"
       },
-      "apiUrl": "https://accepted-awfully-bug.ngrok-free.app"
+      "apiUrl": "https://quiz-production-d042.up.railway.app"
     },
     "plugins": [
       "expo-secure-store",
