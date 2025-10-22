@@ -1,6 +1,6 @@
 -- Migration 009: Create AI Chat Tables
 -- Run this in Supabase SQL Editor
--- For "מרצה AI" feature
+-- For "מרצה חכם" feature
 
 -- Chat Sessions
 CREATE TABLE ai_chat_sessions (
