@@ -67,7 +67,10 @@ export const initializeRevenueCat = async (userId?: string) => {
       console.error = originalConsoleError;
     }, 1000);
 
-    console.log('💰 RevenueCat configured for:', __DEV__ ? 'SANDBOX/TEST' : 'PRODUCTION');
+    // Check if we're in production mode
+    const isProduction = !__DEV__ && !process.env.EXPO_PUBLIC_USE_SANDBOX;
+
+    console.log('💰 RevenueCat configured for:', isProduction ? 'PRODUCTION' : 'SANDBOX/TEST');
 
     isRevenueCatInitialized = true;
     console.log('✅ RevenueCat initialized successfully');
@@ -100,7 +103,7 @@ export const PLAN_DETAILS = {
     title: 'חודשי',
     titleEnglish: 'Monthly',
     price: 39,
-    priceDisplay: '$39',
+    priceDisplay: '₪39',  // Changed to Shekels
     period: 'לחודש',
     periodEnglish: 'per month',
     trialDays: 3,
@@ -114,15 +117,15 @@ export const PLAN_DETAILS = {
     title: '3 חודשים',
     titleEnglish: '3 Months',
     price: 99,
-    priceDisplay: '$99',
+    priceDisplay: '₪99',  // Changed to Shekels
     period: 'ל-3 חודשים',
     periodEnglish: 'per 3 months',
     pricePerMonth: 33,
-    pricePerMonthDisplay: '$33',
+    pricePerMonthDisplay: '₪33',  // Changed to Shekels
     trialDays: 0,
     trialText: null,
     savings: 18,
-    savingsPercent: 15.4, // ~17% discount
+    savingsPercent: 15.4, // ~15% discount
     popular: true,
     badge: 'הכי משתלם! 🎉',
   },
