@@ -94,12 +94,8 @@ export const TopicSelectionScreen: React.FC = () => {
             {/* Title */}
             <Text style={styles.headerTitle}>מושגים וחוקים</Text>
 
-            {/* Logo */}
-            <Image
-              source={require('../../assets/icon.png')}
-              style={styles.logo}
-              contentFit="contain"
-            />
+            {/* Empty space for alignment */}
+            <View style={{ width: 40 }} />
           </View>
         </View>
 

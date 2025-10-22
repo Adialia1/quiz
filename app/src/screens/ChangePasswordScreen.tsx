@@ -106,13 +106,6 @@ export const ChangePasswordScreen: React.FC = () => {
 
             {/* Header */}
             <VStack space="md" alignItems="center">
-              <Box style={styles.logoWrapper}>
-                <Image
-                  source={require('../../assets/icon.png.jpeg')}
-                  style={styles.logo}
-                  contentFit="contain"
-                />
-              </Box>
               <Text style={styles.title}>שינוי סיסמה</Text>
               <Text style={styles.subtitle}>
                 הזן את הסיסמה הנוכחית והסיסמה החדשה

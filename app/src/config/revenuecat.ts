@@ -22,62 +22,49 @@ export const initializeRevenueCat = async (userId?: string) => {
     // Prevent multiple initializations
     if (isRevenueCatInitialized) {
       console.log('⚠️ RevenueCat already initialized, skipping...');
-
-      // If user ID is provided, login the user
-      if (userId) {
-        await Purchases.logIn(userId);
-        console.log('✅ RevenueCat user logged in:', userId);
-      }
-
       return;
     }
 
     if (!REVENUECAT_API_KEY) {
-      console.warn('RevenueCat API key is not configured');
+      console.warn('⚠️ RevenueCat API key is not configured');
       return;
     }
 
-    // Enable debug logs in development (but not verbose to reduce noise)
-    if (__DEV__) {
-      Purchases.setLogLevel(LOG_LEVEL.INFO); // Changed from DEBUG to INFO to reduce noise
+    // Check if running in Expo Go - RevenueCat doesn't work in Expo Go
+    const isExpoGo = Constants.appOwnership === 'expo';
+    if (isExpoGo) {
+      console.log('🔧 Running in Expo Go - RevenueCat initialization skipped');
+      console.log('💡 To test subscriptions, create a development build with: eas build --profile development');
+      isRevenueCatInitialized = true; // Mark as initialized to prevent repeated attempts
+      return;
     }
 
-    // Suppress the "window.location.search" error in Expo Go
-    // This is a known issue when using RevenueCat in development
-    const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
-      if (
-        typeof args[0] === 'string' &&
-        (args[0].includes('Cannot read property \'search\' of undefined') ||
-         args[0].includes('Error while tracking event sdk_initialized'))
-      ) {
-        // Suppress this specific error
-        return;
-      }
-      originalConsoleError(...args);
-    };
+    console.log('[RevenueCat] Starting initialization...');
+    console.log('[RevenueCat] API Key:', REVENUECAT_API_KEY.substring(0, 10) + '...');
+    console.log('[RevenueCat] User ID:', userId || 'anonymous');
 
-    // Configure SDK
+    // Enable debug logs in development
+    if (__DEV__) {
+      Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    }
+
+    // Configure SDK with user ID
     Purchases.configure({
       apiKey: REVENUECAT_API_KEY,
-      appUserID: userId, // Optional - pass Clerk user ID
+      appUserID: userId, // Pass Clerk user ID directly
       usesStoreKit2IfAvailable: false, // Use StoreKit 1 for better sandbox testing
     });
 
-    // Restore console.error after a brief delay
-    setTimeout(() => {
-      console.error = originalConsoleError;
-    }, 1000);
+    isRevenueCatInitialized = true;
 
     // Check if we're in production mode
-    const isProduction = !__DEV__ && !process.env.EXPO_PUBLIC_USE_SANDBOX;
-
+    const isProduction = !__DEV__;
     console.log('💰 RevenueCat configured for:', isProduction ? 'PRODUCTION' : 'SANDBOX/TEST');
-
-    isRevenueCatInitialized = true;
     console.log('✅ RevenueCat initialized successfully');
   } catch (error) {
     console.error('❌ Failed to initialize RevenueCat:', error);
+    // Reset flag so it can retry
+    isRevenueCatInitialized = false;
   }
 };
 

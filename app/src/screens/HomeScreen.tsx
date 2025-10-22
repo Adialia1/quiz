@@ -155,25 +155,16 @@ export const HomeScreen: React.FC = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            {/* Logo - Right Side */}
-            <Image
-              source={require('../../assets/icon.png')}
-              style={styles.logo}
-              contentFit="contain"
-            />
+            {/* Personalized Greeting */}
+            {greeting && (
+              <Text style={styles.greetingText}>{greeting}</Text>
+            )}
 
             {/* Menu Icon - Left Side */}
             <Pressable onPress={() => setIsDrawerOpen(true)} style={styles.menuButton}>
               <Text style={styles.menuIcon}>☰</Text>
             </Pressable>
           </View>
-
-          {/* Personalized Greeting */}
-          {greeting && (
-            <View style={styles.greetingContainer}>
-              <Text style={styles.greetingText}>{greeting}</Text>
-            </View>
-          )}
         </View>
 
         {/* Menu Grid */}
@@ -184,7 +175,7 @@ export const HomeScreen: React.FC = () => {
           </View>
           <View style={styles.menuRow}>
             <MenuCard title="חזרה על טעויות" iconSource={require('../../assets/close.png')} onPress={() => handleMenuPress('review-mistakes')} />
-            <MenuCard title="מרצה AI" iconSource={require('../../assets/owl.png')} onPress={() => handleMenuPress('ai-instructor')} />
+            <MenuCard title="מרצה חכם" iconSource={require('../../assets/owl.png')} onPress={() => handleMenuPress('ai-instructor')} />
           </View>
           <View style={styles.menuRow}>
             <MenuCard title="מושגים וחוקים" iconSource={require('../../assets/law.png')} onPress={() => handleMenuPress('concepts-laws')} />
@@ -214,7 +205,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 24,
+    paddingBottom: 32,
     backgroundColor: Colors.background,
   },
   headerContent: {
@@ -228,8 +219,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start', // In RTL, flex-start is the right side
   },
   greetingText: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: '700',
     color: Colors.black,
     textAlign: 'right',
   },

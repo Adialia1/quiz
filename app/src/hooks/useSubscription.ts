@@ -1,8 +1,12 @@
 import { useEffect, useCallback } from 'react';
 import Purchases, { CustomerInfo, PurchasesOfferings } from 'react-native-purchases';
+import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscriptionStore';
 import { SubscriptionInfo, AvailablePackage } from '../types/subscription';
 import { ENTITLEMENT_ID, SUBSCRIPTION_PLANS } from '../config/revenuecat';
+
+// Check if running in Expo Go
+const isExpoGo = Constants.appOwnership === 'expo';
 
 /**
  * Custom hook for managing subscriptions with RevenueCat
@@ -94,6 +98,13 @@ export const useSubscription = () => {
    * Fetch current subscription status
    */
   const fetchSubscriptionStatus = useCallback(async () => {
+    // Skip if running in Expo Go
+    if (isExpoGo) {
+      console.log('[SUBSCRIPTION] Skipping fetch in Expo Go');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const customerInfo = await Purchases.getCustomerInfo();
@@ -111,6 +122,12 @@ export const useSubscription = () => {
    * Get available offerings/packages
    */
   const getOfferings = useCallback(async (): Promise<AvailablePackage[]> => {
+    // Skip if running in Expo Go
+    if (isExpoGo) {
+      console.log('[SUBSCRIPTION] Skipping offerings in Expo Go');
+      return [];
+    }
+
     try {
       const offerings = await Purchases.getOfferings();
 

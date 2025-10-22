@@ -118,7 +118,7 @@ export const AIMentorChatScreen: React.FC = () => {
     console.log('Starting polling for message:', messageId);
 
     let pollAttempts = 0;
-    const maxAttempts = 60; // 60 attempts * 2 seconds = 2 minutes max
+    const maxAttempts = 60; // 60 attempts * 5 seconds = 5 minutes max (increased for AI responses)
 
     // Clear any existing polling
     if (pollingIntervalRef.current) {
@@ -130,8 +130,11 @@ export const AIMentorChatScreen: React.FC = () => {
       console.log(`Polling attempt ${pollAttempts} for message ${messageId}`);
 
       try {
-        // Fetch latest messages
-        const msgs = await aiChatApi.getConversationMessages(convId, getToken);
+        // Get a fresh token for each poll attempt to avoid expiration
+        const freshToken = await getToken({ template: 'default' });
+
+        // Fetch latest messages with fresh token
+        const msgs = await aiChatApi.getConversationMessages(convId, async () => freshToken);
 
         // Find the message we're waiting for
         const updatedMessage = msgs.find((m) => m.id === messageId);
@@ -178,7 +181,7 @@ export const AIMentorChatScreen: React.FC = () => {
         }
         // For other errors, continue polling (might be temporary network issue)
       }
-    }, 2000); // Poll every 2 seconds
+    }, 5000); // Poll every 5 seconds
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -283,7 +286,7 @@ export const AIMentorChatScreen: React.FC = () => {
           </Pressable>
 
           <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>מרצה AI</Text>
+            <Text style={styles.headerTitle}>מרצה חכם</Text>
             {currentConversation && (
               <Text style={styles.headerSubtitle} numberOfLines={1}>
                 {currentConversation.title}
@@ -311,7 +314,7 @@ export const AIMentorChatScreen: React.FC = () => {
             /* Welcome Message */
             <View style={styles.welcomeContainer}>
               <Text style={styles.welcomeIcon}>👨‍🏫</Text>
-              <Text style={styles.welcomeTitle}>שלום! אני מרצה AI</Text>
+              <Text style={styles.welcomeTitle}>שלום! אני מרצה חכם</Text>
               <Text style={styles.welcomeSubtitle}>
                 אני כאן לעזור לך עם שאלות על החומר, חוקים, מושגים ועוד.{'\n'}
                 שאל אותי כל שאלה!

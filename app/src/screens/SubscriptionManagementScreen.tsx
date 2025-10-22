@@ -229,13 +229,6 @@ export const SubscriptionManagementScreen: React.FC = () => {
 
             {/* Header */}
             <VStack space="md" alignItems="center">
-              <Box style={styles.logoWrapper}>
-                <Image
-                  source={require('../../assets/icon.png.jpeg')}
-                  style={styles.logo}
-                  contentFit="contain"
-                />
-              </Box>
               <Text style={styles.title}>ניהול המנוי שלך</Text>
               <Text style={styles.subtitle}>
                 {isPremium ? 'המנוי שלך פעיל ומאפשר לך גישה מלאה' :

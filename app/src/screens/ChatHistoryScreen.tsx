@@ -152,7 +152,7 @@ export const ChatHistoryScreen: React.FC = () => {
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>←</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>שיחות עם מרצה AI</Text>
+        <Text style={styles.headerTitle}>שיחות עם מרצה חכם</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -173,7 +173,7 @@ export const ChatHistoryScreen: React.FC = () => {
           <Text style={styles.emptyIcon}>💬</Text>
           <Text style={styles.emptyTitle}>אין שיחות עדיין</Text>
           <Text style={styles.emptySubtitle}>
-            התחל שיחה חדשה עם מרצה AI לשאול שאלות על החומר
+            התחל שיחה חדשה עם מרצה חכם לשאול שאלות על החומר
           </Text>
           <Pressable onPress={handleNewChat} style={styles.emptyButton}>
             <Text style={styles.emptyButtonText}>התחל שיחה</Text>

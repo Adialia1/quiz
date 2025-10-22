@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ScrollView, Alert, StyleSheet, View, Dimensions } from 'react-native';
+import Constants from 'expo-constants';
+import { useClerk } from '@clerk/clerk-expo';
 import {
   Box,
   VStack,
@@ -14,11 +16,13 @@ import {
 import { Check, X } from 'lucide-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAuthStore } from '../stores/authStore';
 import { PLAN_DETAILS, SUBSCRIPTION_PLANS } from '../config/revenuecat';
 import type { SubscriptionPlanId } from '../config/revenuecat';
 import { Colors } from '../config/colors';
 
 const { width, height } = Dimensions.get('window');
+const isExpoGo = Constants.appOwnership === 'expo';
 
 interface SubscriptionPlansScreenProps {
   onComplete?: () => void;
@@ -46,6 +50,9 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
   const { getOfferings, purchaseSubscription, restorePurchases, error, clearError } =
     useSubscription();
 
+  const { signOut } = useClerk();
+  const { logout } = useAuthStore();
+
   // Load available packages
   useEffect(() => {
     loadPackages();
@@ -62,6 +69,21 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
 
   // Handle purchase
   const handlePurchase = async () => {
+    // In Expo Go, skip directly to the app (for UI testing)
+    if (isExpoGo) {
+      Alert.alert(
+        'מצב פיתוח',
+        'התשלומים זמינים רק באפליקציה הסופית. נכנס לאפליקציה בינתיים...',
+        [
+          {
+            text: 'אישור',
+            onPress: () => onComplete?.()
+          }
+        ]
+      );
+      return;
+    }
+
     setIsLoading(true);
     clearError();
 
@@ -117,6 +139,69 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
     }
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    Alert.alert(
+      'התנתקות',
+      'האם אתה בטוח שברצונך להתנתק?',
+      [
+        {
+          text: 'ביטול',
+          style: 'cancel'
+        },
+        {
+          text: 'התנתק',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsLoading(true);
+              await logout(); // Clear local storage
+              await signOut(); // Clear Clerk session
+              console.log('[LOGOUT] User logged out from subscription screen');
+            } catch (error) {
+              console.error('[LOGOUT] Error:', error);
+              Alert.alert('שגיאה', 'אירעה שגיאה בהתנתקות');
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Show development message in Expo Go - commented out for UI development
+  // if (isExpoGo) {
+  //   return (
+  //     <Box flex={1} bg="$white" p="$6" justifyContent="center">
+  //       <VStack space="lg" alignItems="center">
+  //         <Text fontSize="$2xl" fontWeight="$bold" textAlign="center" color="$primary600">
+  //           🔧 מצב פיתוח
+  //         </Text>
+  //         <Text fontSize="$lg" textAlign="center" color="$textLight700">
+  //           המנויים זמינים רק באפליקציה הסופית.{'\n'}
+  //           לבינתיים, תוכל לדלג על שלב זה.
+  //         </Text>
+  //         <Text fontSize="$sm" textAlign="center" color="$textLight500" mt="$4">
+  //           כדי לבדוק מנויים, בנה את האפליקציה עם:{'\n'}
+  //           eas build --profile development
+  //         </Text>
+  //         <Button
+  //           size="xl"
+  //           bg="$primary600"
+  //           onPress={() => onComplete?.()}
+  //           mt="$8"
+  //           w="100%"
+  //         >
+  //           <ButtonText color="$white" fontSize="$lg" fontWeight="$bold">
+  //             המשך לאפליקציה
+  //           </ButtonText>
+  //         </Button>
+  //       </VStack>
+  //     </Box>
+  //   );
+  // }
+
   return (
     <Box flex={1} bg="$white">
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -155,8 +240,8 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
           <VStack space="xs" mb="$8" px="$2">
             <FeatureItem text="גישה לכל בנק השאלות" />
             <FeatureItem text="מבחנים מלאים ללא הגבלה" />
-            <FeatureItem text="מצב AI Mentor לעזרה מותאמת אישית" />
-            <FeatureItem text="פלאש-קארדס ומעקב אחר התקדמות" />
+            <FeatureItem text="מנטור חכם לעזרה מותאמת אישית" />
+            <FeatureItem text="משחקי קלפים ומעקב אחר התקדמות" />
           </VStack>
 
           {/* Subscribe Button */}
@@ -193,6 +278,13 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
           <Pressable onPress={handleRestore} disabled={isLoading} style={styles.restoreButton}>
             <Text style={styles.restoreText}>
               שחזר רכישות קודמות
+            </Text>
+          </Pressable>
+
+          {/* Logout Button */}
+          <Pressable onPress={handleLogout} disabled={isLoading} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>
+              התנתק מהחשבון
             </Text>
           </Pressable>
 
@@ -266,21 +358,33 @@ const PlanCard: React.FC<PlanCardProps> = ({
             {/* Plan Title */}
             <Text style={styles.planTitle}>{plan.title}</Text>
 
-            {/* Price */}
-            <HStack alignItems="baseline" space="xs">
-              <Text style={styles.planPrice}>{plan.priceDisplay}</Text>
-              <Text style={styles.planPeriod}>{plan.period}</Text>
-            </HStack>
-
-            {/* Additional Info */}
-            {plan.trialText && (
-              <Text style={styles.trialText}>{plan.trialText}</Text>
-            )}
-
-            {plan.pricePerMonthDisplay && (
-              <Text style={styles.savingsText}>
-                {plan.pricePerMonthDisplay} לחודש • חיסכון {Math.round(plan.savingsPercent)}%
-              </Text>
+            {/* Trial Price (if applicable) or Regular Price */}
+            {plan.trialDays > 0 ? (
+              <VStack space="2xs">
+                {/* Big Trial Price */}
+                <HStack alignItems="baseline" space="xs">
+                  <Text style={styles.planPrice}>$0</Text>
+                  <Text style={styles.planPeriod}>ל-{plan.trialDays} ימים</Text>
+                </HStack>
+                {/* Then Regular Price */}
+                <Text style={styles.thenPriceText}>
+                  אז {plan.priceDisplay} {plan.period}
+                </Text>
+              </VStack>
+            ) : (
+              <VStack space="2xs">
+                {/* Big Regular Price */}
+                <HStack alignItems="baseline" space="xs">
+                  <Text style={styles.planPrice}>{plan.priceDisplay}</Text>
+                  <Text style={styles.planPeriod}>{plan.period}</Text>
+                </HStack>
+                {/* Per Month Price if applicable */}
+                {plan.pricePerMonthDisplay && (
+                  <Text style={styles.savingsText}>
+                    {plan.pricePerMonthDisplay} לחודש • חיסכון {Math.round(plan.savingsPercent)}%
+                  </Text>
+                )}
+              </VStack>
             )}
           </VStack>
 
@@ -405,6 +509,12 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4,
   },
+  thenPriceText: {
+    fontSize: 14,
+    color: Colors.gray[600],
+    textAlign: 'right',
+    marginTop: 4,
+  },
   savingsText: {
     fontSize: 13,
     color: Colors.success,
@@ -481,6 +591,16 @@ const styles = StyleSheet.create({
   restoreText: {
     fontSize: 14,
     color: Colors.primary,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  logoutText: {
+    fontSize: 14,
+    color: Colors.error,
     fontWeight: '600',
   },
 

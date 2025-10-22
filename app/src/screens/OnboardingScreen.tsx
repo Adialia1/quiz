@@ -182,7 +182,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const renderWelcome = () => (
     <View style={styles.pageContainer}>
       <Image
-        source={require('../../assets/icon.png')}
+        source={require('../../assets/logo_blue.png')}
         style={styles.logoLarge}
         contentFit="contain"
       />
@@ -400,8 +400,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   logoLarge: {
-    width: 160,
-    height: 100,
+    width: 220,
+    height: 140,
     alignSelf: 'center',
     marginBottom: 32,
   },
@@ -484,18 +484,21 @@ const styles = StyleSheet.create({
   timesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
     paddingBottom: 20,
   },
   timeButton: {
-    width: '31%',
+    width: '48%',
+    aspectRatio: 1.2,
     backgroundColor: Colors.white,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     borderWidth: 2,
     borderColor: 'transparent',
+    marginBottom: 12,
   },
   timeButtonSelected: {
     borderColor: Colors.primary,

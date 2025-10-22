@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../config/colors';
 
 const { width, height } = Dimensions.get('window');
@@ -16,18 +15,13 @@ interface WelcomeScreenProps {
  */
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) => {
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[Colors.primary, '#0966D6', '#0856B9']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
+    <View style={[styles.container, { backgroundColor: 'rgb(60, 104, 255)' }]}>
+      <View style={styles.gradient}>
         {/* Logo and Title */}
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
-              source={require('../../assets/icon.png.jpeg')}
+              source={require('../../assets/logo_empty.png')}
               style={styles.logo}
               contentFit="contain"
             />
@@ -67,7 +61,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) =>
             <Text style={styles.buttonText}>בואו נתחיל</Text>
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 };
@@ -104,10 +98,10 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   logoWrapper: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
