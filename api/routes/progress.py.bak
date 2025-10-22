@@ -14,7 +14,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
 from supabase import create_client, Client
-from api.auth_clerk import get_current_user_id
+from api.auth import get_current_user_id
 
 # Initialize Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)

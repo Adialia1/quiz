@@ -14,7 +14,7 @@ import asyncio
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from api.auth import get_current_user_id
+from api.auth_clerk import get_current_user_id
 from agent.agents.legal_expert import LegalExpertAgent
 from api.utils.cache import get_cached, set_cached, delete_pattern, CacheTTL
 import os

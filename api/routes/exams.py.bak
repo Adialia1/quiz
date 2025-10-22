@@ -12,7 +12,7 @@ from datetime import datetime
 from uuid import UUID
 import os
 
-from api.auth_clerk import get_current_user_id
+from api.auth import get_current_user_id
 from api.utils.database import fetch_one, fetch_all, execute_query, fetch_val, batch_insert
 from api.utils.cache import get_cached, set_cached, CacheTTL
 from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
