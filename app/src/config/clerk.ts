@@ -10,8 +10,10 @@
  * 5. הגדר את כתובות ה-Redirect URLs בלוח הבקרה של Clerk
  */
 
-// הוסף את ה-Publishable Key שלך מ-Clerk Dashboard
-export const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+import Constants from 'expo-constants';
+
+// Get Clerk key from Expo config (works in production builds)
+export const CLERK_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.clerkPublishableKey || '';
 
 if (!CLERK_PUBLISHABLE_KEY) {
   console.warn(

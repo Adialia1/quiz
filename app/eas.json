@@ -23,10 +23,7 @@
       "autoIncrement": true,
       "node": "18.18.0",
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_ZmxlZXQtbWFsbGFyZC05OC5jbGVyay5hY2NvdW50cy5kZXYk",
-        "EXPO_PUBLIC_REVENUECAT_API_KEY": "appl_bszHXHXrgbpGQdAwAHHELLKLIxQ",
-        "EXPO_PUBLIC_API_URL": "https://quiz-production-d042.up.railway.app"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       }
     }
   },
