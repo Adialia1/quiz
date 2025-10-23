@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
 
-router = APIRouter(prefix="/api/documents", tags=["documents"])
+router = APIRouter(prefix="", tags=["documents"])
 
 # Path to static documents
 DOCUMENTS_DIR = Path(__file__).parent.parent / "static" / "documents"

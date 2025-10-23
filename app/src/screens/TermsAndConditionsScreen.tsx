@@ -12,14 +12,14 @@ import { API_URL } from '../config/api';
  * Terms and Conditions Screen
  * Displays the app's terms of service PDF using WebView
  *
- * The PDF is served from the backend at /api/documents/terms
+ * The PDF is served from the backend at //terms
  */
 export const TermsAndConditionsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
 
   // Use the dedicated API endpoint that serves the PDF
-  const pdfUrl = `${API_URL}/api/documents/terms`;
+  const pdfUrl = `${API_URL}/terms`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

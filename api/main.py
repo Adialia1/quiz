@@ -242,29 +242,7 @@ class QuizResponse(BaseModel):
 async def root():
     """API root endpoint with welcome message"""
     return {
-        "message": "Quiz Generator & Legal Expert API",
-        "version": "1.0.0",
-        "endpoints": {
-            "legal_question": "/api/legal/ask",
-            "generate_questions": "/api/questions/generate",
-            "generate_quiz": "/api/quiz/generate",
-            "user_profile": "/api/users/me",
-            "user_stats": "/api/users/me/stats",
-            "clerk_webhook": "/api/users/webhook",
-            "create_exam": "/api/exams",
-            "exam_history": "/api/exams/history",
-            "exam_details": "/api/exams/{exam_id}",
-            "submit_answer": "/api/exams/{exam_id}/answer",
-            "submit_exam": "/api/exams/{exam_id}/submit",
-            "exam_results": "/api/exams/{exam_id}/results",
-            "concepts_topics": "/api/concepts/topics",
-            "concepts_by_topic": "/api/concepts/topics/{topic}",
-            "concept_detail": "/api/concepts/{concept_id}",
-            "concepts_search": "/api/concepts/search",
-            "concepts_stats": "/api/concepts/stats",
-            "terms_pdf": "/static/documents/terms.pdf"
-        },
-        "docs": "/docs"
+        "message": "Nothing to look here 🕵️‍♂️",    
     }
 
 
