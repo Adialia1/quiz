@@ -1,39 +1,21 @@
-import { I18nManager, Platform } from 'react-native';
+import { I18nManager } from 'react-native';
 
 /**
- * RTL Configuration for Expo
+ * RTL Configuration Utilities
  *
- * IMPORTANT: I18nManager.forceRTL() does NOT work in Expo Go!
- * This is a known limitation - RTL only works in production builds (EAS)
- *
- * Solution: Use CSS-based RTL that works in both Expo Go and production
+ * NOTE: The actual RTL initialization happens in index.js BEFORE React loads
+ * This file provides helper utilities for RTL layouts
  */
 
 export const ForceRTL = {
   /**
-   * Initialize RTL configuration
-   * In Expo Go: Will try to set but won't work
-   * In Production: Will work correctly
+   * Initialize RTL configuration (legacy - now handled in index.js)
+   * Kept for backwards compatibility
    */
   async init() {
-    try {
-      console.log('🔄 RTL Configuration');
-      console.log('  Platform:', Platform.OS);
-      console.log('  I18nManager.isRTL:', I18nManager.isRTL);
-
-      // Try to enable RTL (works in production builds only)
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(true);
-
-      if (I18nManager.isRTL) {
-        console.log('✅ RTL enabled via I18nManager');
-      } else {
-        console.log('⚠️  I18nManager.forceRTL() not working (Expo Go limitation)');
-        console.log('💡 Using CSS-based RTL instead');
-      }
-    } catch (error) {
-      console.error('RTL initialization error:', error);
-    }
+    // RTL is now initialized in index.js before React loads
+    // This method is kept for backwards compatibility but does nothing
+    console.log('[RTL] Already initialized in index.js');
   },
 
   /**
