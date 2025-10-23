@@ -50,7 +50,7 @@
       },
       "apiUrl": "https://www.ethicaplus.net",
       "clerkPublishableKey": "pk_test_ZmxlZXQtbWFsbGFyZC05OC5jbGVyay5hY2NvdW50cy5kZXYk",
-      "revenuecatApiKey": "appl_bszHXHXrgbpGQdAwAHHELLKLIxQ"
+      "revenuecatApiKey": "appl_IlbsFqnqKeKRiNHJSEdyWxWkqkk"
     },
     "plugins": [
       "expo-secure-store",
