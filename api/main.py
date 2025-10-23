@@ -478,16 +478,29 @@ async def generate_questions_simple(
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     """Handle 404 errors"""
+    # Build list of available endpoints based on loaded routes
+    available_endpoints = [
+        "/api/legal/ask",
+        "/api/questions/generate",
+        "/api/quiz/generate"
+    ]
+
+    if ROUTES_AVAILABLE:
+        available_endpoints.extend([
+            "/api/users/me",
+            "/api/users/delete",
+            "/api/exams",
+            "/api/chat/sessions",
+            "/api/concepts/topics"
+        ])
+
     return JSONResponse(
         status_code=404,
         content={
             "error": "Not Found",
             "message": f"Endpoint {request.url.path} not found",
-            "available_endpoints": [
-                "/api/legal/ask",
-                "/api/questions/generate",
-                "/api/quiz/generate"
-            ]
+            "available_endpoints": available_endpoints,
+            "routes_loaded": ROUTES_AVAILABLE
         }
     )
 

@@ -228,6 +228,8 @@ async def get_current_user(
     Requires: Authorization header with Clerk JWT token
     Cache: 15 minutes TTL
 
+    Auto-creates user if authenticated but not in database (webhook fallback)
+
     OPTIMIZED: Async database query + caching
     """
     try:
@@ -247,8 +249,35 @@ async def get_current_user(
             clerk_user_id
         )
 
+        # Auto-create user if authenticated but not in database
+        # This handles cases where webhook failed or user was deleted and re-registered
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            print(f"[AUTO-CREATE] User {clerk_user_id[:10]}... not found, creating...")
+            now = datetime.now()
+
+            # Create user with minimal info (webhook will update with full details later)
+            await execute_query(
+                """
+                INSERT INTO users (clerk_user_id, email, created_at, last_login_at)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (clerk_user_id) DO NOTHING
+                """,
+                clerk_user_id,
+                f"{clerk_user_id}@temp.local",  # Temporary email, will be updated by webhook
+                now,
+                now
+            )
+
+            # Fetch the newly created user
+            user = await fetch_one(
+                "SELECT * FROM users WHERE clerk_user_id = $1",
+                clerk_user_id
+            )
+
+            if not user:
+                raise HTTPException(status_code=500, detail="Failed to create user")
+
+            print(f"[AUTO-CREATE] ✅ User created: {user['id']}")
 
         # Update last_login_at (async, fire-and-forget)
         await execute_query(
