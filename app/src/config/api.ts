@@ -4,7 +4,7 @@
 import Constants from 'expo-constants';
 
 // Get API URL from environment variable
-export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://www.ethicaplus.net';
+export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 // API endpoints
 export const API_ENDPOINTS = {

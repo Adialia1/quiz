@@ -5,7 +5,7 @@
 
 import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://www.ethicaplus.net';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 /**
  * Get auth token - must be called from React component
