@@ -39,17 +39,9 @@ import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 
-// Ensure RTL is enabled - double check at component level
-console.log('[App.tsx] RTL Check - isRTL:', I18nManager.isRTL);
-if (!I18nManager.isRTL) {
-  console.warn('[App.tsx] RTL is NOT enabled! This should not happen.');
-  console.warn('[App.tsx] Attempting to force RTL again...');
-  I18nManager.allowRTL(true);
-  I18nManager.forceRTL(true);
-}
-
-// Force RTL configuration - works immediately without restart
-ForceRTL.init();
+// RTL is DISABLED - Using LTR mode
+console.log('[App.tsx] LTR Mode - RTL is disabled');
+console.log('[App.tsx] isRTL:', I18nManager.isRTL);
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();

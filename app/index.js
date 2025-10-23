@@ -1,26 +1,22 @@
 /**
- * Entry Point - RTL Configuration
+ * Entry Point - LTR Configuration
  *
- * CRITICAL: This file initializes RTL BEFORE React loads
- * This ensures RTL works correctly in production builds
+ * RTL DISABLED - Using LTR mode
  */
 
-import { I18nManager, Platform, NativeModules } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
 import App from './App';
 
-// FORCE RTL - This is critical for Hebrew apps
-// Must be set BEFORE any React components load
-I18nManager.allowRTL(true);
-I18nManager.forceRTL(true);
+// DISABLE RTL - Force LTR mode
+I18nManager.allowRTL(false);
+I18nManager.forceRTL(false);
 
-console.log('[RTL] ===== RTL INITIALIZATION =====');
-console.log('[RTL] Platform:', Platform.OS);
-console.log('[RTL] isRTL:', I18nManager.isRTL);
-console.log('[RTL] allowRTL:', I18nManager.allowRTL);
-console.log('[RTL] forceRTL:', I18nManager.forceRTL);
-console.log('[RTL] doLeftAndRightSwapInRTL:', I18nManager.doLeftAndRightSwapInRTL);
-console.log('[RTL] ==================================');
+console.log('[APP] ===== LTR MODE (RTL DISABLED) =====');
+console.log('[APP] Platform:', Platform.OS);
+console.log('[APP] isRTL:', I18nManager.isRTL);
+console.log('[APP] RTL is DISABLED - using LTR mode');
+console.log('[APP] =====================================');
 
 // Register the main application component
 registerRootComponent(App);
