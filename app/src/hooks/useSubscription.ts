@@ -38,13 +38,28 @@ export const useSubscription = () => {
     if (!entitlement) {
       console.log('[SUBSCRIPTION] ❌ No active entitlement found for:', ENTITLEMENT_ID);
 
+      // Debug: Show ALL active entitlements
+      const allActiveKeys = Object.keys(customerInfo.entitlements.active);
+      if (allActiveKeys.length > 0) {
+        console.log('[SUBSCRIPTION] 🔍 BUT found these active entitlements:', allActiveKeys);
+        console.log('[SUBSCRIPTION] ⚠️ Your ENTITLEMENT_ID might be wrong!');
+        console.log('[SUBSCRIPTION] 💡 Check RevenueCat dashboard → Entitlements');
+      }
+
       // Check if entitlement exists but is expired
       const expiredEntitlement = customerInfo.entitlements.all[ENTITLEMENT_ID];
       if (expiredEntitlement) {
         console.log('[SUBSCRIPTION] ⏰ Found EXPIRED entitlement:');
         console.log('[SUBSCRIPTION] - Expiration date:', expiredEntitlement.expirationDate);
         console.log('[SUBSCRIPTION] - Is sandbox:', expiredEntitlement.isSandbox);
-        console.log('[SUBSCRIPTION] 💡 TIP: Sandbox subscriptions expire quickly (5 min for monthly). Make a new test purchase to continue testing.');
+        console.log('[SUBSCRIPTION] - Is active:', expiredEntitlement.isActive);
+        console.log('[SUBSCRIPTION] 💡 TIP: Sandbox subscriptions expire quickly (5-7 min for monthly). Make a new test purchase to continue testing.');
+      } else {
+        console.log('[SUBSCRIPTION] ❌ Entitlement', ENTITLEMENT_ID, 'does NOT exist in RevenueCat!');
+        console.log('[SUBSCRIPTION] 💡 Create entitlement in RevenueCat dashboard:');
+        console.log('[SUBSCRIPTION]    1. Go to RevenueCat → Entitlements');
+        console.log('[SUBSCRIPTION]    2. Create entitlement with ID:', ENTITLEMENT_ID);
+        console.log('[SUBSCRIPTION]    3. Attach products to this entitlement');
       }
 
       return {
