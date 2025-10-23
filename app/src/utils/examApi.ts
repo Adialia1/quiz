@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://quiz-production-d042.up.railway.app';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://www.ethicaplus.net';
 
 export interface CreateExamRequest {
   exam_type: 'practice' | 'full_simulation' | 'review_mistakes';

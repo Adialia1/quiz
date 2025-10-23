@@ -15,11 +15,16 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ethicsplus.mobile",
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
         "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה",
         "NSUserNotificationsUsageDescription": "האפליקציה שולחת לך תזכורות יומיות ללמוד למבחן",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -43,7 +48,7 @@
       "eas": {
         "projectId": "c4d773b3-b1ec-40d7-9c5c-6d8af489b238"
       },
-      "apiUrl": "https://quiz-production-d042.up.railway.app",
+      "apiUrl": "http://www.ethicaplus.net",
       "clerkPublishableKey": "pk_test_ZmxlZXQtbWFsbGFyZC05OC5jbGVyay5hY2NvdW50cy5kZXYk",
       "revenuecatApiKey": "appl_bszHXHXrgbpGQdAwAHHELLKLIxQ"
     },
