@@ -44,11 +44,19 @@ export const SettingsScreen: React.FC = () => {
             try {
               setIsDeleting(true);
 
-              // 1. Delete user data from backend
+              // 1. Backend handles COMPLETE deletion:
+              //    - Cancels RevenueCat subscription
+              //    - Deletes Clerk account
+              //    - Deletes all database records
               await deleteUserAccount(getToken);
 
-              // 2. Delete Clerk account
-              await clerkUser.user?.delete();
+              // 2. Fallback: Try to delete Clerk account from client
+              //    (in case backend deletion failed)
+              try {
+                await clerkUser.user?.delete();
+              } catch (clerkError) {
+                console.log('Clerk deletion from client failed (may have been deleted by backend):', clerkError);
+              }
 
               // 3. Clear all local storage and auth store
               await clearAllData();
