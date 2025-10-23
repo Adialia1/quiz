@@ -39,8 +39,8 @@ import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 
-// RTL is DISABLED - Using LTR mode
-console.log('[App.tsx] LTR Mode - RTL is disabled');
+// RTL is ENABLED - Using RTL mode for Hebrew
+console.log('[App.tsx] RTL Mode - Hebrew interface');
 console.log('[App.tsx] isRTL:', I18nManager.isRTL);
 
 // Create stack navigator
