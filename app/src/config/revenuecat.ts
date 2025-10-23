@@ -10,6 +10,8 @@ import Constants from 'expo-constants';
 // Get RevenueCat API key from Expo config (works in production builds)
 const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.revenuecatApiKey || '';
 
+console.log('🔑 [RevenueCat] API Key loaded:', REVENUECAT_API_KEY ? `${REVENUECAT_API_KEY.substring(0, 15)}...` : 'NOT FOUND');
+
 // Track if RevenueCat has been initialized
 let isRevenueCatInitialized = false;
 
@@ -26,7 +28,8 @@ export const initializeRevenueCat = async (userId?: string) => {
     }
 
     if (!REVENUECAT_API_KEY) {
-      console.warn('⚠️ RevenueCat API key is not configured');
+      console.error('❌ RevenueCat API key is NOT configured!');
+      console.error('📝 Please check app.json: extra.revenuecatApiKey');
       return;
     }
 
@@ -52,7 +55,6 @@ export const initializeRevenueCat = async (userId?: string) => {
     Purchases.configure({
       apiKey: REVENUECAT_API_KEY,
       appUserID: userId, // Pass Clerk user ID directly
-      usesStoreKit2IfAvailable: false, // Use StoreKit 1 for better sandbox testing
     });
 
     isRevenueCatInitialized = true;

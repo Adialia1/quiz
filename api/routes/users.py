@@ -143,11 +143,23 @@ async def clerk_webhook(request: Request):
             phone = data.get("phone_numbers", [{}])[0].get("phone_number") if data.get("phone_numbers") else None
             now = datetime.now()  # Use datetime object, not string
 
+            # Check if user already exists (webhook may be replayed)
+            existing_user = await fetch_one("SELECT id FROM users WHERE clerk_user_id = $1", clerk_user_id)
+            if existing_user:
+                print(f"[WEBHOOK] User {clerk_user_id} already exists, skipping creation")
+                return {
+                    "status": "success",
+                    "event": "user.created",
+                    "user_id": existing_user["id"],
+                    "note": "User already existed"
+                }
+
             # Async INSERT
             result = await execute_query(
                 """
                 INSERT INTO users (clerk_user_id, email, first_name, last_name, phone, created_at, last_login_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ON CONFLICT (clerk_user_id) DO NOTHING
                 RETURNING id
                 """,
                 clerk_user_id, email, first_name, last_name, phone, now, now

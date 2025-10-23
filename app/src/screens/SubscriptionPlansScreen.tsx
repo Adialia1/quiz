@@ -60,10 +60,19 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
 
   const loadPackages = async () => {
     try {
+      console.log('[SUBSCRIPTION SCREEN] Loading packages...');
       const offerings = await getOfferings();
+      console.log('[SUBSCRIPTION SCREEN] Received offerings:', offerings.length);
+
+      if (offerings.length === 0) {
+        console.warn('⚠️ [SUBSCRIPTION SCREEN] No packages found!');
+        console.warn('📝 This means products are not configured in RevenueCat dashboard');
+        console.warn('🔗 See REVENUECAT_SETUP_GUIDE.md for setup instructions');
+      }
+
       setPackages(offerings);
     } catch (err) {
-      console.error('Failed to load packages:', err);
+      console.error('❌ [SUBSCRIPTION SCREEN] Failed to load packages:', err);
     }
   };
 
@@ -94,7 +103,12 @@ export const SubscriptionPlansScreen: React.FC<SubscriptionPlansScreenProps> = (
       );
 
       if (!packageToPurchase) {
-        Alert.alert('שגיאה', 'לא נמצאה התוכנית שנבחרה. אנא נסה שוב.');
+        console.error('[PURCHASE] Package not found for plan:', selectedPlan);
+        console.error('[PURCHASE] Available packages:', packages.map(p => p.product.identifier));
+        Alert.alert(
+          'שגיאה',
+          'לא נמצאה התוכנית שנבחרה.\n\nייתכן שהמוצרים עדיין לא הוגדרו ב-RevenueCat.\nראה REVENUECAT_SETUP_GUIDE.md'
+        );
         setIsLoading(false);
         return;
       }

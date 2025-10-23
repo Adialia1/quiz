@@ -19,27 +19,39 @@ CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "")
 CLERK_PUBLISHABLE_KEY = os.getenv("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY", "")
 
 # Extract Clerk instance ID from publishable key
-# Format: pk_test_xxxxx or pk_live_xxxxx
+# Format: pk_test_xxxxx or pk_live_xxxxx (base64 encoded domain)
 def get_clerk_instance_id():
-    """Extract instance ID from Clerk publishable key"""
+    """Extract instance ID from Clerk publishable key (decodes base64)"""
     if not CLERK_PUBLISHABLE_KEY:
         return None
 
-    # Remove pk_test_ or pk_live_ prefix
-    if CLERK_PUBLISHABLE_KEY.startswith("pk_test_"):
-        key_part = CLERK_PUBLISHABLE_KEY.replace("pk_test_", "")
-    elif CLERK_PUBLISHABLE_KEY.startswith("pk_live_"):
-        key_part = CLERK_PUBLISHABLE_KEY.replace("pk_live_", "")
-    else:
+    try:
+        # Remove pk_test_ or pk_live_ prefix
+        if CLERK_PUBLISHABLE_KEY.startswith("pk_test_"):
+            key_part = CLERK_PUBLISHABLE_KEY.replace("pk_test_", "")
+        elif CLERK_PUBLISHABLE_KEY.startswith("pk_live_"):
+            key_part = CLERK_PUBLISHABLE_KEY.replace("pk_live_", "")
+        else:
+            return None
+
+        # Decode base64 to get the Clerk domain
+        import base64
+        decoded = base64.b64decode(key_part).decode('utf-8', errors='ignore')
+
+        # Extract domain (format: fleet-mallard-98.clerk.accounts.dev$)
+        # Remove trailing $ if present
+        domain = decoded.strip().rstrip('$')
+
+        logger.info(f"Decoded Clerk domain: {domain}")
+        return domain
+
+    except Exception as e:
+        logger.error(f"Failed to decode Clerk publishable key: {e}")
         return None
 
-    # Take the first part before any dots
-    instance_id = key_part.split('.')[0]
-    return instance_id
-
-# Build JWKS URL from instance ID
-CLERK_INSTANCE_ID = get_clerk_instance_id()
-CLERK_JWKS_URL = f"https://{CLERK_INSTANCE_ID}.clerk.accounts.dev/.well-known/jwks.json" if CLERK_INSTANCE_ID else None
+# Build JWKS URL from decoded domain
+CLERK_DOMAIN = get_clerk_instance_id()
+CLERK_JWKS_URL = f"https://{CLERK_DOMAIN}/.well-known/jwks.json" if CLERK_DOMAIN else None
 
 # Cache for JWKS keys
 _jwks_cache = None

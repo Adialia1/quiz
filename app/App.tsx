@@ -28,6 +28,7 @@ import { FlashcardStudyScreen } from './src/screens/FlashcardStudyScreen';
 import { StarredConceptsScreen } from './src/screens/StarredConceptsScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { SubscriptionPlansScreen } from './src/screens/SubscriptionPlansScreen';
+import { RevenueCatPaywallScreen } from './src/screens/RevenueCatPaywallScreen';
 import { SubscriptionManagementScreen } from './src/screens/SubscriptionManagementScreen';
 import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 import { TermsAndConditionsScreen } from './src/screens/TermsAndConditionsScreen';
@@ -341,7 +342,7 @@ function AppContent() {
   if ((isSignedIn || isAuthenticated) && showSubscriptionPaywall) {
     return (
       <>
-        <SubscriptionPlansScreen
+        <RevenueCatPaywallScreen
           onComplete={() => setShowSubscriptionPaywall(false)}
           showSkip={false}
         />

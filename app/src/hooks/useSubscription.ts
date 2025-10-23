@@ -129,13 +129,36 @@ export const useSubscription = () => {
     }
 
     try {
+      console.log('[SUBSCRIPTION] Fetching offerings from RevenueCat...');
       const offerings = await Purchases.getOfferings();
 
-      if (!offerings.current) {
+      console.log('[SUBSCRIPTION] Offerings received:', {
+        current: offerings.current?.identifier || 'none',
+        all: Object.keys(offerings.all).length,
+      });
+
+      // Try to get current offering, or fallback to "all" offering
+      let offering = offerings.current;
+
+      if (!offering) {
+        console.warn('⚠️ [SUBSCRIPTION] No current offering found, trying "all" offering...');
+        offering = offerings.all['all'];
+      }
+
+      if (!offering) {
+        console.warn('⚠️ [SUBSCRIPTION] No offerings found at all!');
+        console.warn('📝 You need to:');
+        console.warn('   1. Create products in RevenueCat dashboard');
+        console.warn('   2. Create an offering and set it as "current"');
+        console.warn('   3. Attach products to the offering');
+        console.warn('🔗 See REVENUECAT_SETUP_GUIDE.md for detailed instructions');
         return [];
       }
 
-      const packages = offerings.current.availablePackages.map((pkg) => ({
+      console.log('[SUBSCRIPTION] Using offering:', offering.identifier);
+      console.log('[SUBSCRIPTION] Offering has', offering.availablePackages.length, 'packages');
+
+      const packages = offering.availablePackages.map((pkg) => ({
         identifier: pkg.identifier,
         packageType: pkg.packageType,
         product: {
