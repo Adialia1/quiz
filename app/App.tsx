@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, I18nManager, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -38,6 +38,15 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
+
+// Ensure RTL is enabled - double check at component level
+console.log('[App.tsx] RTL Check - isRTL:', I18nManager.isRTL);
+if (!I18nManager.isRTL) {
+  console.warn('[App.tsx] RTL is NOT enabled! This should not happen.');
+  console.warn('[App.tsx] Attempting to force RTL again...');
+  I18nManager.allowRTL(true);
+  I18nManager.forceRTL(true);
+}
 
 // Force RTL configuration - works immediately without restart
 ForceRTL.init();

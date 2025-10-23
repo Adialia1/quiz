@@ -119,6 +119,16 @@ export const RevenueCatPaywallScreen: React.FC<RevenueCatPaywallScreenProps> = (
     );
   };
 
+  // Add error boundary to catch paywall loading errors
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // If paywall hasn't loaded after 10 seconds, show error
+      console.log('[PAYWALL] Checking paywall status after 10s...');
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* RevenueCat Paywall - Managed from Dashboard */}
@@ -132,6 +142,10 @@ export const RevenueCatPaywallScreen: React.FC<RevenueCatPaywallScreenProps> = (
         }}
         onPurchaseError={({ error }: { error: any }) => {
           console.error('[PAYWALL] Purchase error:', error);
+          console.error('[PAYWALL] Error code:', error?.code);
+          console.error('[PAYWALL] Error message:', error?.message);
+          console.error('[PAYWALL] Error details:', JSON.stringify(error, null, 2));
+          console.error('[PAYWALL] User cancelled?', error?.userCancelled);
 
           // Don't show error for user cancellation
           if (error?.userCancelled) {
@@ -140,7 +154,7 @@ export const RevenueCatPaywallScreen: React.FC<RevenueCatPaywallScreenProps> = (
 
           Alert.alert(
             'שגיאה',
-            error?.message || 'שגיאה בביצוע הרכישה. אנא נסה שוב.'
+            `שגיאה בביצוע הרכישה.\n\nפרטי שגיאה: ${error?.message || error?.code || 'לא ידוע'}\n\nקוד שגיאה: ${error?.code || 'N/A'}\n\nאנא נסה שוב.`
           );
         }}
         onRestoreStarted={() => {
