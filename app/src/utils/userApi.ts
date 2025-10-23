@@ -48,3 +48,31 @@ export const fetchUserProfile = async (
 
   return response.json();
 };
+
+/**
+ * Delete user account and all associated data
+ * @param getToken - Clerk's getToken function
+ * @returns Promise that resolves when account is deleted
+ */
+export const deleteUserAccount = async (
+  getToken: () => Promise<string | null>
+): Promise<void> => {
+  const token = await getToken();
+
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+
+  const response = await fetch(`${API_URL}/api/users/delete`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to delete account');
+  }
+};

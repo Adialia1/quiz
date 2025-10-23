@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   USER_PROFILE: '/api/users/me',
   USER_STATS: '/api/users/me/stats',
   USER_ONBOARDING: '/api/users/me/onboarding',
+  USER_DELETE: '/api/users/delete',
 
   // Exam endpoints
   EXAMS: '/api/exams',

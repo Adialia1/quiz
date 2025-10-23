@@ -32,6 +32,7 @@ interface AuthStore {
   setIsLoading: (isLoading: boolean) => void;
   login: (user: User) => Promise<void>;
   logout: () => Promise<void>;
+  clearAllData: () => Promise<void>;
   hydrate: () => Promise<void>;
 }
 
@@ -85,6 +86,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
     });
     await StorageUtils.delete(StorageKeys.USER_DATA);
     await StorageUtils.delete(StorageKeys.AUTH_TOKEN);
+  },
+
+  // מחיקת כל הנתונים - Clear all data (for account deletion)
+  clearAllData: async () => {
+    set({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+    // Clear all storage completely
+    await StorageUtils.clearAll();
   },
 
   // טעינת מצב מהאחסון - Hydrate state from storage

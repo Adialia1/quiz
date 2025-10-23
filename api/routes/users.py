@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from svix.webhooks import Webhook, WebhookVerificationError
-from api.auth_simple import get_current_user_id
+from api.auth_clerk import get_current_user_id
 from api.utils.cache import get_cached, set_cached, delete_pattern, CacheTTL
 from api.utils.database import fetch_one, fetch_all, execute_query, dict_to_set_clause
 
@@ -370,6 +370,77 @@ async def delete_current_user(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting user: {str(e)}")
+
+
+@router.delete("/delete")
+async def delete_user_account(
+    clerk_user_id: str = Depends(get_current_user_id)
+):
+    """
+    Delete current user's account (alias for /me endpoint)
+
+    Requires: Authorization header with Clerk JWT token
+
+    WARNING: This will delete all user data including:
+    - User profile
+    - Exam history and results
+    - Practice question history
+    - User mistakes and topic performance
+    - AI chat sessions and messages
+    - All other user-related data
+
+    Database tables are configured with ON DELETE CASCADE, so all
+    related data will be automatically removed.
+
+    Apple App Store Compliance:
+    - Satisfies Guideline 5.1.1(v) for in-app account deletion
+    - Provides irreversible account deletion
+    - Deletes all user data as required
+
+    OPTIMIZED: Async database query
+    """
+    try:
+        # Log the deletion attempt
+        print(f"[DELETE ACCOUNT] Starting deletion for user: {clerk_user_id[:10]}...")
+
+        # Check if user exists
+        user = await fetch_one(
+            "SELECT id, email FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_id = user["id"]
+        user_email = user.get("email", "unknown")
+
+        print(f"[DELETE ACCOUNT] Found user {user_id} ({user_email})")
+
+        # Delete user (CASCADE will handle all related data)
+        await execute_query(
+            "DELETE FROM users WHERE clerk_user_id = $1",
+            clerk_user_id
+        )
+
+        # Invalidate all user caches
+        await delete_pattern(f"user:*:{clerk_user_id}")
+        await delete_pattern(f"exam:*:{user_id}")
+        await delete_pattern(f"chat:*:{user_id}")
+
+        print(f"[DELETE ACCOUNT] ✅ Successfully deleted user {user_id}")
+
+        return {
+            "status": "success",
+            "message": "User account and all associated data deleted successfully",
+            "clerk_user_id": clerk_user_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[DELETE ACCOUNT] ❌ Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting user account: {str(e)}")
 
 
 # ============================================================================

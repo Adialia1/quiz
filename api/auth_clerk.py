@@ -196,7 +196,7 @@ def verify_clerk_token(token: str) -> Dict:
 
 
 async def get_current_user_id(
-    authorization: str = Header(None, description="Bearer token from Clerk")
+    authorization: str = Header(default=None, alias="Authorization", description="Bearer token from Clerk")
 ) -> str:
     """
     Extract and verify user ID from Clerk JWT token with proper verification
@@ -255,3 +255,24 @@ async def get_optional_user_id(
         return await get_current_user_id(authorization)
     except HTTPException:
         return None
+
+
+async def get_current_admin_user_id(
+    authorization: str = Header(default=None, alias="Authorization", description="Bearer token from Clerk")
+) -> str:
+    """
+    Verify user is authenticated AND has admin privileges
+
+    For now, just verifies authentication.
+    TODO: Add actual admin role checking from database or Clerk metadata
+
+    Args:
+        authorization: Authorization header with Bearer token
+
+    Returns:
+        Clerk user ID if authenticated
+
+    Raises:
+        HTTPException: If not authenticated or not admin
+    """
+    return await get_current_user_id(authorization)

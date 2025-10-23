@@ -224,6 +224,17 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
               }}
             />
 
+            <MenuItem
+              iconName="settings-outline"
+              iconLibrary="Ionicons"
+              title="הגדרות חשבון"
+              subtitle="ניהול פרטים אישיים ומחיקת חשבון"
+              onPress={() => {
+                onClose();
+                navigation.navigate('Settings' as never);
+              }}
+            />
+
             <MenuSeparator />
 
             {/* Admin Panel - Only visible to admins */}

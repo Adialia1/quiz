@@ -33,6 +33,7 @@ import { ChangePasswordScreen } from './src/screens/ChangePasswordScreen';
 import { TermsAndConditionsScreen } from './src/screens/TermsAndConditionsScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
 import { AdminScreen } from './src/screens/AdminScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
@@ -97,6 +98,7 @@ function MainStack() {
         <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
         <Stack.Screen name="Progress" component={ProgressScreen} />
         <Stack.Screen name="Admin" component={AdminScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
       <StatusBar style="dark" />
     </>
@@ -180,8 +182,10 @@ function AppContent() {
 
         // Get auth token from Clerk
         const token = await getToken();
-        if (!token) {
-          console.log('[STATUS CHECK] No token available');
+        console.log('[STATUS CHECK] Token received:', token ? `${token.substring(0, 20)}...` : 'null/undefined');
+
+        if (!token || token.trim() === '') {
+          console.log('[STATUS CHECK] No valid token available');
           setIsCheckingStatus(false);
           return;
         }
@@ -191,6 +195,7 @@ function AppContent() {
         const response = await fetch(`${API_URL}/api/users/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
