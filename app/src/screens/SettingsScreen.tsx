@@ -20,7 +20,7 @@ import { deleteUserAccount } from '../utils/userApi';
 export const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { getToken } = useAuth();
-  const { user: clerkUser } = useClerk();
+  const { user: clerkUser, signOut } = useClerk();
   const { user, clearAllData } = useAuthStore();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -48,35 +48,32 @@ export const SettingsScreen: React.FC = () => {
               //    - Cancels RevenueCat subscription
               //    - Deletes Clerk account
               //    - Deletes all database records
+              console.log('[DELETE] Step 1: Calling backend to delete account...');
               await deleteUserAccount(getToken);
+              console.log('[DELETE] Step 1: ✅ Backend deletion completed');
 
-              // 2. Fallback: Try to delete Clerk account from client
-              //    (in case backend deletion failed)
-              try {
-                await clerkUser.user?.delete();
-              } catch (clerkError) {
-                console.log('Clerk deletion from client failed (may have been deleted by backend):', clerkError);
-              }
-
-              // 3. Clear all local storage and auth store
+              // 2. Clear all local storage FIRST (before sign out)
+              console.log('[DELETE] Step 2: Clearing local storage...');
               await clearAllData();
+              console.log('[DELETE] Step 2: ✅ Local storage cleared');
 
-              // 4. Show success message
-              Alert.alert(
-                'החשבון נמחק',
-                'החשבון שלך נמחק בהצלחה',
-                [
-                  {
-                    text: 'אישור',
-                    onPress: () => {
-                      // Navigation will automatically redirect to auth screen
-                      // because user is no longer authenticated
-                    },
-                  },
-                ]
-              );
+              // 3. Sign out from Clerk (this will trigger app to redirect to auth)
+              console.log('[DELETE] Step 3: Signing out from Clerk...');
+              await signOut();
+              console.log('[DELETE] Step 3: ✅ Signed out from Clerk');
+
+              // 4. Show success message (user will be on auth screen)
+              // Note: Alert might not show if navigation happens too fast
+              setTimeout(() => {
+                Alert.alert(
+                  'החשבון נמחק',
+                  'החשבון שלך נמחק בהצלחה',
+                  [{ text: 'אישור' }]
+                );
+              }, 500);
+
             } catch (error: any) {
-              console.error('Error deleting account:', error);
+              console.error('[DELETE] ❌ Error deleting account:', error);
 
               let errorMessage = 'שגיאה במחיקת החשבון. אנא נסה שנית מאוחר יותר.';
 
