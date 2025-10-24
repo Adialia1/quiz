@@ -5,14 +5,25 @@ import os
 import time
 import httpx
 import json
+import sys
 from typing import Optional, Dict
+from pathlib import Path
 from fastapi import Header, HTTPException
 from jose import jwt, JWTError, jwk
 from jose.constants import ALGORITHMS
 from functools import lru_cache
 import logging
 
+# Add parent directory to path for agent imports
+sys.path.append(str(Path(__file__).parent.parent))
+
+from agent.config.settings import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from supabase import create_client, Client
+
 logger = logging.getLogger(__name__)
+
+# Supabase client for database operations
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 # Clerk Configuration
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "")
@@ -275,16 +286,51 @@ async def get_current_admin_user_id(
     """
     Verify user is authenticated AND has admin privileges
 
-    For now, just verifies authentication.
-    TODO: Add actual admin role checking from database or Clerk metadata
+    Checks the database to verify the user has is_admin=true
 
     Args:
         authorization: Authorization header with Bearer token
 
     Returns:
-        Clerk user ID if authenticated
+        Clerk user ID if authenticated and is admin
 
     Raises:
         HTTPException: If not authenticated or not admin
     """
-    return await get_current_user_id(authorization)
+    # First verify authentication
+    clerk_user_id = await get_current_user_id(authorization)
+
+    try:
+        # Query database to check if user is admin
+        result = supabase.table('users').select('is_admin').eq('clerk_user_id', clerk_user_id).execute()
+
+        # Check if user exists
+        if not result.data or len(result.data) == 0:
+            logger.warning(f"User {clerk_user_id} not found in database")
+            raise HTTPException(
+                status_code=403,
+                detail="User not found in database. Please complete onboarding first."
+            )
+
+        # Check if user is admin
+        user_data = result.data[0]
+        is_admin = user_data.get('is_admin', False)
+
+        if not is_admin:
+            logger.warning(f"User {clerk_user_id} attempted to access admin endpoint without privileges")
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied. Admin privileges required."
+            )
+
+        logger.info(f"Admin access granted for user {clerk_user_id}")
+        return clerk_user_id
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking admin status for user {clerk_user_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to verify admin privileges"
+        )
