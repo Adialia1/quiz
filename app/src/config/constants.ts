@@ -2,9 +2,10 @@
  * Application Constants
  * Global constants used throughout the app
  */
+import Constants from 'expo-constants';
 
 // API Configuration
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+export const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 // App Configuration
 export const APP_NAME = 'קוויז מבחנים';

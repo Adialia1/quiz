@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, TextInput, ActivityIndicator, FlatList } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Constants from 'expo-constants';
 // Temporarily using FlatList instead of FlashList to debug AutoLayoutView error
 // import { FlashList } from '@shopify/flash-list';
 import { Colors } from '../config/colors';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 interface Concept {
   id: string;

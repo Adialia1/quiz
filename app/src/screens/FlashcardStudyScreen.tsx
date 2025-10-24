@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ActivityIndicator, Animated, Dimensions, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 import { Colors } from '../config/colors';
 import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Concept {
