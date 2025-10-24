@@ -8,7 +8,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
-    "main": "index.js",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
