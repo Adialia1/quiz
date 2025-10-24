@@ -58,17 +58,24 @@ export const AIMentorChatScreen: React.FC = () => {
 
   // Load conversation on mount
   useEffect(() => {
+    console.log('🟢 AIMentorChatScreen mounted');
+    console.log('📋 Conversation ID:', conversationId);
+
     if (conversationId) {
+      console.log('🔄 Loading existing conversation...');
       loadConversation();
     } else {
+      console.log('🆕 Starting new conversation');
       // New conversation
       clearCurrentChat();
     }
 
     // Cleanup on unmount
     return () => {
+      console.log('👋 AIMentorChatScreen unmounting');
       // Clear polling interval
       if (pollingIntervalRef.current) {
+        console.log('🛑 Clearing polling interval');
         clearInterval(pollingIntervalRef.current);
       }
       // Don't clear if navigating to history
@@ -86,11 +93,20 @@ export const AIMentorChatScreen: React.FC = () => {
   }, [messages]);
 
   const loadConversation = async () => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      console.log('❌ No conversation ID to load');
+      return;
+    }
+
+    console.log('🟢 Loading conversation:', conversationId);
 
     try {
       setLoadingMessages(true);
+
+      console.log('📡 Fetching messages...');
       const msgs = await aiChatApi.getConversationMessages(conversationId, getToken);
+
+      console.log('✅ Loaded', msgs.length, 'messages');
       setMessages(msgs);
 
       // Set conversation metadata (we'll need to fetch this or get from store)
@@ -102,11 +118,18 @@ export const AIMentorChatScreen: React.FC = () => {
         updated_at: new Date().toISOString(),
         message_count: msgs.length,
       });
+
+      console.log('✅ Conversation loaded successfully');
     } catch (error: any) {
-      console.error('Error loading conversation:', error);
-      Alert.alert('שגיאה', 'לא הצלחנו לטעון את השיחה. נסה שוב.');
+      console.error('❌ Error loading conversation:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+
+      const errorMessage = error.message || 'לא הצלחנו לטעון את השיחה';
+      Alert.alert('שגיאה', errorMessage + '\nנסה שוב.');
     } finally {
       setLoadingMessages(false);
+      console.log('🏁 loadConversation completed');
     }
   };
 
@@ -115,7 +138,8 @@ export const AIMentorChatScreen: React.FC = () => {
    * Checks if the assistant's message has been updated from placeholder
    */
   const startPollingForResponse = (convId: string, messageId: string) => {
-    console.log('Starting polling for message:', messageId);
+    console.log('🔄 Starting polling for message:', messageId);
+    const pollingStartTime = Date.now();
 
     let pollAttempts = 0;
     const maxAttempts = 60; // 60 attempts * 5 seconds = 5 minutes max (increased for AI responses)
@@ -127,21 +151,34 @@ export const AIMentorChatScreen: React.FC = () => {
 
     pollingIntervalRef.current = setInterval(async () => {
       pollAttempts++;
-      console.log(`Polling attempt ${pollAttempts} for message ${messageId}`);
+      const elapsedSeconds = Math.floor((Date.now() - pollingStartTime) / 1000);
+      console.log(`🔄 Polling attempt ${pollAttempts}/${maxAttempts} for message ${messageId} (${elapsedSeconds}s elapsed)`);
+
+      // Timeout detection (30 seconds)
+      if (elapsedSeconds > 30 && pollAttempts === 7) {
+        console.warn('⏱ TIMEOUT WARNING: Response taking longer than 30 seconds');
+      }
 
       try {
         // Get a fresh token for each poll attempt to avoid expiration
+        console.log('🔐 Getting fresh token for polling...');
         const freshToken = await getToken({ template: 'default' });
 
         // Fetch latest messages with fresh token
+        console.log('📡 Fetching latest messages...');
         const msgs = await aiChatApi.getConversationMessages(convId, async () => freshToken);
+
+        console.log(`✅ Fetched ${msgs.length} messages`);
 
         // Find the message we're waiting for
         const updatedMessage = msgs.find((m) => m.id === messageId);
 
         if (updatedMessage && updatedMessage.content && updatedMessage.content.trim() !== '') {
           // Message has been updated with actual response
-          console.log('Message updated with response:', updatedMessage.content.substring(0, 50));
+          console.log('✅ Message updated with response!');
+          console.log('✅ Response preview:', updatedMessage.content.substring(0, 100));
+          console.log(`✅ Total time: ${elapsedSeconds}s`);
+
           setMessages(msgs);
           setIsThinking(false);
           setSendingMessage(false);
@@ -153,22 +190,40 @@ export const AIMentorChatScreen: React.FC = () => {
           }
         } else if (pollAttempts >= maxAttempts) {
           // Timeout - stop polling
-          console.warn('Polling timeout reached');
+          console.error('❌ TIMEOUT: Polling max attempts reached');
+          console.error(`❌ Total time: ${elapsedSeconds}s`);
+
           setIsThinking(false);
           setSendingMessage(false);
-          Alert.alert('התראה', 'התשובה לוקחת זמן רב. אנא רענן את השיחה מאוחר יותר.');
+          Alert.alert(
+            'תשובה איטית',
+            'התשובה לוקחת זמן רב מהרגיל. אנא רענן את השיחה מאוחר יותר או נסה שוב.',
+            [
+              { text: 'אישור' },
+              {
+                text: 'נסה שוב',
+                onPress: () => {
+                  // Retry by reloading the conversation
+                  loadConversation();
+                }
+              }
+            ]
+          );
 
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+        } else {
+          console.log('⏳ Still waiting for AI response...');
         }
       } catch (error: any) {
-        console.error('Polling error:', error);
+        console.error('❌ Polling error:', error);
+        console.error('❌ Error message:', error.message);
 
         // Check if it's a token expiration error
         if (error.message && error.message.includes('expired')) {
-          console.log('Token expired, stopping polling. User needs to refresh.');
+          console.error('❌ TOKEN EXPIRED during polling');
           setIsThinking(false);
           setSendingMessage(false);
           Alert.alert('פג תוקף החיבור', 'אנא צא ונכנס שוב לאפליקציה');
@@ -180,12 +235,18 @@ export const AIMentorChatScreen: React.FC = () => {
           }
         }
         // For other errors, continue polling (might be temporary network issue)
+        else {
+          console.log('⚠️ Network issue, will retry next poll');
+        }
       }
     }, 5000); // Poll every 5 seconds
   };
 
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim() || isSendingMessage) return;
+
+    console.log('🟢 Sending message:', messageText);
+    const startTime = Date.now();
 
     try {
       setSendingMessage(true);
@@ -219,6 +280,7 @@ export const AIMentorChatScreen: React.FC = () => {
       };
       addMessage(tempUserMessage);
 
+      console.log('📡 Calling API to send message...');
       // Send message to API (returns immediately with placeholder)
       const response = await aiChatApi.sendMessage(
         {
@@ -229,10 +291,13 @@ export const AIMentorChatScreen: React.FC = () => {
         getToken
       );
 
-      console.log('API Response (placeholder):', response);
+      console.log('✅ API Response (placeholder):', response);
+      console.log('✅ Conversation ID:', response.conversation_id);
+      console.log('✅ Message ID:', response.message.id);
 
       // Update conversation if new
       if (!currentConversation && response.conversation_id) {
+        console.log('🆕 Setting new conversation:', response.conversation_id);
         setCurrentConversation({
           id: response.conversation_id,
           title: response.conversation_title || 'שיחה חדשה',
@@ -244,27 +309,36 @@ export const AIMentorChatScreen: React.FC = () => {
 
       // Don't add placeholder to UI - we show thinking animation instead
       // The actual message will be added when polling detects the response
-      console.log('Placeholder message created, ID:', response.message.id);
+      console.log('🔄 Starting polling for AI response...');
 
       // Start polling for the actual AI response
       startPollingForResponse(response.conversation_id, response.message.id);
     } catch (error: any) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+
+      const elapsedTime = Date.now() - startTime;
+      console.log(`⏱ Time elapsed: ${elapsedTime}ms`);
 
       // Check for token expiration
       if (error.message && (error.message.includes('expired') || error.message.includes('Invalid token'))) {
+        console.error('❌ TOKEN EXPIRED - User needs to re-authenticate');
         Alert.alert(
           'פג תוקף החיבור',
           'אנא צא מהאפליקציה ונכנס שוב כדי לרענן את החיבור.',
           [{ text: 'אישור' }]
         );
       } else {
-        Alert.alert('שגיאה', error.message || 'לא הצלחנו לשלוח את ההודעה. נסה שוב.');
+        const errorMessage = error.message || 'לא הצלחנו לשלוח את ההודעה';
+        Alert.alert('שגיאה', errorMessage + '\nנסה שוב.');
       }
 
       setSendingMessage(false);
       setIsThinking(false);
       setThinkingText('מחפש מקורות...'); // Reset to initial state
+    } finally {
+      console.log('🏁 handleSendMessage completed');
     }
   };
 
