@@ -1,58 +1,111 @@
-import { I18nManager } from 'react-native';
+import { I18nManager, ImageStyle } from 'react-native';
 
 /**
  * RTL Configuration Utilities
  *
- * NOTE: The actual RTL initialization happens in index.js BEFORE React loads
- * This file provides helper utilities for RTL layouts
+ * Following React Native official RTL guidelines:
+ * https://reactnative.dev/blog/2016/08/19/right-to-left-support-for-react-native-apps
+ *
+ * NOTE: RTL is automatically enabled in index.js with I18nManager.allowRTL(true)
+ * This file provides helper utilities for RTL-aware components
  */
 
-export const ForceRTL = {
+export const RTL = {
   /**
-   * Initialize RTL configuration (legacy - now handled in index.js)
-   * Kept for backwards compatibility
+   * Check if current layout is RTL
+   * This reflects the device language setting
    */
-  async init() {
-    // RTL is now initialized in index.js before React loads
-    // This method is kept for backwards compatibility but does nothing
-    console.log('[RTL] Already initialized in index.js');
+  isRTL(): boolean {
+    return I18nManager.isRTL;
   },
 
   /**
-   * Get CSS-based RTL styles
-   * These work in both Expo Go and production builds
+   * Get transform style to flip icons with directional meaning
+   * Example: Back arrows, forward arrows, chevrons, etc.
+   *
+   * Usage:
+   * <Image source={backIcon} style={RTL.flipIcon()} />
    */
-  getStyles() {
+  flipIcon(): ImageStyle {
     return {
-      // Container with RTL direction
-      container: {
-        direction: 'rtl' as const,
-      },
-      // RTL text alignment
-      text: {
-        textAlign: 'right' as const,
-        writingDirection: 'rtl' as const,
-      },
-      // Reverse row layout for RTL
-      row: {
-        flexDirection: 'row-reverse' as const,
-      },
-      // Align items to end (right in RTL)
-      alignStart: {
-        alignItems: 'flex-end' as const,
-      },
-      // Align items to start (left in RTL)
-      alignEnd: {
-        alignItems: 'flex-start' as const,
-      },
+      transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }]
     };
   },
 
   /**
-   * Check if app should use RTL
-   * Always returns true for Hebrew app
+   * Get text alignment based on RTL
+   * Returns 'right' for RTL, 'left' for LTR
    */
+  textAlign(): 'left' | 'right' {
+    return I18nManager.isRTL ? 'right' : 'left';
+  },
+
+  /**
+   * Get flex direction for rows
+   * Returns 'row-reverse' for RTL, 'row' for LTR
+   */
+  flexDirection(): 'row' | 'row-reverse' {
+    return I18nManager.isRTL ? 'row-reverse' : 'row';
+  },
+
+  /**
+   * Get align items for start position
+   * Returns 'flex-end' for RTL, 'flex-start' for LTR
+   */
+  alignStart(): 'flex-start' | 'flex-end' {
+    return I18nManager.isRTL ? 'flex-end' : 'flex-start';
+  },
+
+  /**
+   * Get align items for end position
+   * Returns 'flex-start' for RTL, 'flex-end' for LTR
+   */
+  alignEnd(): 'flex-start' | 'flex-end' {
+    return I18nManager.isRTL ? 'flex-start' : 'flex-end';
+  },
+
+  /**
+   * Force RTL for testing purposes (requires app reload)
+   * WARNING: Only use this for development testing!
+   */
+  forceRTL(enable: boolean): void {
+    I18nManager.forceRTL(enable);
+  },
+
+  /**
+   * Get writing direction
+   */
+  writingDirection(): 'rtl' | 'ltr' {
+    return I18nManager.isRTL ? 'rtl' : 'ltr';
+  }
+};
+
+// Legacy export for backwards compatibility
+export const ForceRTL = {
+  async init() {
+    console.log('[RTL] Already initialized in index.js');
+  },
   isRTL() {
-    return true;
+    return I18nManager.isRTL;
+  },
+  getStyles() {
+    return {
+      container: {
+        direction: RTL.writingDirection() as any,
+      },
+      text: {
+        textAlign: RTL.textAlign(),
+        writingDirection: RTL.writingDirection() as any,
+      },
+      row: {
+        flexDirection: RTL.flexDirection(),
+      },
+      alignStart: {
+        alignItems: RTL.alignStart(),
+      },
+      alignEnd: {
+        alignItems: RTL.alignEnd(),
+      },
+    };
   }
 };

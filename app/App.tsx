@@ -39,9 +39,12 @@ import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 
-// RTL is DISABLED - Using LTR mode, manually handling RTL in components
-console.log('[App.tsx] LTR Mode - Manual RTL styling in components');
+// RTL is automatically enabled - layout adapts to device language
+console.log('[App.tsx] ===== RTL Configuration =====');
 console.log('[App.tsx] isRTL:', I18nManager.isRTL);
+console.log('[App.tsx] Layout direction:', I18nManager.isRTL ? 'RTL (Right-to-Left)' : 'LTR (Left-to-Right)');
+console.log('[App.tsx] Following React Native official RTL guidelines');
+console.log('[App.tsx] ====================================');
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
