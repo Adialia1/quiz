@@ -60,7 +60,8 @@
         {
           "color": "#2196F3"
         }
-      ]
+      ],
+      "./plugins/withRTL.js"
     ],
     "notification": {
       "color": "#2196F3",
