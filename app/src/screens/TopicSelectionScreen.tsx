@@ -3,9 +3,10 @@ import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView,
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 import { Colors } from '../config/colors';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 interface Topic {
   topic: string;

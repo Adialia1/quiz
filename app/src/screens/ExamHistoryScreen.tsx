@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ActivityIndicator, Alert, View, Text, Pressable, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 import { examApi } from '../utils/examApi';
 import { Colors } from '../config/colors';
 import { useHistoryStore, ExamHistoryItem, ExamHistoryData } from '../stores/historyStore';
+
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 /**
  * ExamHistoryScreen - Shows user's exam history with beautiful cards
@@ -188,7 +191,6 @@ export const ExamHistoryScreen: React.FC = () => {
       setArchiving(examId);
 
       const token = await getToken();
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
       const response = await fetch(`${API_URL}/api/exams/${examId}/archive`, {
         method: 'PATCH',

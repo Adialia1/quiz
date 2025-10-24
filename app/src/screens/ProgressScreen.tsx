@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 import { Colors } from '../config/colors';
 import {
   ProgressOverview,
@@ -23,7 +24,7 @@ import {
   MasteryLevel
 } from '../types/progress';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 /**
  * מסך מעקב התקדמות

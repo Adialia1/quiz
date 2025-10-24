@@ -3,13 +3,14 @@ import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ActivityInd
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 // Temporarily using FlatList instead of FlashList to debug AutoLayoutView error
 // import { FlashList } from '@shopify/flash-list';
 import { Colors } from '../config/colors';
 import { practiceApi } from '../utils/practiceApi';
 import { usePracticeStore } from '../stores/practiceStore';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 interface Concept {
   id: string;

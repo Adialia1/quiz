@@ -4,11 +4,12 @@ import { Image } from 'expo-image';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from '@clerk/clerk-expo';
+import Constants from 'expo-constants';
 import { Colors } from '../config/colors';
 import { StorageUtils } from '../utils/storage';
 import { requestNotificationPermissions } from '../utils/notifications';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://www.ethicaplus.net';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
