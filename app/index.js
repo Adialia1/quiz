@@ -1,24 +1,24 @@
 /**
  * Entry Point - LTR Configuration
  *
- * RTL DISABLED - Using LTR mode
+ * RTL FULLY DISABLED - Using pure LTR mode
+ * All RTL styling is handled manually in components
  */
 
 import { I18nManager, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
 import App from './App';
 
-// Enable RTL support (but don't force it at native level)
-// This allows RTL to work naturally without over-flipping the layout
-I18nManager.allowRTL(true);
+// COMPLETELY DISABLE RTL at native level
+// We will handle all RTL styling manually in components
+I18nManager.allowRTL(false);
+I18nManager.forceRTL(false);
 
-// Don't use forceRTL(true) - it causes layout issues in production builds
-// Instead, we handle RTL at the component level
-
-console.log('[APP] ===== RTL SUPPORT ENABLED =====');
+// Ensure RTL is disabled
+console.log('[APP] ===== RTL FULLY DISABLED =====');
 console.log('[APP] Platform:', Platform.OS);
 console.log('[APP] isRTL:', I18nManager.isRTL);
-console.log('[APP] RTL allowed - handled at component level');
+console.log('[APP] Using LTR mode - RTL handled manually in components');
 console.log('[APP] ====================================');
 
 // Register the main application component
