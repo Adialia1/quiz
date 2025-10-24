@@ -80,16 +80,31 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   };
 
   const handleComplete = async () => {
+    console.log('🟢 Starting onboarding completion...');
     try {
       // Request notification permissions and get push token
+      console.log('🔔 Requesting notification permissions...');
       const { granted, pushToken } = await requestNotificationPermissions();
+
+      console.log('✅ Notification permission granted:', granted);
+      console.log('✅ Push token:', pushToken ? pushToken.substring(0, 20) + '...' : 'null');
 
       // Note: We don't schedule local notifications here anymore
       // The server will send push notifications based on user's schedule
       // This prevents immediate notifications during onboarding
 
       // Save to database
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
+
+      if (!token) {
+        console.log('❌ No auth token found');
+        Alert.alert('שגיאה', 'לא נמצא טוקן אימות. נא להתחבר מחדש.');
+        return;
+      }
+
+      console.log('✅ Token obtained');
+
       const requestData = {
         exam_date: examDate.toISOString().split('T')[0], // YYYY-MM-DD format
         study_hours: selectedHours,
@@ -101,8 +116,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         }
       };
 
-      console.log('Sending onboarding data to:', `${API_URL}/api/users/me/onboarding`);
-      console.log('Request data:', requestData);
+      console.log('📡 Sending onboarding data to:', `${API_URL}/api/users/me/onboarding`);
+      console.log('📦 Request data:', {
+        exam_date: requestData.exam_date,
+        study_hours: requestData.study_hours,
+        expo_push_token: requestData.expo_push_token ? 'SET' : 'NULL',
+        notification_preferences: requestData.notification_preferences,
+      });
 
       const response = await fetch(`${API_URL}/api/users/me/onboarding`, {
         method: 'POST',
@@ -113,20 +133,27 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         body: JSON.stringify(requestData),
       });
 
+      console.log('📊 Response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        console.error('API Error Response:', error);
-        console.error('Response Status:', response.status);
+        console.error('❌ API Error Response:', error);
+        console.error('❌ Response Status:', response.status);
         throw new Error(error.detail || `Failed to save onboarding data (Status: ${response.status})`);
       }
 
+      console.log('✅ Onboarding data saved to server');
+
       // Also save locally (for offline access)
+      console.log('💾 Saving onboarding data locally...');
       await StorageUtils.setBoolean('onboarding_completed', true);
       await StorageUtils.setString('exam_date', examDate.toISOString());
       await StorageUtils.setString('study_hours', JSON.stringify(selectedHours));
+      console.log('✅ Local data saved');
 
       // Show success notification
       if (granted) {
+        console.log('🔔 Scheduling welcome notification...');
         // Send a single welcome notification
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -137,13 +164,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           },
           trigger: null, // Send immediately
         });
+        console.log('✅ Welcome notification scheduled');
       }
 
       // Complete onboarding
+      console.log('✅ Onboarding completed successfully');
       onComplete();
     } catch (error: any) {
-      console.error('Error completing onboarding:', error);
-      Alert.alert('שגיאה', error.message || 'אירעה שגיאה. נסה שוב.');
+      console.error('❌ Error completing onboarding:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+
+      const errorMessage = error.message || 'אירעה שגיאה בהשלמת ההרשמה';
+      Alert.alert('שגיאה', errorMessage + '\nנסה שוב.');
+    } finally {
+      console.log('🏁 handleComplete completed');
     }
   };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '@clerk/clerk-expo';
 import { Colors } from '../config/colors';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
@@ -36,22 +37,61 @@ const TopicCard: React.FC<TopicCardProps> = ({ title, count, icon, onPress }) =>
  */
 export const TopicSelectionScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { getToken } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[TopicSelection] 🟢 Screen mounted');
+    console.log('[TopicSelection] API_URL:', API_URL);
     loadTopics();
   }, []);
 
   const loadTopics = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/concepts/topics`);
+      console.log('[TopicSelection] 📡 Fetching topics...');
+      setLoading(true);
+      setError(null);
+
+      const token = await getToken();
+      console.log('[TopicSelection] 🔑 Got auth token:', token ? `${token.substring(0, 20)}...` : 'null');
+
+      if (!token) {
+        throw new Error('No auth token available');
+      }
+
+      const url = `${API_URL}/api/concepts/topics`;
+      console.log('[TopicSelection] 🌐 Fetching from:', url);
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('[TopicSelection] 📥 Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[TopicSelection] ❌ API Error:', response.status, errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
+      console.log('[TopicSelection] ✅ Topics loaded:', data.length, 'topics');
+      console.log('[TopicSelection] 📊 Topics data:', JSON.stringify(data, null, 2));
       setTopics(data);
-    } catch (error) {
-      console.error('Error loading topics:', error);
+    } catch (error: any) {
+      const errorMessage = error.message || 'Unknown error';
+      console.error('[TopicSelection] 💥 ERROR loading topics:', errorMessage);
+      console.error('[TopicSelection] 💥 ERROR stack:', error.stack);
+      setError(errorMessage);
+      Alert.alert('שגיאה', `לא ניתן לטעון נושאים: ${errorMessage}`);
     } finally {
       setLoading(false);
+      console.log('[TopicSelection] ⏹️ Loading finished');
     }
   };
 

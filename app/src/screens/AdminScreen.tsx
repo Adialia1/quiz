@@ -50,6 +50,7 @@ export const AdminScreen: React.FC = () => {
 
   // Load stats on mount
   useEffect(() => {
+    console.log('🟢 AdminScreen mounted');
     loadStats();
   }, []);
 
@@ -57,14 +58,21 @@ export const AdminScreen: React.FC = () => {
    * Load admin statistics
    */
   const loadStats = async () => {
+    console.log('🟢 Loading admin stats...');
     try {
       setLoadingStats(true);
 
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
       if (!token) {
+        console.log('❌ No auth token found');
         Alert.alert('שגיאה', 'לא נמצא טוקן אימות');
         return;
       }
+
+      console.log('✅ Token obtained (length:', token.length, ')');
+      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+      console.log('📡 Fetching stats from:', `${API_URL}/api/admin/stats`);
 
       const response = await axios.get(`${API_URL}/api/admin/stats`, {
         headers: {
@@ -72,12 +80,20 @@ export const AdminScreen: React.FC = () => {
         },
       });
 
+      console.log('✅ Stats response status:', response.status);
+      console.log('✅ Stats data:', response.data.stats);
       setStats(response.data.stats);
     } catch (error: any) {
-      console.error('Failed to load stats:', error);
-      Alert.alert('שגיאה', 'שגיאה בטעינת סטטיסטיקות. ודא שיש לך הרשאות מנהל.');
+      console.error('❌ Failed to load stats:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+
+      const errorMessage = error.response?.data?.detail || error.message || 'שגיאה בטעינת סטטיסטיקות';
+      Alert.alert('שגיאה', errorMessage + '\nודא שיש לך הרשאות מנהל.');
     } finally {
       setLoadingStats(false);
+      console.log('🏁 loadStats completed');
     }
   };
 
@@ -90,14 +106,23 @@ export const AdminScreen: React.FC = () => {
       return;
     }
 
+    console.log('🟢 Sending notification...');
+    console.log('📧 Title:', notifTitle);
+    console.log('📧 Body:', notifBody);
+
     try {
       setSendingNotif(true);
 
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
       if (!token) {
+        console.log('❌ No auth token found');
         Alert.alert('שגיאה', 'לא נמצא טוקן אימות');
         return;
       }
+
+      console.log('✅ Token obtained');
+      console.log('📡 Sending to:', `${API_URL}/api/notifications/send`);
 
       const response = await axios.post(
         `${API_URL}/api/notifications/send`,
@@ -113,14 +138,22 @@ export const AdminScreen: React.FC = () => {
         }
       );
 
+      console.log('✅ Notification sent successfully');
+      console.log('✅ Response:', response.data);
       Alert.alert('הצלחה! 🎉', `התראה נשלחה בהצלחה ל-${response.data.sent} משתמשים`);
       setNotifTitle('');
       setNotifBody('');
     } catch (error: any) {
-      console.error('Failed to send notification:', error);
-      Alert.alert('שגיאה', error.response?.data?.detail || 'שגיאה בשליחת התראה');
+      console.error('❌ Failed to send notification:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+
+      const errorMessage = error.response?.data?.detail || error.message || 'שגיאה בשליחת התראה';
+      Alert.alert('שגיאה', errorMessage);
     } finally {
       setSendingNotif(false);
+      console.log('🏁 handleSendNotification completed');
     }
   };
 
@@ -128,33 +161,44 @@ export const AdminScreen: React.FC = () => {
    * Pick and upload legal document
    */
   const handleIngestLegalDoc = async () => {
+    console.log('🟢 Starting legal doc ingestion...');
     try {
+      console.log('📄 Opening document picker...');
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         copyToCacheDirectory: true,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log('❌ Document picker canceled or no file selected');
         return;
       }
 
       const file = result.assets[0];
+      console.log('✅ File selected:', file.name, 'Size:', file.size);
 
       setIngesting(true);
       setIngestionType('legal');
 
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
       if (!token) {
+        console.log('❌ No auth token found');
         Alert.alert('שגיאה', 'לא נמצא טוקן אימות');
         return;
       }
 
+      console.log('✅ Token obtained');
+      console.log('📦 Creating FormData...');
       const formData = new FormData();
       formData.append('file', {
         uri: file.uri,
         type: 'application/pdf',
         name: file.name,
       } as any);
+
+      console.log('📡 Uploading to:', `${API_URL}/api/admin/ingest/legal-docs`);
+      console.log('⏱ Timeout: 120 seconds');
 
       const response = await axios.post(
         `${API_URL}/api/admin/ingest/legal-docs`,
@@ -168,14 +212,22 @@ export const AdminScreen: React.FC = () => {
         }
       );
 
+      console.log('✅ Legal doc ingestion successful');
+      console.log('✅ Response:', response.data);
       Alert.alert('הצלחה! 🎉', `${response.data.total_inserted} חלקים הוכנסו למאגר`);
       loadStats(); // Refresh stats
     } catch (error: any) {
-      console.error('Failed to ingest legal doc:', error);
-      Alert.alert('שגיאה', error.response?.data?.detail || 'שגיאה בהכנסת מסמך');
+      console.error('❌ Failed to ingest legal doc:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+
+      const errorMessage = error.response?.data?.detail || error.message || 'שגיאה בהכנסת מסמך';
+      Alert.alert('שגיאה', errorMessage);
     } finally {
       setIngesting(false);
       setIngestionType(null);
+      console.log('🏁 handleIngestLegalDoc completed');
     }
   };
 
@@ -183,33 +235,44 @@ export const AdminScreen: React.FC = () => {
    * Pick and upload exam questions PDF
    */
   const handleIngestExamQuestions = async () => {
+    console.log('🟢 Starting exam questions ingestion...');
     try {
+      console.log('📄 Opening document picker...');
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         copyToCacheDirectory: true,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log('❌ Document picker canceled or no file selected');
         return;
       }
 
       const file = result.assets[0];
+      console.log('✅ File selected:', file.name, 'Size:', file.size);
 
       setIngesting(true);
       setIngestionType('exam');
 
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
       if (!token) {
+        console.log('❌ No auth token found');
         Alert.alert('שגיאה', 'לא נמצא טוקן אימות');
         return;
       }
 
+      console.log('✅ Token obtained');
+      console.log('📦 Creating FormData...');
       const formData = new FormData();
       formData.append('file', {
         uri: file.uri,
         type: 'application/pdf',
         name: file.name,
       } as any);
+
+      console.log('📡 Uploading to:', `${API_URL}/api/admin/ingest/exam-questions/pdf`);
+      console.log('⏱ Timeout: 120 seconds');
 
       const response = await axios.post(
         `${API_URL}/api/admin/ingest/exam-questions/pdf`,
@@ -223,14 +286,22 @@ export const AdminScreen: React.FC = () => {
         }
       );
 
+      console.log('✅ Exam questions ingestion successful');
+      console.log('✅ Response:', response.data);
       Alert.alert('הצלחה! 🎉', `${response.data.total_inserted} שאלות הוכנסו למאגר`);
       loadStats(); // Refresh stats
     } catch (error: any) {
-      console.error('Failed to ingest exam questions:', error);
-      Alert.alert('שגיאה', error.response?.data?.detail || 'שגיאה בהכנסת שאלות');
+      console.error('❌ Failed to ingest exam questions:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+
+      const errorMessage = error.response?.data?.detail || error.message || 'שגיאה בהכנסת שאלות';
+      Alert.alert('שגיאה', errorMessage);
     } finally {
       setIngesting(false);
       setIngestionType(null);
+      console.log('🏁 handleIngestExamQuestions completed');
     }
   };
 

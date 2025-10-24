@@ -7,7 +7,8 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -40,21 +41,45 @@ export const ProgressScreen: React.FC = () => {
   const [mistakes, setMistakes] = useState<MistakeInsights | null>(null);
   const [mastery, setMastery] = useState<MasteryLevel | null>(null);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
+    console.log('🟢 ProgressScreen mounted');
     loadProgressData();
   }, []);
 
   const loadProgressData = async () => {
+    console.log('🟢 Starting loadProgressData');
     try {
       setLoading(true);
+      setError(null);
+
+      console.log('🔐 Getting auth token...');
       const token = await getToken();
+
+      if (!token) {
+        console.log('❌ No auth token found');
+        setError('לא נמצא טוקן אימות. נא להתחבר מחדש.');
+        Alert.alert('שגיאה', 'לא נמצא טוקן אימות. נא להתחבר מחדש.');
+        return;
+      }
+
+      console.log('✅ Token obtained (length:', token.length, ')');
+      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
 
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
 
+      console.log('📡 Fetching progress data from:', API_URL);
+      console.log('📡 Headers:', {
+        Authorization: 'Bearer ' + token.substring(0, 10) + '...',
+        'Content-Type': 'application/json'
+      });
+
       // Fetch all progress data in parallel
+      console.log('🚀 Making parallel API requests...');
       const [overviewRes, historyRes, topicsRes, trendsRes, mistakesRes, masteryRes] = await Promise.all([
         fetch(`${API_URL}/api/progress/overview`, { headers }),
         fetch(`${API_URL}/api/progress/exam-history?limit=10`, { headers }),
@@ -64,40 +89,82 @@ export const ProgressScreen: React.FC = () => {
         fetch(`${API_URL}/api/progress/mastery`, { headers }),
       ]);
 
+      console.log('📊 Response status codes:', {
+        overview: overviewRes.status,
+        history: historyRes.status,
+        topics: topicsRes.status,
+        trends: trendsRes.status,
+        mistakes: mistakesRes.status,
+        mastery: masteryRes.status,
+      });
+
       if (overviewRes.ok) {
         const data = await overviewRes.json();
+        console.log('✅ Overview data:', data);
         setOverview(data);
+      } else {
+        const errorText = await overviewRes.text();
+        console.log('❌ Overview error:', overviewRes.status, errorText);
       }
 
       if (historyRes.ok) {
         const data = await historyRes.json();
+        console.log('✅ History data (count:', data.length, ')');
         setExamHistory(data);
+      } else {
+        const errorText = await historyRes.text();
+        console.log('❌ History error:', historyRes.status, errorText);
       }
 
       if (topicsRes.ok) {
         const data = await topicsRes.json();
+        console.log('✅ Topics data (count:', data.length, ')');
         setTopicPerformance(data);
+      } else {
+        const errorText = await topicsRes.text();
+        console.log('❌ Topics error:', topicsRes.status, errorText);
       }
 
       if (trendsRes.ok) {
         const data = await trendsRes.json();
+        console.log('✅ Trends data:', data);
         setTrends(data);
+      } else {
+        const errorText = await trendsRes.text();
+        console.log('❌ Trends error:', trendsRes.status, errorText);
       }
 
       if (mistakesRes.ok) {
         const data = await mistakesRes.json();
+        console.log('✅ Mistakes data:', data);
         setMistakes(data);
+      } else {
+        const errorText = await mistakesRes.text();
+        console.log('❌ Mistakes error:', mistakesRes.status, errorText);
       }
 
       if (masteryRes.ok) {
         const data = await masteryRes.json();
+        console.log('✅ Mastery data:', data);
         setMastery(data);
+      } else {
+        const errorText = await masteryRes.text();
+        console.log('❌ Mastery error:', masteryRes.status, errorText);
       }
 
-    } catch (error) {
-      console.error('Error loading progress data:', error);
+      console.log('✅ Progress data loaded successfully');
+
+    } catch (error: any) {
+      console.error('❌ Error loading progress data:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+
+      const errorMessage = error.message || 'שגיאה בטעינת נתוני התקדמות';
+      setError(errorMessage);
+      Alert.alert('שגיאה', errorMessage + '\nנסה שוב מאוחר יותר');
     } finally {
       setLoading(false);
+      console.log('🏁 loadProgressData completed');
     }
   };
 

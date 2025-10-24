@@ -49,9 +49,9 @@ def get_clerk_instance_id():
         logger.error(f"Failed to decode Clerk publishable key: {e}")
         return None
 
-# Build JWKS URL from decoded domain
+# Build JWKS URL - allow override via env variable
 CLERK_DOMAIN = get_clerk_instance_id()
-CLERK_JWKS_URL = f"https://{CLERK_DOMAIN}/.well-known/jwks.json" if CLERK_DOMAIN else None
+CLERK_JWKS_URL = os.getenv("CLERK_JWKS_URL") or (f"https://{CLERK_DOMAIN}/.well-known/jwks.json" if CLERK_DOMAIN else None)
 
 # Cache for JWKS keys
 _jwks_cache = None
