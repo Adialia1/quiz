@@ -224,18 +224,55 @@ async def send_notifications(
         raise HTTPException(status_code=500, detail=f"Error sending notifications: {str(e)}")
 
 
+async def verify_cron_authentication(
+    authorization: Optional[str] = Header(None),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+) -> bool:
+    """
+    Verify authentication for cron endpoints
+    Accepts either:
+    1. X-API-Key header with NOTIFICATION_API_KEY
+    2. Bearer token with admin privileges
+    """
+    # Check API key first (simpler for cron jobs)
+    notification_api_key = os.getenv("NOTIFICATION_API_KEY")
+    if x_api_key and notification_api_key and x_api_key == notification_api_key:
+        return True
+
+    # Fallback to Clerk admin authentication
+    if authorization:
+        try:
+            _ = await get_current_admin_user_id(authorization)
+            return True
+        except:
+            pass
+
+    raise HTTPException(
+        status_code=401,
+        detail="Unauthorized. Provide X-API-Key header or admin Bearer token."
+    )
+
+
 @router.post("/send-study-reminders")
 async def send_study_reminders(
-    admin_user_id: str = Depends(get_current_admin_user_id)
+    _: bool = Depends(verify_cron_authentication)
 ):
     """
     Send study reminders to all users whose study hour matches current time
 
     This endpoint should be called every hour by a scheduler
 
-    Requires: Bearer token with admin privileges
+    Authentication:
+    - Option 1 (Recommended for cron): X-API-Key header with NOTIFICATION_API_KEY
+    - Option 2: Bearer token with admin privileges
 
-    Example:
+    Example with API Key:
+    ```bash
+    curl -X POST "http://localhost:8000/api/notifications/send-study-reminders" \\
+         -H "X-API-Key: your-notification-api-key"
+    ```
+
+    Example with Clerk token:
     ```bash
     curl -X POST "http://localhost:8000/api/notifications/send-study-reminders" \\
          -H "Authorization: Bearer <clerk-token>"
