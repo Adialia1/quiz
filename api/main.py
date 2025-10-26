@@ -240,10 +240,8 @@ class QuizResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    """API root endpoint with welcome message"""
-    return {
-        "message": "Nothing to look here 🕵️‍♂️",    
-    }
+    """Serve landing page"""
+    return FileResponse(str(STATIC_DIR / "index.html"))
 
 
 @app.get("/health")
