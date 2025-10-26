@@ -17,6 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ethicsplus.mobile",
       "icon": "./assets/icon.png",
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"]
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
         "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה",

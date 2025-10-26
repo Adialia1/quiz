@@ -245,14 +245,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
       setSocialLoading(strategy);
       setError('');
 
+      console.log(`🔵 Starting ${strategy} OAuth flow...`);
       const oAuthFlow = strategy === 'google' ? googleOAuth : appleOAuth;
 
       // Start OAuth flow
-      const { createdSessionId, setActive } = await oAuthFlow.startOAuthFlow();
+      const { createdSessionId, setActive, signIn, signUp } = await oAuthFlow.startOAuthFlow();
 
-      if (createdSessionId) {
+      console.log(`📥 OAuth response:`, { createdSessionId, hasSetActive: !!setActive });
+
+      if (createdSessionId && setActive) {
         // OAuth successful
-        await setActive?.({ session: createdSessionId });
+        await setActive({ session: createdSessionId });
 
         // Get user info and save to store
         await login({
@@ -264,20 +267,29 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
 
         console.log(`✅ ${strategy} sign-in successful`);
         onAuthSuccess();
+      } else {
+        console.error(`❌ ${strategy} OAuth incomplete - missing session or setActive`);
+        throw new Error('OAuth flow did not complete successfully');
       }
     } catch (err: any) {
       console.error(`❌ ${strategy} sign-in error:`, err);
+      console.error(`❌ Error details:`, JSON.stringify(err, null, 2));
 
       // Handle specific OAuth errors
-      if (err.message?.includes('cancelled')) {
+      if (err.message?.includes('cancelled') || err.code === 'user_cancelled') {
         // User cancelled - don't show error
+        console.log('User cancelled OAuth flow');
         return;
       }
 
+      // Show detailed error message
+      const errorMessage = err.errors?.[0]?.message || err.message || 'Unknown error';
+      console.error(`❌ Final error message:`, errorMessage);
+
       setError(
         strategy === 'google'
-          ? 'שגיאה בהתחברות עם Google'
-          : 'שגיאה בהתחברות עם Apple'
+          ? `שגיאה בהתחברות עם Google: ${errorMessage}`
+          : `שגיאה בהתחברות עם Apple: ${errorMessage}`
       );
     } finally {
       setSocialLoading(null);
@@ -475,7 +487,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
               )}
             </Pressable>
 
-            {/* Apple Sign In - Only on iOS */}
+            {/* Apple Sign In - iOS and iPadOS */}
             {Platform.OS === 'ios' && (
               <Pressable
                 style={({ pressed }) => [
