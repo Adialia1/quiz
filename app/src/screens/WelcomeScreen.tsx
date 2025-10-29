@@ -7,13 +7,14 @@ const { width, height } = Dimensions.get('window');
 
 interface WelcomeScreenProps {
   onGetStarted: () => void;
+  onContinueAsGuest?: () => void;
 }
 
 /**
  * מסך ברוכים הבאים
  * Welcome Screen
  */
-export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) => {
+export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onContinueAsGuest }) => {
   return (
     <View style={[styles.container, { backgroundColor: 'rgb(60, 104, 255)' }]}>
       <View style={styles.gradient}>
@@ -49,7 +50,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) =>
           />
         </View>
 
-        {/* כפתור התחלה */}
+        {/* כפתורי התחלה */}
         <View style={styles.buttonContainer}>
           <Pressable
             style={({ pressed }) => [
@@ -58,8 +59,20 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted }) =>
             ]}
             onPress={onGetStarted}
           >
-            <Text style={styles.buttonText}>בואו נתחיל</Text>
+            <Text style={styles.buttonText}>התחבר או הירשם</Text>
           </Pressable>
+
+          {onContinueAsGuest && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.guestButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onContinueAsGuest}
+            >
+              <Text style={styles.guestButtonText}>המשך ללא חשבון</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>
@@ -161,6 +174,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 'auto',
+    gap: 12,
   },
   button: {
     backgroundColor: Colors.accent,
@@ -174,6 +188,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
+  guestButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
   buttonPressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
@@ -181,6 +204,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: Colors.white,
+  },
+  guestButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.white,
   },
 });

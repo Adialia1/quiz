@@ -30,8 +30,11 @@ interface RouteParams {
 export const FlashcardStudyScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { userId } = useAuth();
-  const { topic, mode = 'all', conceptId } = route.params as RouteParams;
+  const { userId, getToken } = useAuth();
+
+  // Safe params with defaults for guest mode
+  const params = (route.params || {}) as Partial<RouteParams>;
+  const { topic = '', mode = 'all', conceptId } = params;
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,6 +56,17 @@ export const FlashcardStudyScreen: React.FC = () => {
 
   const loadConcepts = async () => {
     try {
+      // Guest mode: If no topic provided, show error and navigate back
+      if (!topic) {
+        Alert.alert(
+          'נדרש נושא',
+          'אנא בחר נושא מהרשימה',
+          [{ text: 'חזור', onPress: () => navigation.goBack() }]
+        );
+        setLoading(false);
+        return;
+      }
+
       if (mode === 'single' && conceptId) {
         // Load single concept
         console.log('Loading single concept:', conceptId);
@@ -76,10 +90,40 @@ export const FlashcardStudyScreen: React.FC = () => {
 
         const data = await response.json();
         console.log('Loaded concepts:', data.length, 'items');
-        setConcepts(data);
+
+        // Guest mode: Limit to 10 concepts max
+        const limitedData = !userId && data.length > 10 ? data.slice(0, 10) : data;
+        setConcepts(limitedData);
+
+        console.log(`Guest mode: ${!userId ? 'YES' : 'NO'}, showing ${limitedData.length} of ${data.length} concepts`);
+
+        // Guest mode notification: Show message if limited
+        if (!userId && data.length > 10) {
+          setTimeout(() => {
+            Alert.alert(
+              'מצב אורח',
+              `במצב אורח ניתן לצפות עד 10 כרטיסיות בלבד (${limitedData.length} מתוך ${data.length}).\nהירשם כדי לקבל גישה לכל הכרטיסיות!`,
+              [
+                { text: 'המשך', style: 'cancel' },
+                {
+                  text: 'הירשם',
+                  onPress: () => {
+                    // Navigate back to home and trigger sign up
+                    navigation.navigate('GuestHome' as never);
+                  }
+                }
+              ]
+            );
+          }, 2000); // Show after 2 seconds
+        }
       }
     } catch (error) {
       console.error('Error loading concepts:', error);
+      Alert.alert(
+        'שגיאה',
+        'לא ניתן לטעון את הכרטיסיות. אנא נסה שוב.',
+        [{ text: 'חזור', onPress: () => navigation.goBack() }]
+      );
       setConcepts([]);
     } finally {
       setLoading(false);

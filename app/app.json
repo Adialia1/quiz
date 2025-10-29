@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "requireFullScreen": false,
       "bundleIdentifier": "com.ethicsplus.mobile",
       "icon": "./assets/icon.png",
       "entitlements": {
@@ -24,7 +25,18 @@
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
         "NSPhotoLibraryUsageDescription": "האפליקציה צריכה גישה לגלריה",
         "NSUserNotificationsUsageDescription": "האפליקציה שולחת לך תזכורות יומיות ללמוד למבחן",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIRequiresFullScreen": false,
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown"
+        ],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
       },
       "buildNumber": "1",
       "config": {

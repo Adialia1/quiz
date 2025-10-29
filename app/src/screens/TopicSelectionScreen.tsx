@@ -58,19 +58,20 @@ export const TopicSelectionScreen: React.FC = () => {
       const token = await getToken();
       console.log('[TopicSelection] 🔑 Got auth token:', token ? `${token.substring(0, 20)}...` : 'null');
 
-      if (!token) {
-        throw new Error('No auth token available');
-      }
-
+      // Guest mode: Allow access without token
       const url = `${API_URL}/api/concepts/topics`;
       console.log('[TopicSelection] 🌐 Fetching from:', url);
 
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add auth header only if token exists (for authenticated users)
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, { headers });
 
       console.log('[TopicSelection] 📥 Response status:', response.status);
 

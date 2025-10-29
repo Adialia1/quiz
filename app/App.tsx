@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet, I18nManager, Platform } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, I18nManager, Platform, Text } from 'react-native';
 import { Image } from 'expo-image';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ClerkProvider, useAuth, useClerk } from '@clerk/clerk-expo';
@@ -14,6 +15,7 @@ import { useAuthStore } from './src/stores/authStore';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { GuestHomeScreen } from './src/screens/GuestHomeScreen';
 import { ExamScreen } from './src/screens/ExamScreen';
 import { ExamReviewScreen } from './src/screens/ExamReviewScreen';
 import { ExamHistoryScreen } from './src/screens/ExamHistoryScreen';
@@ -38,6 +40,7 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { tokenCache } from './src/utils/tokenCache';
 import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 // RTL is FORCED - app is Hebrew-only and always RTL
 console.log('[App.tsx] ===== RTL Configuration =====');
@@ -50,23 +53,73 @@ console.log('[App.tsx] ====================================');
 const Stack = createNativeStackNavigator();
 
 /**
+ * Guest Stack - Limited screens for guest users
+ * Only allows browsing topics and concepts (read-only learning content)
+ */
+function GuestStack({ onSignUp }: { onSignUp: () => void }) {
+  return (
+    <>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="GuestHome">
+          {(props) => <GuestHomeScreen {...props} onSignUp={onSignUp} />}
+        </Stack.Screen>
+        <Stack.Screen name="TopicSelection" component={TopicSelectionScreen} />
+        <Stack.Screen name="TopicDetail" component={TopicDetailScreen} />
+        <Stack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
+        <Stack.Screen name="StarredConcepts" component={StarredConceptsScreen} />
+      </Stack.Navigator>
+      <StatusBar style="dark" />
+    </>
+  );
+}
+
+/**
  * Auth Stack - Screens for unauthenticated users
  */
 function AuthStack() {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   if (showWelcome) {
     return (
       <>
-        <WelcomeScreen onGetStarted={() => setShowWelcome(false)} />
+        <WelcomeScreen
+          onGetStarted={() => setShowWelcome(false)}
+          onContinueAsGuest={() => {
+            setShowWelcome(false);
+            setIsGuest(true);
+          }}
+        />
         <StatusBar style="light" />
       </>
     );
   }
 
+  if (isGuest) {
+    return (
+      <GuestStack
+        onSignUp={() => {
+          setIsGuest(false);
+          setShowWelcome(false);
+        }}
+      />
+    );
+  }
+
   return (
     <>
-      <AuthScreen onAuthSuccess={() => {}} />
+      <AuthScreen
+        onAuthSuccess={() => {}}
+        onBack={() => {
+          setIsGuest(true);
+          setShowWelcome(false);
+        }}
+      />
       <StatusBar style="dark" />
     </>
   );
@@ -115,16 +168,30 @@ function MainStack() {
  * Main Navigation Component
  */
 function AppContent() {
-  const { isSignedIn, isLoaded: clerkLoaded, getToken } = useAuth();
+  const clerkAuth = useAuth();
   const { signOut } = useClerk();
   const { isAuthenticated, isLoading, hydrate, logout } = useAuthStore();
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null); // null = checking
   const [showSubscriptionPaywall, setShowSubscriptionPaywall] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
+  // Safely get Clerk values with fallbacks
+  const isSignedIn = clerkAuth?.isSignedIn ?? false;
+  const clerkLoaded = clerkAuth?.isLoaded ?? false;
+  const getToken = clerkAuth?.getToken ?? (async () => null);
+
   // טעינת מצב האימות מהאחסון
   useEffect(() => {
-    hydrate();
+    const loadAuthState = async () => {
+      try {
+        await hydrate();
+      } catch (error) {
+        console.error('[App] Error hydrating auth state:', error);
+        // Continue anyway - don't block app startup
+      }
+    };
+
+    loadAuthState();
   }, []);
 
   // Initialize RevenueCat when user is authenticated
@@ -158,8 +225,13 @@ function AppContent() {
           }
         } catch (error) {
           console.error('[RevenueCat] Error initializing:', error);
-          // Fallback: initialize without user ID
-          await initializeRevenueCat();
+          // Fallback: initialize without user ID - don't block app
+          try {
+            await initializeRevenueCat();
+          } catch (fallbackError) {
+            console.error('[RevenueCat] Fallback initialization also failed:', fallbackError);
+            // Continue without RevenueCat - don't crash the app
+          }
         }
       }
     };
@@ -279,7 +351,7 @@ function AppContent() {
     return (
       <View style={styles.loadingContainer}>
         <Image
-          source={require('./assets/icon.png.jpeg')}
+          source={require('./assets/icon.png')}
           style={styles.loadingLogo}
           contentFit="contain"
           transition={200}
@@ -367,15 +439,32 @@ function AppContent() {
  * Main App Component
  */
 export default function App() {
+  // Validate required configuration
+  if (!CLERK_PUBLISHABLE_KEY) {
+    console.error('[App] CRITICAL: CLERK_PUBLISHABLE_KEY is not set!');
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ fontSize: 16, color: '#F44336', textAlign: 'center', padding: 20 }}>
+          שגיאת תצורה:{'\n'}
+          CLERK_PUBLISHABLE_KEY חסר
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY}
-      tokenCache={tokenCache}
-    >
-      <GluestackUIProvider config={config}>
-        <AppContent />
-      </GluestackUIProvider>
-    </ClerkProvider>
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <ClerkProvider
+          publishableKey={CLERK_PUBLISHABLE_KEY}
+          tokenCache={tokenCache}
+        >
+          <GluestackUIProvider config={config}>
+            <AppContent />
+          </GluestackUIProvider>
+        </ClerkProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
 

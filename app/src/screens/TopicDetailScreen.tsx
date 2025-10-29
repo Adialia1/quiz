@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, TextInput, ActivityIndicator, FlatList } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, TextInput, ActivityIndicator, FlatList, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useAuth } from '@clerk/clerk-expo';
 import Constants from 'expo-constants';
 // Temporarily using FlatList instead of FlashList to debug AutoLayoutView error
 // import { FlashList } from '@shopify/flash-list';
@@ -24,12 +25,14 @@ interface Concept {
 export const TopicDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { userId } = useAuth();
   const { topic } = route.params as { topic: string };
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [filteredConcepts, setFilteredConcepts] = useState<Concept[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLimitedGuest, setIsLimitedGuest] = useState(false);
 
   useEffect(() => {
     loadConcepts();
@@ -58,8 +61,28 @@ export const TopicDetailScreen: React.FC = () => {
 
       const data = await response.json();
       console.log('Loaded concepts:', data.length, 'items');
-      setConcepts(data);
-      setFilteredConcepts(data);
+
+      // Guest mode: Limit to 10 concepts max
+      if (!userId && data.length > 10) {
+        const limitedData = data.slice(0, 10);
+        setConcepts(limitedData);
+        setFilteredConcepts(limitedData);
+        setIsLimitedGuest(true);
+        console.log(`Guest mode: Limited to ${limitedData.length} of ${data.length} concepts`);
+
+        // Show notification
+        setTimeout(() => {
+          Alert.alert(
+            'מצב אורח',
+            `במצב אורח ניתן לצפות עד 10 מושגים בלבד (${limitedData.length} מתוך ${data.length}).\nהירשם כדי לקבל גישה לכל המושגים!`,
+            [{ text: 'הבנתי' }]
+          );
+        }, 1000);
+      } else {
+        setConcepts(data);
+        setFilteredConcepts(data);
+        setIsLimitedGuest(false);
+      }
     } catch (error) {
       console.error('Error loading concepts:', error);
       // Show error to user

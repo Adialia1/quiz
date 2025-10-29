@@ -18,6 +18,7 @@ import * as WebBrowser from 'expo-web-browser';
 
 interface AuthScreenProps {
   onAuthSuccess: () => void;
+  onBack?: () => void;
 }
 
 /**
@@ -65,7 +66,7 @@ WebBrowser.maybeCompleteAuthSession();
  * מסך התחברות והרשמה
  * Authentication Screen (Login & Register)
  */
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -305,6 +306,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Back button (if onBack provided - for guest mode) */}
+        {onBack && (
+          <Pressable
+            style={styles.backToGuestButton}
+            onPress={onBack}
+          >
+            <Text style={styles.backToGuestButtonText}>← חזור למצב אורח</Text>
+          </Pressable>
+        )}
+
         <View style={styles.header}>
           <Text style={styles.title}>
             {pendingVerification ? 'אימות אימייל' : (isLogin ? 'התחברות' : 'הרשמה')}
@@ -541,6 +552,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
+  },
+  backToGuestButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  backToGuestButtonText: {
+    fontSize: 16,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   header: {
     marginBottom: 32,

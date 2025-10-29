@@ -16,9 +16,9 @@ import Constants from 'expo-constants';
 export const CLERK_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.clerkPublishableKey || '';
 
 if (!CLERK_PUBLISHABLE_KEY) {
-  console.warn(
-    'אזהרה: CLERK_PUBLISHABLE_KEY לא הוגדר. ' +
-    'הוסף את המפתח בקובץ .env או בקובץ זה.'
+  console.error(
+    '❌ אזהרה: CLERK_PUBLISHABLE_KEY לא הוגדר. ' +
+    'הוסף את המפתח בקובץ .env או ב-app.json'
   );
 }
 
