@@ -42,12 +42,22 @@ import { API_URL } from './src/config/api';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 
+// Disable console logs in production to prevent confusion during App Review
+if (!__DEV__) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.debug = () => {};
+  // Keep console.error for critical issues
+}
+
 // RTL is FORCED - app is Hebrew-only and always RTL
-console.log('[App.tsx] ===== RTL Configuration =====');
-console.log('[App.tsx] isRTL:', I18nManager.isRTL);
-console.log('[App.tsx] Layout direction:', I18nManager.isRTL ? 'RTL (Right-to-Left) ✅' : 'LTR (Left-to-Right) ⚠️');
-console.log('[App.tsx] RTL is FORCED for Hebrew-only app');
-console.log('[App.tsx] ====================================');
+if (__DEV__) {
+  console.log('[App.tsx] ===== RTL Configuration =====');
+  console.log('[App.tsx] isRTL:', I18nManager.isRTL);
+  console.log('[App.tsx] Layout direction:', I18nManager.isRTL ? 'RTL (Right-to-Left) ✅' : 'LTR (Left-to-Right) ⚠️');
+  console.log('[App.tsx] RTL is FORCED for Hebrew-only app');
+  console.log('[App.tsx] ====================================');
+}
 
 // Create stack navigator
 const Stack = createNativeStackNavigator();
@@ -415,7 +425,8 @@ function AppContent() {
   }
 
   // Show subscription paywall if no active subscription
-  if ((isSignedIn || isAuthenticated) && showSubscriptionPaywall) {
+  // ALWAYS show in Expo Go for testing (even without backend check)
+  if ((isSignedIn || isAuthenticated) && (showSubscriptionPaywall || __DEV__)) {
     return (
       <>
         <RevenueCatPaywallScreen

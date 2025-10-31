@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { useSignIn, useSignUp, useOAuth } from '@clerk/clerk-expo';
 import { useAuthStore } from '../stores/authStore';
@@ -246,13 +247,32 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack })
       setSocialLoading(strategy);
       setError('');
 
-      console.log(`🔵 Starting ${strategy} OAuth flow...`);
+      if (__DEV__) {
+        console.log(`🔵 Starting ${strategy} OAuth flow...`);
+        console.log(`📱 Platform: ${Platform.OS}, Device: ${Platform.isPad ? 'iPad' : 'iPhone'}`);
+      }
+
       const oAuthFlow = strategy === 'google' ? googleOAuth : appleOAuth;
 
-      // Start OAuth flow
-      const { createdSessionId, setActive, signIn, signUp } = await oAuthFlow.startOAuthFlow();
+      // Ensure OAuth flow is ready
+      if (!oAuthFlow || !oAuthFlow.startOAuthFlow) {
+        throw new Error(`OAuth provider for ${strategy} is not initialized`);
+      }
 
-      console.log(`📥 OAuth response:`, { createdSessionId, hasSetActive: !!setActive });
+      // Start OAuth flow with timeout protection (30 seconds)
+      const oauthPromise = oAuthFlow.startOAuthFlow();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('OAuth timeout - please try again')), 30000)
+      );
+
+      const { createdSessionId, setActive, signIn, signUp } = await Promise.race([
+        oauthPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (__DEV__) {
+        console.log(`📥 OAuth response:`, { createdSessionId, hasSetActive: !!setActive });
+      }
 
       if (createdSessionId && setActive) {
         // OAuth successful
@@ -266,34 +286,72 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack })
           lastName: '',
         });
 
-        console.log(`✅ ${strategy} sign-in successful`);
+        if (__DEV__) {
+          console.log(`✅ ${strategy} sign-in successful`);
+        }
+
         onAuthSuccess();
       } else {
-        console.error(`❌ ${strategy} OAuth incomplete - missing session or setActive`);
+        if (__DEV__) {
+          console.error(`❌ ${strategy} OAuth incomplete - missing session or setActive`);
+        }
         throw new Error('OAuth flow did not complete successfully');
       }
     } catch (err: any) {
-      console.error(`❌ ${strategy} sign-in error:`, err);
-      console.error(`❌ Error details:`, JSON.stringify(err, null, 2));
+      if (__DEV__) {
+        console.error(`❌ ${strategy} sign-in error:`, err);
+        console.error(`❌ Error details:`, JSON.stringify(err, null, 2));
+      }
 
       // Handle specific OAuth errors
-      if (err.message?.includes('cancelled') || err.code === 'user_cancelled') {
-        // User cancelled - don't show error
-        console.log('User cancelled OAuth flow');
+      if (err.message?.includes('cancelled') ||
+          err.message?.includes('canceled') ||
+          err.code === 'user_cancelled' ||
+          err.code === 'user_canceled' ||
+          err.message?.includes("The operation couldn't be completed")) {
+        // User cancelled - silently ignore
+        if (__DEV__) {
+          console.log('User cancelled OAuth flow');
+        }
         return;
       }
 
-      // Show detailed error message
-      const errorMessage = err.errors?.[0]?.message || err.message || 'Unknown error';
-      console.error(`❌ Final error message:`, errorMessage);
+      // Handle timeout
+      if (err.message?.includes('timeout')) {
+        setError('הזמן תם. אנא נסה שוב');
+        return;
+      }
 
+      // Handle network errors
+      if (err.message?.includes('network') || err.message?.includes('Network')) {
+        setError('שגיאת רשת. בדוק את החיבור לאינטרנט ונסה שוב');
+        return;
+      }
+
+      // Show generic error message (don't expose technical details in production)
+      const errorMessage = err.errors?.[0]?.message || err.message || 'Unknown error';
+      if (__DEV__) {
+        console.error(`❌ Final error message:`, errorMessage);
+      }
+
+      // Use a friendlier error message
       setError(
         strategy === 'google'
-          ? `שגיאה בהתחברות עם Google: ${errorMessage}`
-          : `שגיאה בהתחברות עם Apple: ${errorMessage}`
+          ? 'שגיאה בהתחברות עם Google. אנא נסה שוב'
+          : 'שגיאה בהתחברות עם Apple. אנא נסה שוב'
       );
     } finally {
       setSocialLoading(null);
+    }
+  };
+
+  // Helper function to open URLs
+  const openURL = async (url: string) => {
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert('שגיאה', 'לא ניתן לפתוח את הקישור');
     }
   };
 
@@ -467,6 +525,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack })
             )}
           </Pressable>
 
+          {/* Privacy Policy & Terms - Only show for registration */}
+          {!isLogin && (
+            <View style={styles.legalTextContainer}>
+              <Text style={styles.legalText}>
+                בלחיצה על "הירשם" אתה מאשר את{' '}
+              </Text>
+              <View style={styles.legalLinksRow}>
+                <Pressable onPress={() => openURL('https://www.ethicaplus.net/terms')}>
+                  <Text style={styles.legalLink}>תנאי השימוש</Text>
+                </Pressable>
+                <Text style={styles.legalText}> ואת </Text>
+                <Pressable onPress={() => openURL('https://www.ethicaplus.net/privacy-policy')}>
+                  <Text style={styles.legalLink}>מדיניות הפרטיות</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
           {/* Social Login Section */}
           <View style={styles.socialSection}>
             {/* Divider */}
@@ -509,6 +585,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack })
                 ]}
                 onPress={() => handleSocialLogin('apple')}
                 disabled={socialLoading !== null}
+                accessible={true}
+                accessibilityLabel={isLogin ? 'התחבר עם Apple' : 'הירשם עם Apple'}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: socialLoading !== null }}
               >
                 {socialLoading === 'apple' ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -702,6 +782,7 @@ const styles = StyleSheet.create({
   appleButton: {
     backgroundColor: '#000000',
     borderColor: '#000000',
+    minHeight: 50, // Ensure minimum touch target on iPad
   },
   socialButtonText: {
     fontSize: 16,
@@ -721,5 +802,29 @@ const styles = StyleSheet.create({
   appleIcon: {
     fontSize: 20,
     color: '#FFFFFF',
+  },
+  legalTextContainer: {
+    marginTop: 12,
+    marginBottom: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  legalText: {
+    fontSize: 12,
+    color: Colors.gray[600],
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  legalLink: {
+    fontSize: 12,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
 });
