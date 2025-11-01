@@ -1,51 +1,25 @@
-# Multi-stage build for optimized FastAPI Docker image
-FROM python:3.12-slim as builder
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
-# Set working directory for API (not /app which is React Native!)
-WORKDIR /backend
+# Set working directory
+WORKDIR /app
 
-# Install system dependencies required for compilation
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
-    postgresql-client \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY api/requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Final stage - smaller image
-FROM python:3.12-slim
+# Copy application code from api directory
+COPY api/ .
 
-# Set working directory for API (not /app which is React Native!)
-WORKDIR /backend
-
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy Python packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copy application code
-COPY . .
-
-# Set Python path to ensure modules are found
-ENV PYTHONPATH=/backend
-
-# Expose port (Railway will set PORT env variable)
+# Expose port
 EXPOSE 8000
 
-# Note: Railway handles healthchecks via railway.toml, no need for Dockerfile HEALTHCHECK
-
-# Start application with uvicorn
-# Using shell form to allow environment variable expansion
-CMD python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
