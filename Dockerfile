@@ -47,5 +47,5 @@ EXPOSE 8000
 # Note: Railway handles healthchecks via railway.toml, no need for Dockerfile HEALTHCHECK
 
 # Start application with uvicorn
-# Using shell form to allow environment variable expansion
-CMD python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300
+# Use sh -c to properly expand PORT environment variable
+CMD ["sh", "-c", "python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300"]
