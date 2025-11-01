@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar, View, Text, Pressable, ScrollView, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Notifications from 'expo-notifications';
+// Notifications only work in development builds, not Expo Go (SDK 53+)
+// Import wrapped in try-catch to prevent crashes
+let Notifications: any = null;
+try {
+  Notifications = require('expo-notifications');
+} catch (error) {
+  console.warn('[OnboardingScreen] expo-notifications not available in Expo Go');
+}
 import { useAuth } from '@clerk/clerk-expo';
 import Constants from 'expo-constants';
 import { Colors } from '../config/colors';
@@ -152,20 +159,24 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       await StorageUtils.setString('study_hours', JSON.stringify(selectedHours));
       console.log('✅ Local data saved');
 
-      // Show success notification
-      if (granted) {
-        console.log('🔔 Scheduling welcome notification...');
-        // Send a single welcome notification
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'הכל מוכן! 🎉',
-            body: 'התזכורות שלך הוגדרו בהצלחה',
-            data: { type: 'onboarding_complete' },
-            sound: 'default',
-          },
-          trigger: null, // Send immediately
-        });
-        console.log('✅ Welcome notification scheduled');
+      // Show success notification (only works in development builds)
+      if (granted && Notifications) {
+        try {
+          console.log('🔔 Scheduling welcome notification...');
+          // Send a single welcome notification
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'הכל מוכן! 🎉',
+              body: 'התזכורות שלך הוגדרו בהצלחה',
+              data: { type: 'onboarding_complete' },
+              sound: 'default',
+            },
+            trigger: null, // Send immediately
+          });
+          console.log('✅ Welcome notification scheduled');
+        } catch (notifError) {
+          console.warn('⚠️  Could not schedule notification (Expo Go limitation):', notifError);
+        }
       }
 
       // Complete onboarding

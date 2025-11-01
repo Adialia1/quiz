@@ -7,6 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "node": "22.9.0",
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
@@ -14,6 +17,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "node": "22.9.0",
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
