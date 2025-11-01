@@ -38,6 +38,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY . .
 
+# Make startup script executable
+RUN chmod +x /backend/start.sh
+
 # Set Python path to ensure modules are found
 ENV PYTHONPATH=/backend
 
@@ -46,6 +49,5 @@ EXPOSE 8000
 
 # Note: Railway handles healthchecks via railway.toml, no need for Dockerfile HEALTHCHECK
 
-# Start application with uvicorn
-# Use sh -c to properly expand PORT environment variable
-CMD ["sh", "-c", "python3 -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 300"]
+# Use startup script to properly handle PORT variable
+CMD ["/backend/start.sh"]
