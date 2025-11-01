@@ -26,4 +26,7 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 requests
-semantic-router[local]==0.1.11
+
+# Optional: Semantic search (requires ~1GB+ torch/transformers packages)
+# Uncomment when needed for semantic search on concepts
+# semantic-router[local]==0.1.11

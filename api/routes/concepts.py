@@ -12,7 +12,15 @@ import os
 import random
 import hashlib
 from dotenv import load_dotenv
-from semantic_router.encoders import HuggingFaceEncoder
+
+# Optional import for semantic search (requires large torch/transformers packages)
+try:
+    from semantic_router.encoders import HuggingFaceEncoder
+    SEMANTIC_SEARCH_AVAILABLE = True
+except ImportError:
+    SEMANTIC_SEARCH_AVAILABLE = False
+    HuggingFaceEncoder = None
+
 from api.utils.cache import get_cached, set_cached, CacheTTL
 from api.utils.database import fetch_one, fetch_all, execute_query, fetch_val
 
@@ -33,6 +41,11 @@ _encoder = None
 def get_encoder():
     """Get or initialize encoder for semantic search"""
     global _encoder
+    if not SEMANTIC_SEARCH_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="Semantic search is not available. Install with: pip install semantic-router[local]"
+        )
     if _encoder is None:
         _encoder = HuggingFaceEncoder(name=EMBEDDING_MODEL)
     return _encoder
