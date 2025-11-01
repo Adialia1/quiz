@@ -12,7 +12,7 @@ asyncpg==0.30.0
 redis==5.2.1
 
 # Webhooks
-svix==1.42.0
+svix==1.81.0
 
 # AI/LLM (add if you use these)
 # langgraph
