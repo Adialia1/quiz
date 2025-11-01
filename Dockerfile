@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code from api directory
 COPY api/ .
 
+# Copy agent directory (required for agent.config.settings imports)
+COPY agent/ agent/
+
 # Expose port
 EXPOSE 8000
 
