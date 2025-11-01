@@ -7,9 +7,14 @@ import Constants from 'expo-constants';
  * Initialize RevenueCat SDK for subscription management
  */
 
-// Get RevenueCat API key from Expo config (works in production builds)
-const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.revenuecatApiKey || '';
+// Get RevenueCat API keys from Expo config (works in production builds)
+const REVENUECAT_API_KEY_APPLE = Constants.expoConfig?.extra?.revenuecatApiKeyApple || '';
+const REVENUECAT_API_KEY_GOOGLE = Constants.expoConfig?.extra?.revenuecatApiKeyGoogle || '';
 
+// Select the correct API key based on platform
+const REVENUECAT_API_KEY = Platform.OS === 'ios' ? REVENUECAT_API_KEY_APPLE : REVENUECAT_API_KEY_GOOGLE;
+
+console.log('🔑 [RevenueCat] Platform:', Platform.OS);
 console.log('🔑 [RevenueCat] API Key loaded:', REVENUECAT_API_KEY ? `${REVENUECAT_API_KEY.substring(0, 15)}...` : 'NOT FOUND');
 
 // Track if RevenueCat has been initialized
@@ -57,6 +62,16 @@ export const initializeRevenueCat = async (userId?: string) => {
       appUserID: userId, // Pass Clerk user ID directly
     });
 
+    // Add listener for CustomerInfo updates
+    Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+      console.log('[RevenueCat] 📊 Customer info updated');
+      console.log('[RevenueCat] Active entitlements:', Object.keys(customerInfo.entitlements.active));
+
+      // Check if user has premium access
+      const hasPremium = customerInfo.entitlements.active[ENTITLEMENT_ID]?.isActive === true;
+      console.log('[RevenueCat] Premium status:', hasPremium ? '✅ Active' : '❌ Inactive');
+    });
+
     isRevenueCatInitialized = true;
 
     // Check if we're in production mode
@@ -75,15 +90,15 @@ export const initializeRevenueCat = async (userId?: string) => {
  * These should match the product IDs in RevenueCat dashboard
  */
 export const SUBSCRIPTION_PLANS = {
-  MONTHLY: 'quiz_monthly_1999', //Old name so keep it like this
-  QUARTERLY: 'quiz_quarterly_4999', // 3 months - //Old name so keep it like this
+  MONTHLY: 'ethics_monthly',
+  QUARTERLY: 'ethics_quarterly',
 } as const;
 
 /**
  * Entitlement identifier
  * This is the entitlement you create in RevenueCat dashboard
  */
-export const ENTITLEMENT_ID = 'premium';
+export const ENTITLEMENT_ID = 'Pro plan';
 
 /**
  * Plan details for UI display

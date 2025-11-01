@@ -19,7 +19,8 @@
       "bundleIdentifier": "com.ethicsplus.mobile",
       "icon": "./assets/icon.png",
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"]
+        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.in-app-payments": []
       },
       "infoPlist": {
         "NSCameraUsageDescription": "האפליקציה צריכה גישה למצלמה",
@@ -54,7 +55,8 @@
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "com.android.vending.BILLING"
       ]
     },
     "web": {
@@ -66,7 +68,8 @@
       },
       "apiUrl": "https://www.ethicaplus.net",
       "clerkPublishableKey": "pk_test_ZmxlZXQtbWFsbGFyZC05OC5jbGVyay5hY2NvdW50cy5kZXYk",
-      "revenuecatApiKey": "appl_IlbsFqnqKeKRiNHJSEdyWxWkqkk"
+      "revenuecatApiKeyApple": "appl_MHBPHllSIKcjmMgpTYWATqrCkpn",
+      "revenuecatApiKeyGoogle": "goog_FzWseIppIgMnThYkOcleldDqDTx"
     },
     "plugins": [
       "expo-secure-store",

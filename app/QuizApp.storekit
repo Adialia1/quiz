@@ -66,19 +66,19 @@
         {
           "adHocOffers" : [],
           "codeOffers" : [],
-          "displayPrice" : "9.99",
+          "displayPrice" : "39.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "6740136214",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Monthly subscription to Quiz App",
+              "description" : "Monthly subscription to Ethics Plus",
               "displayName" : "Monthly Subscription",
               "locale" : "en_US"
             }
           ],
-          "productID" : "quiz_monthly_1999",
+          "productID" : "ethics_monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly Subscription",
           "subscriptionGroupID" : "6EC50CBE",
@@ -87,19 +87,19 @@
         {
           "adHocOffers" : [],
           "codeOffers" : [],
-          "displayPrice" : "24.99",
+          "displayPrice" : "99.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "6740136279",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "3 month subscription to Quiz App",
+              "description" : "3 month subscription to Ethics Plus",
               "displayName" : "3 Month Subscription",
               "locale" : "en_US"
             }
           ],
-          "productID" : "quiz_quarterly_4999",
+          "productID" : "ethics_quarterly",
           "recurringSubscriptionPeriod" : "P3M",
           "referenceName" : "3 Month Subscription",
           "subscriptionGroupID" : "6EC50CBE",
